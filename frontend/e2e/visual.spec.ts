@@ -10,7 +10,7 @@ test('dashboard is readable and fits laptop, desktop and tablet widths', async (
   }
   await page.goto('/');
   await expect(page.getByRole('heading',{name:'Mission dashboard',exact:true})).toBeVisible();
-  await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(4);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(6);
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link',{name:'Skip to medical workspace'})).toBeFocused();
   await page.getByRole('button',{name:'Live monitoring',exact:true}).focus();
@@ -35,7 +35,8 @@ test('dashboard is readable and fits laptop, desktop and tablet widths', async (
   await page.screenshot({path:`../artifacts/screenshots/dashboard-${testInfo.project.name}.png`,fullPage:true});
   await page.screenshot({path:`../artifacts/screenshots/dashboard-${testInfo.project.name}-viewport.png`});
   const latest = await (await request.get(`${api}/demo/control`)).json();
-  await request.post(`${api}/demo/control`,{data:{action:'RESTART',expected_revision:latest.revision,scenario:'ANOMALY',fault:'PRESSURE',speed:4,astronaut_id:'DEMO-CREW-001'}});
+  const restarted = await (await request.post(`${api}/demo/control`,{data:{action:'RESTART',expected_revision:latest.revision,scenario:'ANOMALY',speed:4,astronaut_id:'DEMO-CREW-001'}})).json();
+  await request.post(`${api}/demo/control`,{data:{action:'CONFIGURE',expected_revision:restarted.revision,fault:'PRESSURE'}});
   const dialog = page.getByRole('alertdialog',{name:/Alex Morgan/});
   await expect(dialog).toBeVisible({timeout:30000});
   const bounds = await dialog.boundingBox();

@@ -15,8 +15,8 @@ const PARTS: BodyPart[] = [
     id: "head",
     label: "Head & eyes",
     short: "HEAD",
-    codes: [],
-    hint: "Vision, vestibular and neurological examinations are not configured.",
+    codes: ["sleep_duration"],
+    hint: "Completed sleep duration is synthetic context. Vision, vestibular and neurological examinations are not configured.",
   },
   {
     id: "chest",
@@ -35,8 +35,8 @@ const PARTS: BodyPart[] = [
     id: "arms",
     label: "Arms & movement",
     short: "ARMS",
-    codes: [],
-    hint: "Strength, grip, range-of-motion and reaction testing are not configured.",
+    codes: ["body_temperature"],
+    hint: "Body temperature is an event-based synthetic examination. Strength, grip, range-of-motion and reaction testing are not configured.",
   },
   {
     id: "abdomen",
@@ -66,7 +66,7 @@ const REGION_SHAPES: Record<
   arms: {
     shape:
       "M135 95 L112 100 L78 248 L98 285 L128 165 Z M225 95 L248 100 L282 248 L262 285 L232 165 Z",
-    label: [180, 246],
+    label: [100, 210],
   },
   abdomen: {
     shape: "M136 176 Q180 189 224 176 L235 245 Q180 265 125 245 Z",

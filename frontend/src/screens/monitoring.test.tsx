@@ -164,3 +164,36 @@ it("shows terminal vitals, unavailable oxygen and independent live suit pressure
     .closest("article")!;
   expect(suit).toHaveTextContent("LIVE");
 });
+
+it("places recorded sleep after diastolic pressure and preserves it for deceased crew", () => {
+  const sleep = {
+    ...reading,
+    id: 2,
+    code: "sleep_duration" as const,
+    value: 7.5,
+    unit: "h",
+  };
+  const mission = makeMission({ observations: [reading, sleep] });
+  const view = render(
+    <MetricGrid mission={mission} crewId={reading.astronaut_id} />,
+  );
+  const headings = screen
+    .getAllByRole("heading", { level: 3 })
+    .map((item) => item.textContent);
+  expect(headings.slice(-2)).toEqual(["Diastolic pressure", "Sleep duration"]);
+  const card = screen
+    .getByRole("heading", { name: "Sleep duration" })
+    .closest("article")!;
+  expect(card).toHaveTextContent("7.5");
+  expect(card).toHaveTextContent("RECORDED");
+  expect(card).toHaveTextContent("Latest completed sleep period");
+  view.rerender(
+    <MetricGrid
+      mission={mission}
+      crewId={reading.astronaut_id}
+      deceasedCrewIds={new Set([reading.astronaut_id])}
+    />,
+  );
+  expect(card).toHaveTextContent("RECORDED");
+  expect(card).not.toHaveTextContent("DECEASED");
+});

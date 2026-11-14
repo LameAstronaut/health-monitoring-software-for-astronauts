@@ -29,6 +29,7 @@ def records(db: Session, kind: str) -> list[RecordRow]:
             row.data.get("started_at")
             or row.data.get("logged_at")
             or row.data.get("created_at")
+            or row.data.get("recorded_at")
             or row.data.get("due_at")
             or "",
             row.id,
@@ -216,6 +217,7 @@ def snapshot(db: Session) -> OperationsSnapshot:
         return [row.data for row in rows][-200:][::-1]
 
     return OperationsSnapshot(
+        moods=items("mood"),
         control=control_state(db),
         examinations=items("examination"),
         inventory=items("inventory"),

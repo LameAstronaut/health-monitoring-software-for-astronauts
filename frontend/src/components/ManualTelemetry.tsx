@@ -8,6 +8,7 @@ const FIELDS = [
   ["suit_pressure", "Suit pressure", "kPa", 1000],
   ["systolic_bp", "Systolic pressure", "mmHg", 1000],
   ["diastolic_bp", "Diastolic pressure", "mmHg", 1000],
+  ["sleep_duration", "Sleep duration", "h", 24],
 ] as const;
 export function ManualTelemetry({
   mission,
@@ -42,7 +43,8 @@ export function ManualTelemetry({
         overrides cannot revive it. Restart playback to reset. Other overrides
         leave ECG and physiology independent. Alert test markers are evaluated
         only in the ANOMALY scenario. Bounds are data representation limits, not
-        clinical ranges.
+        clinical ranges. Sleep duration is the latest completed sleep period;
+        zero sleep does not trigger the terminal fixture.
       </p>
       <form
         onSubmit={(event) => {

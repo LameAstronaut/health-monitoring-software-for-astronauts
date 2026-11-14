@@ -11,9 +11,11 @@
             "suit_pressure",
             "systolic_bp",
             "diastolic_bp",
+            "sleep_duration",
             "wbc",
             "hemoglobin",
-            "bone_density"
+            "bone_density",
+            "body_temperature"
           ],
           "title": "Code",
           "type": "string"
@@ -106,6 +108,13 @@
           "maximum": 1000,
           "minimum": 0,
           "title": "Diastolic Bp",
+          "type": "number"
+        },
+        "sleep_duration": {
+          "default": 7.5,
+          "maximum": 24,
+          "minimum": 0,
+          "title": "Sleep Duration",
           "type": "number"
         },
         "ecg_phase": {

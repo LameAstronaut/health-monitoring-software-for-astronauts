@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { BodyMap } from "./BodyMap";
-import { reading } from "../test/fixtures";
+import { reading, reviewExam } from "../test/fixtures";
 
 afterEach(cleanup);
 
@@ -52,4 +52,33 @@ it("uses observation timestamps rather than array order", () => {
   );
   expect(screen.getByText("75")).toBeVisible();
   expect(screen.queryByText("68")).not.toBeInTheDocument();
+});
+
+it("links saved body-temperature examinations to arms with instrument and time", async () => {
+  const exam = {
+    ...reviewExam,
+    kind: "BODY_TEMPERATURE" as const,
+    device_id: "DEMO-TEMP-001",
+    results: [
+      {
+        code: "body_temperature" as const,
+        value: 36.6,
+        unit: "°C",
+        quality: "VALID" as const,
+      },
+    ],
+  };
+  const view = render(<BodyMap observations={[]} examinations={[exam]} />);
+  await userEvent.click(
+    screen.getByRole("button", { name: "Arms & movement" }),
+  );
+  expect(screen.getByText("Body temperature")).toBeVisible();
+  expect(screen.queryByText("36.6")).not.toBeInTheDocument();
+  view.rerender(
+    <BodyMap observations={[]} examinations={[{ ...exam, status: "SAVED" }]} />,
+  );
+  expect(screen.getByText("36.6")).toBeVisible();
+  expect(screen.getByText("°C")).toBeVisible();
+  expect(screen.getByText(/SIMULATED · DEMO-TEMP-001/)).toBeVisible();
+  expect(screen.getByText(/09:00:00 UTC/)).toBeVisible();
 });

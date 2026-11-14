@@ -13,6 +13,7 @@ CREW = [
             "respiratory_rate": 13.0,
             "spo2": 98.2,
             "suit_pressure": 30.0,
+            "sleep_duration": 7.5,
         },
     },
     {
@@ -27,6 +28,7 @@ CREW = [
             "respiratory_rate": 14.0,
             "spo2": 98.2,
             "suit_pressure": 30.0,
+            "sleep_duration": 7.0,
         },
     },
     {
@@ -41,6 +43,7 @@ CREW = [
             "respiratory_rate": 12.0,
             "spo2": 98.2,
             "suit_pressure": 30.0,
+            "sleep_duration": 8.0,
         },
     },
 ]
@@ -52,26 +55,40 @@ UNITS = {
     "suit_pressure": "kPa",
     "systolic_bp": "mmHg",
     "diastolic_bp": "mmHg",
+    "sleep_duration": "h",
     "wbc": "10^9/L",
     "hemoglobin": "g/dL",
     "bone_density": "g/cm2",
+    "body_temperature": "°C",
 }
 EXAM_CODES = {
     "BLOOD_PRESSURE": ["systolic_bp", "diastolic_bp"],
     "LAB_PANEL": ["wbc", "hemoglobin"],
     "BONE_DENSITY": ["bone_density"],
+    "BODY_TEMPERATURE": ["body_temperature"],
 }
 EXAM_DEVICES = {
     "BLOOD_PRESSURE": "DEMO-BP-001",
     "LAB_PANEL": "DEMO-LAB-001",
     "BONE_DENSITY": "DEMO-DXA-001",
+    "BODY_TEMPERATURE": "DEMO-TEMP-001",
 }
+CONTINUOUS_CODES = [
+    "heart_rate",
+    "respiratory_rate",
+    "spo2",
+    "suit_pressure",
+    "systolic_bp",
+    "diastolic_bp",
+    "sleep_duration",
+]
+
 DEVICES = [
     {
         "id": f"DEMO-SUIT-00{i + 1}",
         "model": "Virtual physiology / suit monitor",
         "astronaut_id": member["id"],
-        "capabilities": list(UNITS)[:6],
+        "capabilities": CONTINUOUS_CODES.copy(),
         "kind": "CONTINUOUS",
     }
     for i, member in enumerate(CREW)
@@ -82,6 +99,7 @@ DEVICES = [
             "BLOOD_PRESSURE": "Virtual blood pressure cuff",
             "LAB_PANEL": "Synthetic laboratory report",
             "BONE_DENSITY": "Synthetic bone-density report",
+            "BODY_TEMPERATURE": "Virtual body thermometer",
         }[kind],
         "astronaut_id": None,
         "capabilities": EXAM_CODES[kind],

@@ -53,6 +53,7 @@ export function makeMission(overrides: Partial<Mission> = {}): Mission {
         respiratory_rate: 13,
         spo2: 98.2,
         suit_pressure: 30,
+        sleep_duration: 7.5,
       },
     },
     {
@@ -67,6 +68,7 @@ export function makeMission(overrides: Partial<Mission> = {}): Mission {
         respiratory_rate: 14,
         spo2: 98.2,
         suit_pressure: 30,
+        sleep_duration: 7,
       },
     },
   ];
@@ -119,6 +121,7 @@ export function makeMission(overrides: Partial<Mission> = {}): Mission {
     serverNow: NOW,
     refresh: vi.fn().mockResolvedValue(undefined),
     operations: {
+      moods: [],
       control: {
         scenario: "REST",
         astronaut_id: "DEMO-CREW-001",

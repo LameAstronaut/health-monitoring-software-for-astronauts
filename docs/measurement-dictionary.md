@@ -11,9 +11,11 @@ manual or derived ingestion paths. Codes and units are enforced by Pydantic.
 | suit_pressure | kPa | 0–1000 | Baseline 30 with small slow drift |
 | systolic_bp | mmHg | 0–1000 | Continuous modeled pressure plus explicit BP acquisition |
 | diastolic_bp | mmHg | 0–1000 | Continuous modeled pressure plus explicit BP acquisition |
+| sleep_duration | h | 0–24 | Latest completed synthetic sleep period: 7.5 / 7 / 8 h per crew |
 | wbc | 10^9/L | 0–1000 | Explicit lab-panel acquisition only |
 | hemoglobin | g/dL | 0–1000 | Explicit lab-panel acquisition only |
 | bone_density | g/cm2 | 0–1000 | Explicit bone-density report acquisition only |
+| body_temperature | °C | 0–100 | Explicit thermometer examination only; per-crew fixtures 36.6 / 36.7 / 36.8 |
 
 Representation ranges prevent malformed values; they are not validated medical plausibility
 checks or clinical alert thresholds. NaN, infinity, strings and booleans are not measurements.
@@ -45,3 +47,18 @@ the packet/stream envelope. The UI does not derive ECG from the numerical HR sum
 All eleven risk views share these records. Unsupported candidate measurements (such as
 OCT, balance testing or microbiome reports) are explicitly unavailable. There are no clinical
 risk scores. See [simulation equations and limitations](simulation-model.md).
+
+
+Sleep duration is a recorded completed sleep period, not an accumulating live timer.
+It is republished with continuous synthetic telemetry, editable in Simulator controls,
+and available in crew summaries, profiles, history and trends. Zero is valid and
+never triggers a terminal fixture. Exercise, faults and a deceased state do not
+change this historical duration. Its RECORDED display status distinguishes it from
+instantaneous vitals; stale, invalid and disconnected source states remain visible.
+
+
+Body temperature is an event-based synthetic examination (`BODY_TEMPERATURE`),
+acquired through `DEMO-TEMP-001`. It is absent from continuous telemetry and requires
+explicit review and save. Saved results appear under Arms & movement in the crew
+body view, retaining the acquisition time, thermometer ID and source provenance.
+The values and representation bounds are fixtures, not clinical thresholds.

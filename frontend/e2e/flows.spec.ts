@@ -10,7 +10,7 @@ test.beforeEach(async ({request,page}) => {
     if (alert.state === 'PENDING_REVIEW') await request.post(`${API}/alerts/${alert.id}/acknowledge`);
   }
   await page.goto('/');
-  await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(4);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(6);
 });
 
 test('complete examination is acquired from Rust, saved, exported and retrieved after reload', async ({page}) => {
@@ -42,7 +42,7 @@ test('crew selection, individual baselines and every navigation destination work
     await page.getByRole('button',{name,exact:true}).click();
     await expect(page.getByRole('heading',{level:1,name,exact:true})).toBeVisible();
     if (name === 'Equipment' || name === 'Live monitoring') {
-      if (name === 'Live monitoring') await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(4);
+      if (name === 'Live monitoring') await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(6);
       await mkdir('../artifacts/screenshots',{recursive:true});
       await page.screenshot({path:`../artifacts/screenshots/${name === 'Equipment' ? 'equipment' : 'live-monitoring'}-laptop.png`,fullPage:true});
     }
@@ -60,8 +60,8 @@ test('pause freezes model time, resume continues, and exercise/recovery change s
   await page.waitForTimeout(1400);
   expect((await (await request.get(`${API}/demo/control`)).json()).simulated_at).toBe(paused);
   await page.getByRole('button',{name:'Mission dashboard',exact:true}).click();
-  await expect(page.locator('.metric-card .status').filter({hasText:/^(STALE|DISCONNECTED)$/})).toHaveCount(4);
-  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(4);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^(STALE|DISCONNECTED)$/})).toHaveCount(7);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(7);
   await expect(page.locator('.ecg-chart').getByText('DISCONNECTED',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Simulator controls'}).click();
   await page.getByRole('button',{name:'Resume simulation'}).click();
@@ -79,7 +79,7 @@ test('sensor disconnect is explicit and last values never stay live', async ({pa
   await page.getByRole('button',{name:'Simulator controls'}).click();
   await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('DISCONNECT');
   await page.getByRole('button',{name:'Mission dashboard',exact:true}).click();
-  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(4);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(7);
   await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(0);
   await page.getByRole('button',{name:'Equipment',exact:true}).click();
   await expect(page.locator('.panel').filter({hasText:'DEMO-SUIT-001'}).getByText('DISCONNECTED',{exact:true})).toBeVisible();

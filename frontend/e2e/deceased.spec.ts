@@ -16,7 +16,7 @@ test('zero pulse marks only the affected crew deceased while the dashboard remai
   } });
   expect(response.ok()).toBeTruthy();
 
-  const crew = page.getByRole('button', { name: /Alex Morgan/ });
+  const crew = page.locator('.crew-strip').getByRole('button', { name: /Alex Morgan/ });
   await expect(crew).toContainText('DECEASED');
   await expect(crew).not.toContainText('LIVE');
   const oxygen = page.locator('.metric-card').filter({ has: page.getByRole('heading', { name: 'Oxygen saturation', exact: true }) });

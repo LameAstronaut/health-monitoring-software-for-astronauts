@@ -24,9 +24,11 @@ MeasurementCode = Literal[
     "suit_pressure",
     "systolic_bp",
     "diastolic_bp",
+    "sleep_duration",
     "wbc",
     "hemoglobin",
     "bone_density",
+    "body_temperature",
 ]
 
 
@@ -45,7 +47,7 @@ class Measurement(StrictModel):
         if self.unit != UNITS[self.code]:
             raise ValueError(f"{self.code} requires unit {UNITS[self.code]}")
         # Representation bounds, NOT clinical thresholds.
-        ceiling = 100 if self.code == "spo2" else 1000
+        ceiling = {"spo2": 100, "sleep_duration": 24, "body_temperature": 100}.get(self.code, 1000)
         if not 0 <= self.value <= ceiling:
             raise ValueError("value outside documented representation bounds")
         return self
@@ -62,6 +64,7 @@ class PhysiologyState(StrictModel):
     suit_pressure: float = Field(ge=0, le=1000, allow_inf_nan=False)
     systolic_bp: float = Field(default=118, ge=0, le=1000, allow_inf_nan=False)
     diastolic_bp: float = Field(default=76, ge=0, le=1000, allow_inf_nan=False)
+    sleep_duration: float = Field(default=7.5, ge=0, le=24, allow_inf_nan=False)
     ecg_phase: float = Field(ge=0, le=1, allow_inf_nan=False)
     activity: Literal["REST", "EXERCISE", "RECOVERY", "ANOMALY"]
 

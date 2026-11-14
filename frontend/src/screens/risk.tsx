@@ -25,11 +25,11 @@ export const RISK_MODULES = [
   {
     name: "NeuroAdapt",
     category: "Sensorimotor & vestibular adaptation",
-    codes: [],
+    codes: ["sleep_duration"],
     candidates:
       "Reaction time, eye movement, balance, gait and inertial measurements.",
     explanation:
-      "Sensorimotor adaptation requires dedicated examinations and contextual interpretation.",
+      "Completed sleep duration supplies simulation context; sensorimotor adaptation still requires dedicated examinations and contextual interpretation.",
     unavailable:
       "No reaction-time, vestibular or movement-test adapter is configured.",
   },

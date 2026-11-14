@@ -1,3 +1,4 @@
+import { MoodCheckIn } from "./components/MoodCheckIn";
 import { DataWorkspace } from "./screens/data";
 import { useState } from "react";
 import { post } from "./services/api";
@@ -255,14 +256,19 @@ export default function App() {
           </div>
         </header>
         <main id="main-content">
-          <div className="page-heading">
-            <div>
+          <div
+            className={`page-heading ${page === "Mission dashboard" ? "page-heading-with-mood" : ""}`}
+          >
+            <div className="page-heading-copy">
               <p className="eyebrow">
                 CREW HEALTH / {selected?.display_name ?? "LOCAL WORKSPACE"}
               </p>
               <h1>{page}</h1>
               <p>{DESCRIPTIONS[page]}</p>
             </div>
+            {page === "Mission dashboard" && (
+              <MoodCheckIn key={crewId} mission={mission} crewId={crewId} />
+            )}
             <div className="page-status">
               <Status
                 value={mission.connected ? "API_CONNECTED" : "API_DISCONNECTED"}

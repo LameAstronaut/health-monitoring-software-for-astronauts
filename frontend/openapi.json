@@ -23,6 +23,44 @@
         }
       }
     },
+    "/api/v1/moods": {
+      "post": {
+        "summary": "Record Mood",
+        "operationId": "record_mood_api_v1_moods_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoodRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MoodEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/crew/summaries": {
       "get": {
         "summary": "Summaries",
@@ -1904,7 +1942,8 @@
             "enum": [
               "BLOOD_PRESSURE",
               "LAB_PANEL",
-              "BONE_DENSITY"
+              "BONE_DENSITY",
+              "BODY_TEMPERATURE"
             ],
             "title": "Kind"
           },
@@ -1942,7 +1981,8 @@
             "enum": [
               "BLOOD_PRESSURE",
               "LAB_PANEL",
-              "BONE_DENSITY"
+              "BONE_DENSITY",
+              "BODY_TEMPERATURE"
             ],
             "title": "Kind"
           },
@@ -2403,6 +2443,19 @@
               }
             ],
             "title": "Diastolic Bp"
+          },
+          "sleep_duration": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Duration"
           }
         },
         "additionalProperties": false,
@@ -2527,9 +2580,11 @@
               "suit_pressure",
               "systolic_bp",
               "diastolic_bp",
+              "sleep_duration",
               "wbc",
               "hemoglobin",
-              "bone_density"
+              "bone_density",
+              "body_temperature"
             ],
             "title": "Code"
           },
@@ -2560,6 +2615,75 @@
         ],
         "title": "Measurement"
       },
+      "MoodEntry": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "score": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Score"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Recorded At"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "score",
+          "id",
+          "recorded_at"
+        ],
+        "title": "MoodEntry"
+      },
+      "MoodRequest": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "score": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Score"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "score"
+        ],
+        "title": "MoodRequest"
+      },
       "Observation": {
         "properties": {
           "code": {
@@ -2571,9 +2695,11 @@
               "suit_pressure",
               "systolic_bp",
               "diastolic_bp",
+              "sleep_duration",
               "wbc",
               "hemoglobin",
-              "bone_density"
+              "bone_density",
+              "body_temperature"
             ],
             "title": "Code"
           },
@@ -2710,6 +2836,13 @@
       },
       "OperationsSnapshot": {
         "properties": {
+          "moods": {
+            "items": {
+              "$ref": "#/components/schemas/MoodEntry"
+            },
+            "type": "array",
+            "title": "Moods"
+          },
           "control": {
             "$ref": "#/components/schemas/SimulatorControl"
           },
@@ -2831,6 +2964,13 @@
             "minimum": 0.0,
             "title": "Diastolic Bp",
             "default": 76
+          },
+          "sleep_duration": {
+            "type": "number",
+            "maximum": 24.0,
+            "minimum": 0.0,
+            "title": "Sleep Duration",
+            "default": 7.5
           },
           "ecg_phase": {
             "type": "number",

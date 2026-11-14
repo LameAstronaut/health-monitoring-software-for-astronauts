@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/moods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Mood */
+        post: operations["record_mood_api_v1_moods_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crew/summaries": {
         parameters: {
             query?: never;
@@ -798,7 +815,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY";
+            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY" | "BODY_TEMPERATURE";
             /** Device Id */
             device_id: string;
         };
@@ -815,7 +832,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY";
+            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY" | "BODY_TEMPERATURE";
             /** Device Id */
             device_id: string;
             /**
@@ -995,6 +1012,8 @@ export interface components {
             systolic_bp?: number | null;
             /** Diastolic Bp */
             diastolic_bp?: number | null;
+            /** Sleep Duration */
+            sleep_duration?: number | null;
         };
         /** Meal */
         Meal: {
@@ -1051,7 +1070,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "wbc" | "hemoglobin" | "bone_density";
+            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "sleep_duration" | "wbc" | "hemoglobin" | "bone_density" | "body_temperature";
             /** Value */
             value: number;
             /** Unit */
@@ -1062,13 +1081,46 @@ export interface components {
              */
             quality: "VALID" | "INVALID";
         };
+        /** MoodEntry */
+        MoodEntry: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /** Score */
+            score: number;
+            /** Id */
+            id: string;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
+        /** MoodRequest */
+        MoodRequest: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /** Score */
+            score: number;
+        };
         /** Observation */
         Observation: {
             /**
              * Code
              * @enum {string}
              */
-            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "wbc" | "hemoglobin" | "bone_density";
+            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "sleep_duration" | "wbc" | "hemoglobin" | "bone_density" | "body_temperature";
             /** Value */
             value: number;
             /** Unit */
@@ -1136,6 +1188,8 @@ export interface components {
         };
         /** OperationsSnapshot */
         OperationsSnapshot: {
+            /** Moods */
+            moods?: components["schemas"]["MoodEntry"][];
             control: components["schemas"]["SimulatorControl"];
             /** Examinations */
             examinations: components["schemas"]["Examination"][];
@@ -1181,6 +1235,11 @@ export interface components {
              * @default 76
              */
             diastolic_bp: number;
+            /**
+             * Sleep Duration
+             * @default 7.5
+             */
+            sleep_duration: number;
             /** Ecg Phase */
             ecg_phase: number;
             /**
@@ -1479,6 +1538,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OperationsSnapshot"];
+                };
+            };
+        };
+    };
+    record_mood_api_v1_moods_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoodRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

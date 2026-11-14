@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy import func, select
 
 from . import operations as ops
-from .database import AlertRow, ObservationRow, PacketRow
+from .database import AlertRow, ObservationRow, PacketRow, RecordRow
 from .datasets import build_dataset_router
 from .devices import SimulatedAdapter
 from .operation_schemas import (
@@ -24,6 +24,8 @@ from .operation_schemas import (
     FitnessSession,
     Meal,
     MealRequest,
+    MoodEntry,
+    MoodRequest,
     OperationsSnapshot,
     RuntimeState,
     SimulatorControl,
@@ -55,6 +57,24 @@ def build_operations_router(sessions, service, config):
     async def operations():
         with sessions() as db:
             return ops.snapshot(db)
+
+    @router.post("/moods", response_model=MoodEntry, dependencies=[Depends(operator)])
+    async def record_mood(request: MoodRequest):
+        now = datetime.now(UTC)
+        entry = MoodEntry(
+            **request.model_dump(),
+            id=f"demo-mood-{request.astronaut_id}-{now.date().isoformat()}",
+            recorded_at=now,
+        )
+        with sessions() as db:
+            row = db.get(RecordRow, entry.id)
+            data = entry.model_dump(mode="json")
+            if row:
+                row.data = data
+            else:
+                ops.insert(db, "mood", data, request.astronaut_id)
+            db.commit()
+        return entry
 
     @router.get("/crew/summaries", response_model=list[CrewSummary])
     async def summaries():

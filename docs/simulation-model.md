@@ -172,8 +172,8 @@ The design is informed by the component timing and variability discussed in
 [McSharry et al., synthetic ECG generation](https://archive.physionet.org/physiotools/ecgsyn/paper/).
 
 Crew summaries select the latest continuous observation for each code, including
-all six vitals, and retain older code-specific readings after partial packets.
-They no longer truncate a six-reading publication to four observations.
+all six vitals and completed sleep duration, and retain older code-specific
+readings after partial packets. Publications are not truncated to four observations.
 
 Acknowledged alerts keep the corresponding vital card highlighted until a valid
 recovery sample is observed with live telemetry. Baseline bands allow ordinary
@@ -269,3 +269,32 @@ Restart seeded playback revives every crew member by creating new living models,
 clearing all manual overrides and injected faults, and resuming playback. The
 restart button returns the scenario to REST. API callers can explicitly choose a
 starting scenario, but cannot carry faults or zero overrides into a restart.
+
+
+## Completed sleep duration
+
+A seventh published measurement, `sleep_duration` in hours (0–24), records the latest
+completed synthetic sleep period. Initial crew fixtures are 7.5, 7 and 8 hours.
+This is fixture context, not a recommended sleep target or a sleep-stage model.
+It stays constant through REST, EXERCISE, RECOVERY, ANOMALY and terminal states.
+Manual overrides use the normal control revision, persistence and reset behavior.
+A zero duration never triggers death, and terminal-state overrides leave this
+record editable. Legacy model checkpoints missing the field default to 7.5 hours.
+
+The seventh dashboard card follows diastolic pressure. On the four-column desktop
+and laptop layout, it sits below oxygen saturation and to the right of diastolic
+pressure. Tablet/mobile layouts retain the existing two-column flow. The same
+measurement is available in live monitoring, trends, crew baselines, observation
+history and the NeuroAdapt/body-map contextual view. Missing readings show no data.
+
+
+## Body-temperature examinations
+
+The virtual thermometer `DEMO-TEMP-001` completes an explicit BODY_TEMPERATURE
+request with one `body_temperature` result in °C: 36.6, 36.7 or 36.8 for the selected
+crew. These are static per-crew fixtures, not thermal physiology or clinical limits.
+Exercise, recovery, seed and faults do not silently change a saved temperature.
+The result follows Acquire → Review → Save, supports the existing report export,
+and appears in the arms region of Risk monitoring's crew body view only after save.
+Missing/cancelled/unreviewed results do not substitute a default reading. Worker
+connectivity, acquisition timeout and deceased-state checks also apply to this exam.

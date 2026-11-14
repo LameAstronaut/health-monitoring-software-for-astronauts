@@ -2226,9 +2226,22 @@ body:has(.alert-takeover[open]) {
     margin-left: 280px;
   }
 }
-@media (max-width: 1699px) {
+@media (max-width: 1250px) {
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1251px) and (max-width: 1699px) {
+  .metric-card {
+    padding: 16px;
+  }
+  .metric-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .metric-heading h3 {
+    font-size: 18px;
   }
 }
 @media (max-width: 1450px) {
@@ -2466,4 +2479,123 @@ button[aria-pressed="true"] {
   color: #fff;
   background: #343a40;
   border-color: #343a40;
+}
+
+.page-heading-with-mood {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+.page-heading-with-mood > .page-status {
+  display: flex;
+}
+.mood-control {
+  justify-self: center;
+}
+.mood-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 94px;
+  padding: 6px;
+  border: 1px solid #c5d6e2;
+  border-radius: 16px;
+  background: #fff;
+}
+.mood-trigger > span {
+  font-size: 14px;
+}
+.mood-face {
+  display: block;
+  width: 64px;
+  height: 64px;
+  color: #294756;
+  flex-shrink: 0;
+}
+.mood-face-fill {
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.mood-1 .mood-face-fill {
+  fill: #f6d6c7;
+}
+.mood-2 .mood-face-fill {
+  fill: #f9e7ac;
+}
+.mood-3 .mood-face-fill {
+  fill: #cfebd5;
+}
+.mood-unrecorded .mood-face-fill {
+  fill: #e8edf2;
+  stroke-dasharray: 3 3;
+}
+.mood-dialog {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  margin: auto;
+  padding: 28px;
+  border: 1px solid #b8cbd8;
+  border-radius: 18px;
+  color: #173243;
+  background: #fff;
+  box-shadow: 0 24px 80px #102c4244;
+}
+.mood-dialog::backdrop {
+  background: #102c4280;
+}
+.mood-dialog h2 {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+.mood-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 16px;
+  font-weight: 650;
+}
+.mood-preview .mood-face {
+  width: 96px;
+  height: 96px;
+}
+.mood-slider-label {
+  display: block;
+  font-weight: 600;
+}
+.mood-dialog input[type="range"] {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 0;
+  accent-color: #087f8c;
+  cursor: pointer;
+}
+.mood-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+.mood-dialog .button-row {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+@media (max-width: 620px) {
+  .page-heading-with-mood {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+  }
+  .page-heading-with-mood > .page-heading-copy {
+    grid-column: 1 / -1;
+  }
+  .page-heading-with-mood > .mood-control {
+    justify-self: start;
+  }
+  .mood-dialog {
+    padding: 20px;
+  }
 }

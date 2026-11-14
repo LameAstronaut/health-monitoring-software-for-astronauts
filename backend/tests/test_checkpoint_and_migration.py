@@ -15,6 +15,7 @@ def test_model_checkpoint_survives_worker_and_api_restart(client, app_factory):
     control = client.get("/api/v1/demo/control").json()
     state = {
         "deceased": False,
+        "sleep_duration": 7.5,
         "seed": 42,
         "crew_index": 0,
         "ticks": 125,

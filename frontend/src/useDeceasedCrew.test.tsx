@@ -117,3 +117,16 @@ it("restores persisted deceased state even when the latest vitals are historical
   );
   expect([...result.current]).toEqual([reading.astronaut_id]);
 });
+
+it("does not mark a crew member deceased for zero completed sleep", () => {
+  const { result } = renderHook(() =>
+    useDeceasedCrew(
+      makeMission({
+        observations: [
+          { ...reading, code: "sleep_duration", value: 0, unit: "h" },
+        ],
+      }),
+    ),
+  );
+  expect(result.current.size).toBe(0);
+});

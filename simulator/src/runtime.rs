@@ -56,6 +56,7 @@ pub fn summaries(model: &Physiology, invalid: bool) -> Vec<Measurement> {
         ("suit_pressure", model.suit_pressure, "kPa"),
         ("systolic_bp", model.systolic_bp, "mmHg"),
         ("diastolic_bp", model.diastolic_bp, "mmHg"),
+        ("sleep_duration", model.sleep_duration, "h"),
     ]
     .into_iter()
     .map(|(code, value, unit)| Measurement {
@@ -79,13 +80,14 @@ pub fn advance_controlled(model: &mut Physiology, samples: usize, control: &Cont
         && !matches!(control.fault.as_str(), "SENSOR_ERROR" | "DISCONNECT")
     {
         let trigger = summaries(model, false).into_iter().find(|reading| {
-            control
-                .manual_values
-                .get(reading.code)
-                .copied()
-                .flatten()
-                .unwrap_or(reading.value)
-                == 0.0
+            reading.code != "sleep_duration"
+                && control
+                    .manual_values
+                    .get(reading.code)
+                    .copied()
+                    .flatten()
+                    .unwrap_or(reading.value)
+                    == 0.0
         });
         if let Some(reading) = trigger {
             model.deceased = true;
@@ -125,7 +127,7 @@ pub fn continuous_packet(
     );
     if control.astronaut_id == crew {
         for measurement in &mut measurements {
-            if model.deceased && measurement.code != "suit_pressure" {
+            if model.deceased && !matches!(measurement.code, "suit_pressure" | "sleep_duration") {
                 continue;
             }
             if let Some(Some(value)) = control.manual_values.get(measurement.code) {
@@ -162,6 +164,10 @@ pub fn exam_packet(
         "LAB_PANEL" => vec![
             json!({"code":"wbc", "value":5.8 + offset * 0.2, "unit":"10^9/L", "quality":"VALID"}),
             json!({"code":"hemoglobin", "value":14.1 + offset * 0.3, "unit":"g/dL", "quality":"VALID"}),
+        ],
+        "BODY_TEMPERATURE" => vec![
+            json!({"code":"body_temperature", "value":(366.0 + offset) / 10.0,
+                                          "unit":"°C", "quality":"VALID"}),
         ],
         "BONE_DENSITY" => vec![json!({"code":"bone_density", "value":1.10 + offset * 0.02,
                                      "unit":"g/cm2", "quality":"VALID"})],
@@ -288,6 +294,93 @@ mod tests {
         legacy.as_object_mut().unwrap().remove("deceased");
         let model: Physiology = serde_json::from_value(legacy).unwrap();
         assert!(!model.deceased);
+    }
+
+    #[test]
+    fn completed_sleep_is_stable_editable_and_never_a_terminal_trigger() {
+        for crew in 0..3 {
+            let mut model = Physiology::new(42, crew);
+            let sleep = model.sleep_duration;
+            for activity in [
+                Activity::Rest,
+                Activity::Exercise,
+                Activity::Recovery,
+                Activity::Anomaly,
+            ] {
+                model.advance(125 * 60, activity, "MULTI_SYSTEM");
+                assert_eq!(model.sleep_duration, sleep);
+            }
+            let mut legacy = serde_json::to_value(&model).unwrap();
+            legacy.as_object_mut().unwrap().remove("sleep_duration");
+            assert_eq!(
+                serde_json::from_value::<Physiology>(legacy)
+                    .unwrap()
+                    .sleep_duration,
+                7.5
+            );
+            let resumed: Physiology =
+                serde_json::from_value(serde_json::to_value(&model).unwrap()).unwrap();
+            assert_eq!(resumed.sleep_duration, sleep);
+        }
+        let mut model = Physiology::new(42, 0);
+        let mut control = control();
+        control
+            .manual_values
+            .insert("sleep_duration".into(), Some(0.0));
+        let wave = advance_controlled(&mut model, 125, &control);
+        assert!(!model.deceased);
+        assert!(wave.iter().any(|sample| *sample > 0.5));
+        let packet = continuous_packet(&model, wave, 0.0, 1, "test", &control);
+        let sleep = packet["measurements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|item| item["code"] == "sleep_duration")
+            .unwrap();
+        assert_eq!(sleep["value"], 0.0);
+        assert_eq!(sleep["unit"], "h");
+        model.deceased = true;
+        let wave = advance_controlled(&mut model, 125, &control);
+        let packet = continuous_packet(&model, wave, 1.0, 2, "test", &control);
+        let sleep = packet["measurements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|item| item["code"] == "sleep_duration")
+            .unwrap();
+        assert_eq!(sleep["value"], 0.0);
+        assert_eq!(model.sleep_duration, 7.5);
+    }
+
+    #[test]
+    fn temperature_is_an_explicit_per_crew_examination_fixture() {
+        for crew in 0..3 {
+            let mut model = Physiology::new(42, crew);
+            let command = ExamCommand {
+                id: "temp".into(),
+                astronaut_id: CREW_IDS[crew].into(),
+                kind: "BODY_TEMPERATURE".into(),
+                device_id: "DEMO-TEMP-001".into(),
+            };
+            let packet = exam_packet(&command, &model, 1, "test", "playback");
+            assert_eq!(packet["measurements"][0]["code"], "body_temperature");
+            assert_eq!(
+                packet["measurements"][0]["value"],
+                (366.0 + crew as f64) / 10.0
+            );
+            assert_eq!(packet["measurements"][0]["unit"], "°C");
+            assert_eq!(packet["examination_id"], "temp");
+            model.advance(125 * 60, Activity::Exercise, "NONE");
+            assert_eq!(
+                packet["measurements"],
+                exam_packet(&command, &model, 2, "test", "playback")["measurements"]
+            );
+            assert!(
+                summaries(&model, false)
+                    .iter()
+                    .all(|measurement| measurement.code != "body_temperature")
+            );
+        }
     }
 
     #[test]

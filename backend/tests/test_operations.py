@@ -220,7 +220,7 @@ def test_alert_acknowledgment_and_tasks_are_idempotent(client):
 def test_device_faults_are_separate_from_calibration_and_data_quality(client):
     live(client)
     assert len(client.get("/api/v1/crew").json()) == 3
-    assert len(client.get("/api/v1/devices").json()) == 6
+    assert len(client.get("/api/v1/devices").json()) == 7
     control(client, "CONFIGURE", fault="DISCONNECT")
     device = client.get("/api/v1/devices").json()[0]
     assert device["status"] == "DISCONNECTED"
@@ -239,6 +239,7 @@ def test_crew_summary_includes_all_vitals_and_preserves_partial_packet_readings(
             ("suit_pressure", 30, "kPa"),
             ("systolic_bp", 118, "mmHg"),
             ("diastolic_bp", 76, "mmHg"),
+            ("sleep_duration", 7.5, "h"),
         ]
     ]
     assert (
@@ -254,13 +255,13 @@ def test_crew_summary_includes_all_vitals_and_preserves_partial_packet_readings(
     assert (
         client.post(
             "/api/v1/telemetry",
-            json=packet(sequence=2, measurements=[measurements[-1] | {"value": 80}]),
+            json=packet(sequence=2, measurements=[measurements[-2] | {"value": 80}]),
             headers=TOKEN,
         ).status_code
         == 200
     )
     readings = client.get("/api/v1/crew/summaries").json()[0]["readings"]
-    assert len(readings) == 6
+    assert len(readings) == 7
     assert next(r["value"] for r in readings if r["code"] == "heart_rate") == 68
     assert next(r["value"] for r in readings if r["code"] == "diastolic_bp") == 80
     assert client.get("/api/v1/crew/summaries").json()[1]["readings"] == []

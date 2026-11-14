@@ -22,6 +22,12 @@ const EXAMS = [
     device: "DEMO-DXA-001",
     description: "Synthetic report · bone mineral density",
   },
+  {
+    kind: "BODY_TEMPERATURE",
+    label: "Body temperature",
+    device: "DEMO-TEMP-001",
+    description: "Event-based thermometer fixture · degrees Celsius",
+  },
 ] as const;
 
 function downloadReport(exam: Examination) {

@@ -19,7 +19,7 @@ Fault = Literal[
     "DISCONNECT",
     "SENSOR_ERROR",
 ]
-ExamKind = Literal["BLOOD_PRESSURE", "LAB_PANEL", "BONE_DENSITY"]
+ExamKind = Literal["BLOOD_PRESSURE", "LAB_PANEL", "BONE_DENSITY", "BODY_TEMPERATURE"]
 
 
 class ManualValues(StrictModel):
@@ -29,6 +29,7 @@ class ManualValues(StrictModel):
     suit_pressure: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
     systolic_bp: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
     diastolic_bp: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
+    sleep_duration: float | None = Field(default=None, ge=0, le=24, allow_inf_nan=False)
 
 
 class SimulatorControl(StrictModel):
@@ -186,7 +187,19 @@ class Task(StrictModel):
     source_type: Literal["SIMULATED"] = "SIMULATED"
 
 
+class MoodRequest(StrictModel):
+    astronaut_id: CrewId
+    score: int = Field(strict=True, ge=1, le=3)
+
+
+class MoodEntry(MoodRequest):
+    id: str
+    recorded_at: datetime
+    source_type: Literal["SIMULATED"] = "SIMULATED"
+
+
 class OperationsSnapshot(StrictModel):
+    moods: list[MoodEntry] = Field(default_factory=list)
     control: SimulatorControl
     examinations: list[Examination]
     inventory: list[InventoryItem]

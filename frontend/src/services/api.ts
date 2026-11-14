@@ -8,6 +8,7 @@ export type CrewMember = components["schemas"]["CrewMember"];
 export type Examination = components["schemas"]["Examination"];
 export type SimulatorControl = components["schemas"]["SimulatorControl"];
 export type Operations = components["schemas"]["OperationsSnapshot"];
+export type MoodEntry = components["schemas"]["MoodEntry"];
 export type CrewSummary = components["schemas"]["CrewSummary"];
 export type WaveformReading = components["schemas"]["WaveformReading"];
 export type ControlCommand = components["schemas"]["ControlCommand"];

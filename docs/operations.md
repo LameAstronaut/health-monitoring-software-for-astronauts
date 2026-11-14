@@ -12,7 +12,7 @@ worker remain separate processes; the React app reads shared observations and re
   adapter queues an acquisition for Rust. Review the returned measurements, add a demo
   note, save and later inspect/export the synthetic report. Without a live worker the
   request fails visibly; lost acquisition times out rather than inventing a reading.
-- **Equipment:** six virtual instruments, capabilities, association, connection, firmware,
+- **Equipment:** seven virtual instruments, capabilities, association, connection, firmware,
   last receipt and unknown physical calibration. Event instruments are IDLE, not falsely LIVE.
 - **Risk monitoring:** eleven shared-record categories with grouped observations, trends,
   context and missing-instrument notices. No risk scores, diagnoses or AI conclusions.
@@ -46,3 +46,19 @@ Meals, sessions, tasks, EVA checklists and acknowledgment survive reload and API
 Specialist sensorimotor, microbiome and ophthalmic instruments, advanced lab markers,
 ground synchronization, clinical review signatures, PWA caching, retention/backup and
 shared-user roles remain outside this local prototype. Their absence is visible in the UI.
+
+
+## Daily mood check-in
+
+The Mission dashboard heading contains a mood face between the title and API
+status. Click it to answer “How are you feeling today?” with a three-step slider:
+1 Unhappy (sad face), 2 Neutral, 3 Happy. Submit saves the choice for the selected
+synthetic crew member. Cancel or Escape closes without changing it; failed saves
+keep the dialog and draft open for retry.
+
+Check-ins are stored locally in operational records, independently per crew and
+UTC calendar day. Updating today's mood replaces that crew's current-day entry;
+previous days remain recorded. Reloads, crew selection and playback restarts retain
+saved choices. A new day shows a neutral placeholder labeled Not recorded until
+a choice is submitted. Mood is a self-reported demo record, not a derived clinical
+assessment or a simulator fault.

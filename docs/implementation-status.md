@@ -16,7 +16,7 @@ locked setup (`make setup`), generated standalone telemetry JSON Schema, applica
 rendering tests and integration verification through Vite's REST/WebSocket proxy on Arch Linux.
 
 Current additions: individual persistent Rust state; REST/EXERCISE/RECOVERY/ANOMALY;
-separate continuous ECG; versioned controls and replay; three crew / six instruments;
+separate continuous ECG; versioned controls and replay; three crew / seven instruments;
 event-only BP/lab/bone-density acquisition and saved/exportable reports; eleven risk views;
 meal inventory/logs, fitness, EVA checklist/timeline and alert acknowledgment. See
 [operations](operations.md), [model limits](simulation-model.md), and [visual review](visual-review.md).

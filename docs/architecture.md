@@ -13,7 +13,7 @@ flowchart LR
   U -->|REST snapshot and history| A
 ```
 
-Run one API worker and one controlled Rust worker for the three crew and six virtual instruments. The API serializes
+Run one API worker and one controlled Rust worker for the three crew and seven virtual instruments. The API serializes
 ingestion and commits raw packet data, normalized observations and alert evidence in
 one SQLAlchemy transaction. A database uniqueness constraint also protects device
 sequence numbers. Alembic owns schema changes; startup fails if the schema is missing.

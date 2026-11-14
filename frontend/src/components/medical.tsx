@@ -45,6 +45,13 @@ export const METRICS = [
     range: [40, 110],
     color: "#a46b24",
   },
+  {
+    code: "sleep_duration",
+    label: "Sleep duration",
+    unit: "h",
+    range: [0, 24],
+    color: "#6653a3",
+  },
 ] as const;
 export const NAMES: Record<string, string> = {
   heart_rate: "Heart rate",
@@ -53,9 +60,11 @@ export const NAMES: Record<string, string> = {
   suit_pressure: "Suit pressure",
   systolic_bp: "Systolic pressure",
   diastolic_bp: "Diastolic pressure",
+  sleep_duration: "Sleep duration",
   wbc: "White blood cell count",
   hemoglobin: "Hemoglobin",
   bone_density: "Bone mineral density",
+  body_temperature: "Body temperature",
 };
 export function stamp(value: string | undefined | null, date = false) {
   if (!value) return "Not recorded";
@@ -163,7 +172,10 @@ export function MetricCard({
     status = deviceStatus;
   const live = status === "LIVE";
   const noOxygenSignal = deceased && code === "spo2";
-  if (live && deceased && code !== "suit_pressure") status = "DECEASED";
+  const terminalVital =
+    deceased && code !== "suit_pressure" && code !== "sleep_duration";
+  if (live && terminalVital) status = "DECEASED";
+  if (live && code === "sleep_duration") status = "RECORDED";
   if (noOxygenSignal && status === "INVALID") status = "NO_SIGNAL";
   return (
     <article
@@ -196,7 +208,11 @@ export function MetricCard({
         <p className="last-known-label">No pulsatile signal · SIMULATED</p>
       ) : !live && reading ? (
         <p className="last-known-label">Last known value · NO LIVE DATA</p>
-      ) : deceased && code !== "suit_pressure" ? (
+      ) : code === "sleep_duration" ? (
+        <p className="baseline-note">
+          Latest completed sleep period · SIMULATED
+        </p>
+      ) : terminalVital ? (
         <p className="baseline-note">
           Terminal fixture · restart playback to reset
         </p>

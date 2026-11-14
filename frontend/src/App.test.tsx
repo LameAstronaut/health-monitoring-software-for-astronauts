@@ -33,7 +33,7 @@ it("renders a readable demo workspace with honest missing measurement states", (
   ).toBeVisible();
   expect(screen.getByText("API CONNECTED")).toBeVisible();
   expect(screen.getAllByText("DEMO / SIMULATED").length).toBeGreaterThan(0);
-  expect(screen.getAllByText(/^Awaiting first observation/).length).toBe(5);
+  expect(screen.getAllByText(/^Awaiting first observation/).length).toBe(6);
   expect(
     screen.getByRole("heading", { name: "Systolic pressure" }),
   ).toBeVisible();
@@ -191,12 +191,12 @@ it("shows deceased for the affected crew without an end screen and keeps control
   });
   vi.mocked(useMission).mockReturnValue(mission);
   const view = render(<App />);
-  expect(screen.getByRole("button", { name: /Alex Morgan/ })).toHaveTextContent(
-    "DECEASED",
-  );
-  expect(screen.getByRole("button", { name: /Jordan Lee/ })).toHaveTextContent(
-    "LIVE",
-  );
+  expect(
+    screen.getByRole("button", { name: /Alex Morgan/, pressed: true }),
+  ).toHaveTextContent("DECEASED");
+  expect(
+    screen.getByRole("button", { name: /Jordan Lee/, pressed: false }),
+  ).toHaveTextContent("LIVE");
   expect(screen.queryByText("The End")).not.toBeInTheDocument();
   expect(view.container.querySelector(".app-shell")).not.toHaveAttribute(
     "inert",
@@ -207,14 +207,14 @@ it("shows deceased for the affected crew without an end screen and keeps control
   await userEvent.click(
     screen.getByRole("button", { name: "Mission dashboard" }),
   );
-  expect(screen.getByRole("button", { name: /Alex Morgan/ })).toHaveTextContent(
-    "DECEASED",
-  );
+  expect(
+    screen.getByRole("button", { name: /Alex Morgan/, pressed: true }),
+  ).toHaveTextContent("DECEASED");
   const restarted = makeMission();
   restarted.operations!.control.run_id = "restarted-run";
   vi.mocked(useMission).mockReturnValue(restarted);
   view.rerender(<App />);
   expect(
-    screen.getByRole("button", { name: /Alex Morgan/ }),
+    screen.getByRole("button", { name: /Alex Morgan/, pressed: true }),
   ).not.toHaveTextContent("DECEASED");
 });
