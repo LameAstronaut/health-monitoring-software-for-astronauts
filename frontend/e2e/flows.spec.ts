@@ -6,6 +6,9 @@ test.beforeEach(async ({request,page}) => {
   const state = await (await request.get(`${API}/demo/control`)).json();
   const reset = await request.post(`${API}/demo/control`,{data:{action:'RESTART',expected_revision:state.revision,scenario:'REST',fault:'NONE',seed:42,speed:1,astronaut_id:'DEMO-CREW-001'}});
   expect(reset.ok()).toBeTruthy();
+  for (const alert of await (await request.get(`${API}/alerts`)).json()) {
+    if (alert.state === 'PENDING_REVIEW') await request.post(`${API}/alerts/${alert.id}/acknowledge`);
+  }
   await page.goto('/');
   await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(4);
 });
@@ -112,16 +115,72 @@ test('EVA checklist gates a real saved timeline', async ({page}) => {
   await expect(page.getByText('EVA demonstration completed',{exact:true}).first()).toBeVisible();
 });
 
-test('gradual anomalies create prioritized evidence and acknowledgment persists', async ({page}) => {
+test('acute anomalies open full screen, minimize without acknowledgment and retain saved history', async ({page,request}) => {
   await page.getByRole('button',{name:'Simulator controls'}).click();
-  await page.getByLabel('Simulation speed').selectOption('4');
   await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('BOTH');
+  const dialog = page.getByRole('alertdialog',{name:/Alex Morgan/});
+  await expect(dialog).toBeVisible({timeout:20000});
+  const control = await (await request.get(`${API}/demo/control`)).json();
+  expect((await request.post(`${API}/demo/control`,{data:{action:'PAUSE',expected_revision:control.revision}})).ok()).toBe(true);
+  await expect.poll(async () => (await (await request.get(`${API}/demo/control`)).json()).worker_state).toBe('PAUSED');
+  await expect(dialog.getByRole('button',{name:'Minimize',exact:true})).toBeFocused();
+  expect((await dialog.innerText()).split(/\s+/).length).toBeLessThan(55);
+  const bounds = await dialog.boundingBox();
+  expect(bounds?.width).toBe(1366);
+  expect(bounds?.height).toBe(768);
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialog.getByRole('button',{name:'Acknowledge',exact:true})).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole('region',{name:'Pending simulated alerts'})).toContainText('PRIORITY 1');
   await page.getByRole('button',{name:'Alerts',exact:true}).click();
-  await expect(page.locator('.alert-record.priority-1').first()).toBeVisible({timeout:30000});
-  await expect(page.locator('.alert-record').filter({hasText:'oxygen-decrease'}).first()).toBeVisible({timeout:30000});
-  await page.locator('.alert-record.priority-1').first().getByRole('button',{name:'Acknowledge demo alert'}).click();
-  await expect(page.locator('.alert-record.priority-1').first().getByText('ACKNOWLEDGED',{exact:true})).toBeVisible();
+  await expect(page.locator('.alert-record.priority-1').first().getByText('PENDING REVIEW',{exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Review alert full screen'}).click();
+  await expect(dialog).toBeVisible();
+  await mkdir('../artifacts/screenshots',{recursive:true});
+  await page.screenshot({path:'../artifacts/screenshots/critical-alert-laptop.png',animations:'disabled'});
+  await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
+  await expect(dialog).not.toBeVisible();
+  const paused = await (await request.get(`${API}/demo/control`)).json();
+  expect((await request.post(`${API}/demo/control`,{data:{action:'RESUME',expected_revision:paused.revision}})).ok()).toBe(true);
+  await expect(dialog).toBeVisible({timeout:20000});
+  await expect(dialog.getByRole('heading',{name:'Oxygen falling'})).toBeVisible();
+  await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
+  await expect(dialog).not.toBeVisible();
   await page.reload();
   await page.getByRole('button',{name:'Alerts',exact:true}).click();
   await expect(page.locator('.alert-record.priority-1').first().getByText('ACKNOWLEDGED',{exact:true})).toBeVisible();
+  await expect(page.locator('.alert-record').filter({hasText:'oxygen-decrease'}).first().getByText('ACKNOWLEDGED',{exact:true})).toBeVisible();
+});
+
+test('pulse rises quickly at 1x and every alert opens full screen with controllable flashing', async ({page}) => {
+  await page.getByRole('button',{name:'Simulator controls'}).click();
+  await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('PULSE_SURGE');
+  const dialog = page.getByRole('alertdialog',{name:/Alex Morgan/});
+  await expect(dialog).toBeVisible({timeout:20000});
+  await expect(dialog.getByRole('heading',{name:'Pulse rising'})).toBeVisible();
+  await expect(dialog).toContainText('PRIORITY 2');
+  await expect(dialog).toHaveCSS('animation-name','alert-attention');
+  await expect(dialog).toHaveCSS('animation-duration','1s');
+  await expect(dialog.locator('.alert-evidence-value')).toHaveCSS('animation-name','none');
+  await expect(dialog.getByText(/Rule pulse-rise/)).not.toBeVisible();
+  await dialog.getByRole('button',{name:'Stop flashing'}).click();
+  await expect(dialog).toHaveCSS('animation-name','none');
+  await dialog.getByRole('button',{name:'Enable flashing'}).click();
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await expect(dialog).toHaveCSS('animation-name','none');
+  await expect(dialog.getByRole('button',{name:'Stop flashing'})).toHaveCount(0);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await expect(dialog).toHaveCSS('animation-name','alert-attention');
+  await page.screenshot({path:'../artifacts/screenshots/pulse-alert-laptop.png',animations:'disabled'});
+  await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
+  await expect(dialog).not.toBeVisible();
+  await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('RESPIRATORY_SURGE');
+  await expect(dialog).toBeVisible({timeout:20000});
+  await expect(dialog.getByRole('heading',{name:'Breathing rate rising'})).toBeVisible();
+  await expect(dialog).toContainText('PRIORITY 1');
+  await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
+  await expect(dialog).not.toBeVisible();
+  await page.getByRole('button',{name:'Alerts',exact:true}).click();
+  await expect(page.locator('.alert-record').filter({hasText:'respiratory-rise'})).toContainText('ACKNOWLEDGED');
 });

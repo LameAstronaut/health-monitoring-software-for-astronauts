@@ -14,7 +14,7 @@ export const METRICS = [
     code: "respiratory_rate",
     label: "Respiratory rate",
     unit: "breaths/min",
-    range: [0, 40],
+    range: [0, 60],
     color: "#5265bf",
   },
   {

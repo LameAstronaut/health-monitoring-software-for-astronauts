@@ -7,7 +7,17 @@ from .schemas import CrewMember, Measurement, Observation, PhysiologyState, Stri
 
 CrewId = Literal["DEMO-CREW-001", "DEMO-CREW-002", "DEMO-CREW-003"]
 Activity = Literal["REST", "EXERCISE", "RECOVERY", "ANOMALY"]
-Fault = Literal["NONE", "OXYGEN", "PRESSURE", "BOTH", "DISCONNECT", "SENSOR_ERROR"]
+Fault = Literal[
+    "NONE",
+    "OXYGEN",
+    "PRESSURE",
+    "BOTH",
+    "PULSE_SURGE",
+    "RESPIRATORY_SURGE",
+    "MULTI_SYSTEM",
+    "DISCONNECT",
+    "SENSOR_ERROR",
+]
 ExamKind = Literal["BLOOD_PRESSURE", "LAB_PANEL", "BONE_DENSITY"]
 
 

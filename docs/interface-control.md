@@ -80,6 +80,8 @@ Only VALID, fresh observations from a matching explicit scenario produce alerts:
 | --- | --- | --- |
 | ANOMALY / demo-fixture-v2 | spo2 <=92 % | 2 / WARNING_DEMO |
 | ANOMALY / demo-fixture-v2 | suit_pressure <=25 kPa | 1 / CRITICAL_DEMO |
+| ANOMALY / demo-fixture-v2 | heart_rate >=115 beats/min | 2 / WARNING_DEMO |
+| ANOMALY / demo-fixture-v2 | respiratory_rate >=26 breaths/min | 1 / CRITICAL_DEMO |
 | Legacy oxygen_drop_demo or simultaneous_demo / v1 | spo2 exactly 88 % | 2 / WARNING_DEMO |
 | Legacy pressure_anomaly_demo or simultaneous_demo / v1 | suit_pressure exactly 20 kPa | 1 / CRITICAL_DEMO |
 

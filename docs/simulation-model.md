@@ -1,4 +1,4 @@
-# Stateful physiological demonstration, model v2
+# Stateful physiological demonstration, model v2 — acute-onset revision
 
 This is an artificial, simplified test model. It is **not clinically validated, not
 astronaut-specific, and not an instrument emulator suitable for diagnosis**. No NASA
@@ -53,11 +53,45 @@ All parameters below are demonstration settings, not measured response coefficie
 - ANOMALY applies explicit oxygen/pressure fixture targets of 86% and 20 kPa. Transitions
   remain gradual. It does not model the physiological consequences of actual hypoxia or
   decompression. Other crew members continue their independent REST states.
+- PULSE_SURGE adds 65 beats/min to the selected crew's target HR without exercise workload;
+  respiration follows the usual HR coupling. RESPIRATORY_SURGE adds 22 breaths/min to the
+  RR target and 20 beats/min to HR. MULTI_SYSTEM combines pulse, respiratory, oxygen and
+  pressure fixtures. Acute onset uses the distinct lags and bounds below. All preserve
+  continuous state, seeded drift and checkpoint behavior. These are artificial stress-test
+  trajectories, not disease or arrhythmia models.
 
-Synthetic alert markers are SpO₂ <=92% (priority 2) and pressure <=25 kPa (priority 1),
+| Active acute fixture | State | Time constant | Maximum rate per simulated second |
+| --- | --- | --- | --- |
+| Pulse rise / combined | HR | 6 s | 8 beats/min/s |
+| Respiratory rise without pulse rise | HR | 10 s | 3 beats/min/s |
+| Respiratory rise / combined | RR | 6 s | 1.8 breaths/min/s |
+| Pulse rise without respiratory rise | RR (coupled to HR) | 10 s | 0.8 breaths/min/s |
+| Oxygen decrease / combined | SpO₂ | 10 s | 0.8 percentage points/s |
+| Pressure decrease / combined | Pressure | 5 s | 1.2 kPa/s |
+
+The old acute fixtures reused the slow exercise/recovery response. Distinct acute curves now
+make pulse rise apparent in the first second and cross its marker within 12 simulated seconds
+from any crew baseline (typically around 10 s, versus roughly 70–100 s previously). Tests
+check all four markers within 12 s across all crew and several seeds, plus per-integration-step
+rate bounds. The 25 Hz integration, 125 Hz ECG and default 1 Hz publication remain separate.
+This gives different fault types distinct, coherent trajectories; these coefficients are still
+illustrative engineering settings, not empirically validated human or spacesuit responses.
+REST, normal exercise, recovery and event-only examination values retain their existing dynamics.
+Restart seeded playback after updating the worker; historical runs retain their original samples.
+
+Synthetic alert markers are SpO₂ <=92% and HR >=115 beats/min (priority 2), and pressure
+<=25 kPa and RR >=26 breaths/min (priority 1),
 only in explicit ANOMALY scenarios and only for valid, fresh observations. These arbitrary
 markers are **not clinical or suit operating limits**. Alerts are deduplicated by rule,
 crew and playback run; acknowledgment is a demo operator action, not a clinical review.
+Every new alert opens full screen for any crew member; priority 1 takes precedence. The
+initial view shows only the crew, anomaly name, triggering value, time and controls. Exact
+provenance and the original message remain under Evidence and in alert history. A crisp red
+turn-signal blink runs 500 ms on, 500 ms off, leaving the numbers and text steady. Stop flashing
+turns it off without acknowledging; the operating system's reduced-motion preference disables
+it automatically. Minimizing or Escape leaves the record pending with a red banner; reloading
+shows pending alerts again. Only explicit acknowledgment changes persisted state.
+Priorities are presentation test fixtures, not a validated medical urgency ranking.
 
 The ECG shape is a sum of simple Gaussian bumps with a small sinusoidal component.
 It has no diagnostic morphology, arrhythmia interpretation, electrode or noise model.

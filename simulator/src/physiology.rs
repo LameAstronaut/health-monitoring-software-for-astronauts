@@ -65,26 +65,69 @@ impl Physiology {
                 let baseline_rr = [13.0, 14.0, 12.0][self.crew_index];
                 let exercising = activity == Activity::Exercise;
                 let workload = if exercising { 1.0 } else { 0.0 };
+                let anomaly = activity == Activity::Anomaly;
+                let pulse = anomaly && matches!(fault, "PULSE_SURGE" | "MULTI_SYSTEM");
+                let respiratory = anomaly && matches!(fault, "RESPIRATORY_SURGE" | "MULTI_SYSTEM");
+                // Acute fixtures have their own bounded onset; exercise/recovery keep
+                // the slow workload dynamics. These are illustrative, unvalidated rates.
                 let hr_target = baseline_hr
-                    + workload * 65.0
+                    + if pulse {
+                        65.0
+                    } else if respiratory {
+                        20.0
+                    } else {
+                        workload * 65.0
+                    }
                     + 0.28 * (t / 27.0 + phase).sin()
                     + 0.12 * (t / 11.0 + phase).sin();
                 self.heart_rate = approach(
                     self.heart_rate,
                     hr_target,
                     dt,
-                    if exercising { 45.0 } else { 65.0 },
-                    0.9,
+                    if pulse {
+                        6.0
+                    } else if respiratory {
+                        10.0
+                    } else if exercising {
+                        45.0
+                    } else {
+                        65.0
+                    },
+                    if pulse {
+                        8.0
+                    } else if respiratory {
+                        3.0
+                    } else {
+                        0.9
+                    },
                 );
                 // Respiratory demand follows the modeled HR load, with its own lag.
                 let rr_target = baseline_rr
                     + 0.18 * (self.heart_rate - baseline_hr).max(0.0)
                     + 0.8 * workload
+                    + if respiratory { 22.0 } else { 0.0 }
                     + 0.08 * (t / 19.0 + phase).sin();
-                self.respiratory_rate = approach(self.respiratory_rate, rr_target, dt, 22.0, 0.3);
-                let anomaly = activity == Activity::Anomaly;
-                let oxygen = anomaly && matches!(fault, "OXYGEN" | "BOTH");
-                let pressure = anomaly && matches!(fault, "PRESSURE" | "BOTH");
+                self.respiratory_rate = approach(
+                    self.respiratory_rate,
+                    rr_target,
+                    dt,
+                    if respiratory {
+                        6.0
+                    } else if pulse {
+                        10.0
+                    } else {
+                        22.0
+                    },
+                    if respiratory {
+                        1.8
+                    } else if pulse {
+                        0.8
+                    } else {
+                        0.3
+                    },
+                );
+                let oxygen = anomaly && matches!(fault, "OXYGEN" | "BOTH" | "MULTI_SYSTEM");
+                let pressure = anomaly && matches!(fault, "PRESSURE" | "BOTH" | "MULTI_SYSTEM");
                 self.spo2 = approach(
                     self.spo2,
                     if oxygen {
@@ -93,8 +136,8 @@ impl Physiology {
                         98.2 - workload * 0.3 + 0.04 * (t / 31.0 + phase).sin()
                     },
                     dt,
-                    35.0,
-                    0.18,
+                    if oxygen { 10.0 } else { 35.0 },
+                    if oxygen { 0.8 } else { 0.18 },
                 );
                 self.suit_pressure = approach(
                     self.suit_pressure,
@@ -104,8 +147,8 @@ impl Physiology {
                         30.0 + 0.015 * (t / 37.0 + phase).sin()
                     },
                     dt,
-                    30.0,
-                    0.15,
+                    if pressure { 5.0 } else { 30.0 },
+                    if pressure { 1.2 } else { 0.15 },
                 );
             }
             self.ecg_phase = (self.ecg_phase + self.heart_rate / 60.0 / ECG_HZ as f64) % 1.0;
@@ -185,5 +228,84 @@ mod tests {
         assert!(wave.iter().all(|v| v.is_finite() && *v < 1.2 && *v > -0.4));
         assert_eq!(a.ticks, 125);
         assert!((a.heart_rate - 68.0).abs() < 0.05);
+    }
+
+    #[test]
+    fn added_anomalies_are_seeded_gradual_and_recoverable() {
+        for crew in 0..3 {
+            for fault in ["PULSE_SURGE", "RESPIRATORY_SURGE", "MULTI_SYSTEM"] {
+                let mut model = Physiology::new(73, crew);
+                let mut replay = model.clone();
+                for _ in 0..240 {
+                    let before = model.clone();
+                    model.advance(125, Activity::Anomaly, fault);
+                    assert!((model.heart_rate - before.heart_rate).abs() <= 8.001);
+                    assert!((model.respiratory_rate - before.respiratory_rate).abs() <= 1.801);
+                    assert!((model.spo2 - before.spo2).abs() <= 0.801);
+                    assert!((model.suit_pressure - before.suit_pressure).abs() <= 1.201);
+                }
+                replay.advance(125 * 240, Activity::Anomaly, fault);
+                assert_eq!(model, replay);
+                if fault == "PULSE_SURGE" {
+                    assert!(model.heart_rate >= 115.0);
+                    assert!(model.respiratory_rate < 26.0);
+                    assert!((model.spo2 - 98.2).abs() < 0.1);
+                    assert!((model.suit_pressure - 30.0).abs() < 0.1);
+                } else {
+                    assert!(model.respiratory_rate >= 26.0);
+                }
+                if fault == "MULTI_SYSTEM" {
+                    assert!(model.heart_rate >= 115.0 && model.spo2 <= 92.0);
+                    assert!(model.suit_pressure <= 25.0);
+                }
+                model.advance(125 * 600, Activity::Recovery, "NONE");
+                let baseline = Physiology::new(73, crew);
+                assert!((model.heart_rate - baseline.heart_rate).abs() < 0.5);
+                assert!((model.respiratory_rate - baseline.respiratory_rate).abs() < 0.5);
+            }
+        }
+    }
+
+    #[test]
+    fn acute_onsets_reach_markers_in_seconds_without_sample_jumps() {
+        for seed in [0, 42, 73] {
+            for crew in 0..3 {
+                for fault in [
+                    "PULSE_SURGE",
+                    "RESPIRATORY_SURGE",
+                    "OXYGEN",
+                    "PRESSURE",
+                    "MULTI_SYSTEM",
+                ] {
+                    let mut model = Physiology::new(seed, crew);
+                    for _ in 0..12 * 25 {
+                        let before = model.clone();
+                        model.advance(5, Activity::Anomaly, fault);
+                        assert!((model.heart_rate - before.heart_rate).abs() <= 8.0 * 0.04 + 1e-9);
+                        assert!(
+                            (model.respiratory_rate - before.respiratory_rate).abs()
+                                <= 1.8 * 0.04 + 1e-9
+                        );
+                        assert!((model.spo2 - before.spo2).abs() <= 0.8 * 0.04 + 1e-9);
+                        assert!(
+                            (model.suit_pressure - before.suit_pressure).abs() <= 1.2 * 0.04 + 1e-9
+                        );
+                    }
+                    match fault {
+                        "PULSE_SURGE" => assert!(model.heart_rate >= 115.0),
+                        "RESPIRATORY_SURGE" => assert!(model.respiratory_rate >= 26.0),
+                        "OXYGEN" => assert!(model.spo2 <= 92.0),
+                        "PRESSURE" => assert!(model.suit_pressure <= 25.0),
+                        "MULTI_SYSTEM" => assert!(
+                            model.heart_rate >= 115.0
+                                && model.respiratory_rate >= 26.0
+                                && model.spo2 <= 92.0
+                                && model.suit_pressure <= 25.0
+                        ),
+                        _ => unreachable!(),
+                    }
+                }
+            }
+        }
     }
 }

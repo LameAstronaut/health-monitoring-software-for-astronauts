@@ -212,6 +212,18 @@ class TelemetryService:
                             "pressure-fixture",
                             "SIMULATED suit-pressure test marker reached",
                         )
+                    if measurement.code == "heart_rate" and measurement.value >= 115:
+                        rule = (
+                            2,
+                            "pulse-rise-fixture",
+                            "SIMULATED pulse-rise test marker reached",
+                        )
+                    if measurement.code == "respiratory_rate" and measurement.value >= 26:
+                        rule = (
+                            1,
+                            "respiratory-rise-fixture",
+                            "SIMULATED respiratory-rise test marker reached",
+                        )
             if rule:
                 prior = db.scalar(
                     select(AlertRow)

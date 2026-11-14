@@ -187,7 +187,14 @@ export function SimulatorControls({
                   action: "CONFIGURE",
                   fault: e.target.value as ControlCommand["fault"],
                   astronaut_id: crewId as ControlCommand["astronaut_id"],
-                  ...(["OXYGEN", "PRESSURE", "BOTH"].includes(e.target.value)
+                  ...([
+                    "OXYGEN",
+                    "PRESSURE",
+                    "BOTH",
+                    "PULSE_SURGE",
+                    "RESPIRATORY_SURGE",
+                    "MULTI_SYSTEM",
+                  ].includes(e.target.value)
                     ? { scenario: "ANOMALY" as const }
                     : {}),
                 })
@@ -196,15 +203,23 @@ export function SimulatorControls({
               <option value="NONE">None</option>
               <option value="OXYGEN">Gradual oxygen-decrease fixture</option>
               <option value="PRESSURE">Gradual suit-pressure fixture</option>
-              <option value="BOTH">Both anomaly fixtures</option>
+              <option value="BOTH">Oxygen + pressure · priority 1 & 2</option>
+              <option value="PULSE_SURGE">Pulse rise · priority 2</option>
+              <option value="RESPIRATORY_SURGE">
+                Respiratory rise · priority 1
+              </option>
+              <option value="MULTI_SYSTEM">
+                Combined stress · all four markers
+              </option>
               <option value="DISCONNECT">Sensor disconnected</option>
               <option value="SENSOR_ERROR">Sensor quality error</option>
             </select>
           </label>
           <p className="caption">
             Anomaly markers are arbitrary demonstration settings. They are not
-            clinical or spacesuit operating limits. Disconnect and quality
-            faults affect only the target crew.
+            clinical or spacesuit operating limits. Every new anomaly marker
+            opens a full-screen alert. Disconnect and quality faults affect only
+            the target crew.
           </p>
         </Panel>
       </div>

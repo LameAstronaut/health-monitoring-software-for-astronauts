@@ -8,6 +8,7 @@ import {
   TrendChart,
 } from "../components/medical";
 import type { ScreenProps } from "./types";
+import { BodyMap } from "../components/BodyMap";
 
 export const RISK_MODULES = [
   {
@@ -170,6 +171,7 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
         Availability is shown explicitly; no clinical risk scores or AI
         conclusions are generated.
       </div>
+      <BodyMap observations={observations} examinations={saved} />
       <div className="risk-layout">
         <nav className="risk-nav" aria-label="Health risk categories">
           {RISK_MODULES.map((item, i) => (

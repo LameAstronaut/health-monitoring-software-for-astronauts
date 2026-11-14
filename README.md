@@ -672,6 +672,7 @@ Do **not** call the laptop simulation NASA-approved, NASA-compliant, high-fideli
 - [x] POST to `/api/v1/telemetry` with retries/backoff appropriate for demo.
 - [x] Implement CLI `--scenario`, `--seed`, `--api-url` and `--rate-hz`.
 - [x] Implement controlled `oxygen_drop_demo` and `pressure_anomaly_demo` fixtures.
+- [x] Add seeded acute pulse-rise, respiratory-rise and combined stress fixtures with bounded onset within 12 simulated seconds from baseline.
 - [x] Implement disconnected-sensor and invalid-packet test fixtures.
 - [x] Test serialization, determinism, state transitions and error handling.
 
@@ -700,9 +701,10 @@ Do **not** call the laptop simulation NASA-approved, NASA-compliant, high-fideli
 - [x] Create Crew Profile and measurement history.
 - [x] Create Equipment registry screen.
 - [x] Create Alerts panel with priority order and traceable evidence.
+- [x] Open every new anomaly alert full screen with a concise view, optional evidence, controllable slow red flashing and reduced-motion support.
 - [x] Create Simulator Control screen only for demo users.
 - [x] Add accessible focus states, keyboard interaction, text status labels.
-- [x] Verify 1366×768, 1920×1080 and 1024×768 layouts, 44 px buttons and keyboard navigation.
+- [x] Verify 1366×768, 1920×1080 and 1024×768 layouts, 56 px touch controls and keyboard navigation.
 - [x] Test reconnection, stale data and empty/loading/error states.
 
 **Done when:** A user can understand what is live, what is simulated, which device produced it and whether the data is trustworthy.
@@ -739,6 +741,7 @@ Do **not** call the laptop simulation NASA-approved, NASA-compliant, high-fideli
 - [ ] Add urine and extended laboratory report formats.
 - [ ] Add optional ultrasound, DXA and OCT **synthetic report** import.
 - [x] Add all eleven health-risk views from §6.
+- [x] Add an interactive synthetic body view with selectable regions and linked measurement provenance.
 - [x] Add longitudinal trends and availability indicators per module.
 - [x] Add Nutrition and Fitness tracking using demo records.
 - [ ] Add permitted clinician review/annotation workflow.

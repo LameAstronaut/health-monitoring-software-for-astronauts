@@ -151,3 +151,26 @@ Build output is `frontend/dist`. `vite preview` is a static preview, not an inte
 deployment server: a deployment needs a reverse proxy for `/api` including WS upgrades.
 No public deployment, credentials service, ground-sync service or hardware is required.
 Project licensing has not been selected by the repository owner; no license is assumed.
+
+
+## Touch interface and alert demonstrations
+
+Start with `make dev` and open **Simulator controls**. Select the crew, keep speed at 1×,
+and choose a synthetic fault (4× remains available for accelerated playback). Every new anomaly opens full screen, including priority 2
+pulse-rise warnings. Respiratory rise and suit-pressure decrease use priority 1. Combined stress
+runs all four measurement markers. Transitions take simulated time; the controls do not
+inject instantaneous numeric jumps. Acute markers are reached within 12 simulated seconds
+from baseline at 1×; exercise and recovery keep their slower dynamics. Restart the app to
+load updated Rust code, then restart seeded playback to start the new model from baseline.
+Restart also allows new alerts for rules already triggered in the current run.
+
+Use **Minimize** or Escape to return to controls without acknowledging. Pending
+alerts remain in the red banner and history. **Review alert full screen** reopens review.
+The full-screen **Acknowledge** button persists operator acknowledgment, leaving the simulation active.
+To stop a fixture, select REST or pause playback. Reloading reopens unacknowledged
+alerts. The initial alert view is concise; open **Evidence** for exact provenance. **Stop
+flashing** disables the red turn-signal blink (500 ms on, 500 ms off) without acknowledging. Reduced
+motion in the operating system disables flashing automatically. All markers/priorities are synthetic demonstrations, not medical operating limits.
+
+The UI uses 18 px body text, 56 px main readings and controls at least 56 px high, with
+64 px full-screen review buttons. Smaller viewports stack panels and allow vertical scrolling.

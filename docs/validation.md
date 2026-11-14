@@ -2,22 +2,22 @@
 
 Verified locally on 2026-11-14 with Python 3.14.8, Node 26.12.1 and Rust 1.99.1:
 
-- Backend: **34 pytest cases pass**, including the original validation/ordering tests,
+- Backend: **39 pytest cases pass**, including the original validation/ordering tests,
   examination acquire/review/save/retrieve, source timestamps and stale acquisition rejection,
   timeout without invented results, persisted
   controls and checkpoints, safe restart, alert acknowledgment, inventory transactions,
   exercise/recovery requests, EVA gating/timeline and upgrade of original packet/alert data.
-- Rust: **9 unit tests pass**, including resting stability, gradual correlated response,
-  recovery, seed/chunk determinism, checkpoint restore, ECG separation and static-report invariance.
+- Rust: **11 unit tests pass**, including resting stability, gradual correlated response,
+  recovery, bounded seeded pulse/respiratory/combined anomalies and acute marker onset within 12 simulated seconds, seed/chunk determinism, checkpoint restore, ECG separation and static-report invariance.
   rustfmt and clippy with warnings denied pass; executable builds.
-- Frontend: **15 unit/interaction cases pass**, covering navigation/crew selection, safe
+- Frontend: **23 unit/interaction cases pass**, covering navigation/crew selection, safe
   missing states, retry, examination requests and explicit review/save, meal logging,
-  eleven risk categories, control conflicts, stale numerical/ECG values and run separation.
+  eleven risk categories, control conflicts, critical review, warning banners, minimize/reopen, acknowledgment failure/retry, critical escalation during warning review, controllable flashing, reduced motion and collapsed evidence, stale numerical/ECG values and run separation.
   TypeScript, ESLint, Prettier and production build pass.
-- Browser: **10 Playwright cases pass** against real Rust/FastAPI/Vite, including
+- Browser: **11 Playwright cases pass** against real Rust/FastAPI/Vite, including
   acquisition/save/export/reload, all destinations, crew baselines, frozen pause time,
   stale/disconnected numeric and ECG while the API is connected, exercise/recovery,
-  sensor loss, meals, fitness, EVA checklist/timeline, and prioritized acknowledged alerts.
+  sensor loss, meals, fitness, EVA checklist/timeline, and prioritized acknowledged alerts, full-screen focus/minimize/reopen, and new pulse/respiratory fixtures at 1× speed, turn-signal flashing and reduced-motion behavior.
   Readability/keyboard/overflow/button checks pass at 1366×768, 1920×1080 and 1024×768.
 - Integration: real Rust publisher → HTTP → SQLite → WebSocket passes, including both
   priority-ordered alerts, invalid packet rejection, sensor loss and API restart history.
@@ -34,9 +34,7 @@ Verified locally on 2026-11-14 with Python 3.14.8, Node 26.12.1 and Rust 1.99.1:
 [visual-review.md](visual-review.md). The source reference PDF and owner-selected license
 remain outstanding; the corresponding README checkboxes remain open.
 
-The sandbox blocked local socket operations; pytest and the cross-process smoke were
-run with the required execution permission. Benign Starlette test-client and legacy
-sqlite fixture datetime deprecation warnings remain. Vite can log EPIPE/ECONNRESET when
+Benign Starlette test-client and legacy sqlite fixture datetime deprecation warnings remain. Vite can log EPIPE/ECONNRESET when
 development StrictMode or browser navigation closes a WebSocket; clients reconnect and
 the browser tests pass. Test servers shut down their owned process groups.
 

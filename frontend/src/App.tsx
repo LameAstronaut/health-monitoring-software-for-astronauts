@@ -2,6 +2,7 @@ import { useState } from "react";
 import { post } from "./services/api";
 import { useMission } from "./useMission";
 import { Status } from "./components/medical";
+import { AlertReview } from "./components/AlertReview";
 import { PAGES } from "./screens/types";
 import type { Page, ScreenProps } from "./screens/types";
 import { CrewProfiles, Dashboard, LiveMonitoring } from "./screens/monitoring";
@@ -67,6 +68,10 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
+  const [minimizedAlerts, setMinimizedAlerts] = useState<Set<number>>(
+    new Set(),
+  );
+  const [reviewId, setReviewId] = useState<number | null>(null);
   const mission = useMission(crewId);
   const selectCrew = (id: string) => {
     setCrewId(id);
@@ -100,13 +105,46 @@ export default function App() {
     }
   };
   const selected = mission.crew.find((c) => c.id === crewId);
-  const pending = mission.alerts.filter(
-    (a) => a.state === "PENDING_REVIEW",
-  ).length;
+  const pendingAlerts = mission.alerts
+    .filter((a) => a.state === "PENDING_REVIEW")
+    .sort((a, b) => a.priority - b.priority || a.id - b.id);
+  const pending = pendingAlerts.length;
+  const critical = pendingAlerts.filter((a) => a.priority === 1);
+  const requestedReview = pendingAlerts.find((a) => a.id === reviewId);
+  const automaticCritical = critical.find((a) => !minimizedAlerts.has(a.id));
+  const automaticReview = pendingAlerts.find((a) => !minimizedAlerts.has(a.id));
+  const review =
+    requestedReview?.priority === 1
+      ? requestedReview
+      : (automaticCritical ?? requestedReview ?? automaticReview);
   const Screen = SCREENS[page];
   const props = { mission, crewId, selectCrew, navigate, busy, action };
   return (
     <div className="app-shell">
+      {review && (
+        <AlertReview
+          key={review.id}
+          alert={review}
+          crewName={
+            mission.crew.find((c) => c.id === review.astronaut_id)
+              ?.display_name ?? review.astronaut_id
+          }
+          pendingCount={pending}
+          busy={busy}
+          error={actionError}
+          onMinimize={() => {
+            setMinimizedAlerts((ids) => new Set(ids).add(review.id));
+            setReviewId(null);
+          }}
+          onAcknowledge={() =>
+            void action(
+              `alerts/${review.id}/acknowledge`,
+              undefined,
+              "Demo alert acknowledged",
+            )
+          }
+        />
+      )}
       <a className="skip-link" href="#main-content">
         Skip to medical workspace
       </a>
@@ -129,6 +167,12 @@ export default function App() {
           {PAGES.map((name, i) => (
             <button
               key={name}
+              aria-label={name}
+              aria-description={
+                name === "Alerts" && pending > 0
+                  ? `${pending} pending demo alerts`
+                  : undefined
+              }
               aria-current={page === name ? "page" : undefined}
               onClick={() => navigate(name)}
             >
@@ -210,6 +254,42 @@ export default function App() {
               <span>DEMO / SIMULATED</span>
             </div>
           </div>
+          {pending > 0 && (
+            <div
+              className={`alert-banner ${critical.length ? "has-critical" : ""}`}
+              role="region"
+              aria-label="Pending simulated alerts"
+            >
+              <div>
+                <strong>
+                  {critical.length
+                    ? `PRIORITY 1 · ${critical.length} critical demo alert${critical.length === 1 ? "" : "s"}`
+                    : "PRIORITY 2 · Warning demo"}
+                </strong>
+                <p>{pending} pending across crew · SIMULATED</p>
+                <p>
+                  {mission.crew.find(
+                    (c) => c.id === pendingAlerts[0].astronaut_id,
+                  )?.display_name ?? pendingAlerts[0].astronaut_id}
+                  {" · "}
+                  {pendingAlerts[0].message}
+                </p>
+              </div>
+              <div className="button-row">
+                <button onClick={() => setReviewId(pendingAlerts[0].id)}>
+                  Review alert full screen
+                </button>
+                <button
+                  onClick={() => {
+                    selectCrew(pendingAlerts[0].astronaut_id);
+                    navigate("Alerts");
+                  }}
+                >
+                  Open alert history
+                </button>
+              </div>
+            </div>
+          )}
           <div className="safety-ribbon">
             <span>DEMO / SIMULATED</span>Research prototype · Synthetic data
             only · No medical decisions or hardware control.
