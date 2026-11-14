@@ -1,0 +1,4 @@
+src/types/api.d.ts
+openapi.json
+dist/
+node_modules/

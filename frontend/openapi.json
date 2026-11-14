@@ -1,0 +1,773 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ASTRA HEALTH \u2014 SIMULATED",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crew": {
+      "get": {
+        "summary": "Crew",
+        "operationId": "crew_api_v1_crew_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CrewMember"
+                  },
+                  "type": "array",
+                  "title": "Response Crew Api V1 Crew Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "summary": "Devices",
+        "operationId": "devices_api_v1_devices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Device"
+                  },
+                  "type": "array",
+                  "title": "Response Devices Api V1 Devices Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/observations": {
+      "get": {
+        "summary": "Observations",
+        "operationId": "observations_api_v1_observations_get",
+        "parameters": [
+          {
+            "name": "astronaut_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DEMO-CREW-001",
+              "title": "Astronaut Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 120,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Observation"
+                  },
+                  "title": "Response Observations Api V1 Observations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts": {
+      "get": {
+        "summary": "Alerts",
+        "operationId": "alerts_api_v1_alerts_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Alert"
+                  },
+                  "title": "Response Alerts Api V1 Alerts Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/telemetry": {
+      "post": {
+        "summary": "Telemetry",
+        "operationId": "telemetry_api_v1_telemetry_post",
+        "parameters": [
+          {
+            "name": "x-demo-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelemetryPacket"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Alert": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "priority": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Priority"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "CRITICAL_DEMO",
+              "WARNING_DEMO"
+            ],
+            "title": "Severity"
+          },
+          "state": {
+            "type": "string",
+            "const": "PENDING_REVIEW",
+            "title": "State",
+            "default": "PENDING_REVIEW"
+          },
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "rule_version": {
+            "type": "string",
+            "const": "demo-fixture-v1",
+            "title": "Rule Version",
+            "default": "demo-fixture-v1"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "title": "Astronaut Id"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Observation"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "priority",
+          "severity",
+          "rule_id",
+          "message",
+          "event_id",
+          "device_id",
+          "astronaut_id",
+          "occurred_at",
+          "evidence"
+        ],
+        "title": "Alert"
+      },
+      "CrewMember": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "default": "DEMO-CREW-001"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "default": "Alex Morgan (synthetic)"
+          },
+          "mission_id": {
+            "type": "string",
+            "title": "Mission Id",
+            "default": "DEMO-MISSION-001"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CrewMember"
+      },
+      "Device": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "default": "DEMO-SUIT-001"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": "Rust virtual telemetry instrument"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "title": "Astronaut Id",
+            "default": "DEMO-CREW-001"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          },
+          "calibration": {
+            "type": "string",
+            "const": "CALIBRATION_UNKNOWN",
+            "title": "Calibration",
+            "default": "CALIBRATION_UNKNOWN"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "LIVE",
+              "STALE",
+              "DISCONNECTED",
+              "NOT_AVAILABLE",
+              "HISTORICAL"
+            ],
+            "title": "Status"
+          },
+          "last_seen": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "last_seen"
+        ],
+        "title": "Device"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "0.1.0"
+          },
+          "mode": {
+            "type": "string",
+            "const": "DEMO",
+            "title": "Mode",
+            "default": "DEMO"
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time"
+          },
+          "stale_seconds": {
+            "type": "integer",
+            "title": "Stale Seconds"
+          },
+          "disconnect_seconds": {
+            "type": "integer",
+            "title": "Disconnect Seconds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "server_time",
+          "stale_seconds",
+          "disconnect_seconds"
+        ],
+        "title": "Health"
+      },
+      "IngestResult": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "duplicate": {
+            "type": "boolean",
+            "title": "Duplicate"
+          },
+          "sequence_gap": {
+            "type": "boolean",
+            "title": "Sequence Gap"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/Observation"
+            },
+            "type": "array",
+            "title": "Observations"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            },
+            "type": "array",
+            "title": "Alerts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event_id",
+          "duplicate",
+          "sequence_gap",
+          "observations",
+          "alerts"
+        ],
+        "title": "IngestResult"
+      },
+      "Measurement": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "heart_rate",
+              "spo2",
+              "suit_pressure"
+            ],
+            "title": "Code"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "INVALID"
+            ],
+            "title": "Quality"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "value",
+          "unit",
+          "quality"
+        ],
+        "title": "Measurement"
+      },
+      "Observation": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "heart_rate",
+              "spo2",
+              "suit_pressure"
+            ],
+            "title": "Code"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "INVALID"
+            ],
+            "title": "Quality"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "title": "Astronaut Id"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          },
+          "scenario_id": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "oxygen_drop_demo",
+              "pressure_anomaly_demo",
+              "simultaneous_demo"
+            ],
+            "title": "Scenario Id"
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "LIVE",
+              "STALE",
+              "DISCONNECTED",
+              "NOT_AVAILABLE",
+              "HISTORICAL"
+            ],
+            "title": "Freshness"
+          },
+          "sequence_gap": {
+            "type": "boolean",
+            "title": "Sequence Gap"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "value",
+          "unit",
+          "quality",
+          "id",
+          "event_id",
+          "sequence",
+          "observed_at",
+          "received_at",
+          "astronaut_id",
+          "device_id",
+          "scenario_id",
+          "freshness",
+          "sequence_gap"
+        ],
+        "title": "Observation"
+      },
+      "TelemetryPacket": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version"
+          },
+          "event_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$",
+            "title": "Event Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "maximum": 9.223372036854776e+18,
+            "minimum": 0.0,
+            "title": "Sequence"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "const": "DEMO-CREW-001",
+            "title": "Astronaut Id"
+          },
+          "device_id": {
+            "type": "string",
+            "const": "DEMO-SUIT-001",
+            "title": "Device Id"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type"
+          },
+          "scenario_id": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "oxygen_drop_demo",
+              "pressure_anomaly_demo",
+              "simultaneous_demo"
+            ],
+            "title": "Scenario Id"
+          },
+          "measurements": {
+            "items": {
+              "$ref": "#/components/schemas/Measurement"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Measurements"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "event_id",
+          "sequence",
+          "observed_at",
+          "astronaut_id",
+          "device_id",
+          "source_type",
+          "scenario_id",
+          "measurements"
+        ],
+        "title": "TelemetryPacket"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

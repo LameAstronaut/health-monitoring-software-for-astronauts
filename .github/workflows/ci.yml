@@ -1,0 +1,49 @@
+name: Prototype checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Install backend
+        run: |
+          python -m pip install -r backend/requirements.lock
+          python -m pip install --no-deps -e backend
+      - name: Backend checks
+        working-directory: backend
+        run: |
+          ruff check app tests alembic ../scripts
+          ruff format --check app tests alembic ../scripts
+          bandit -q -r app
+          pytest -q
+      - name: Rust checks
+        run: |
+          cargo fmt --manifest-path simulator/Cargo.toml --check
+          cargo clippy --locked --manifest-path simulator/Cargo.toml -- -D warnings
+          cargo test --locked --manifest-path simulator/Cargo.toml
+          cargo build --locked --manifest-path simulator/Cargo.toml
+      - name: Frontend checks and generated contract
+        run: |
+          npm ci --prefix frontend
+          python scripts/export-openapi.py
+          npm run generate:api --prefix frontend
+          git diff --exit-code -- frontend/openapi.json frontend/src/types/api.d.ts
+          npm run lint --prefix frontend
+          npm run format:check --prefix frontend
+          npm test --prefix frontend
+          npm run build --prefix frontend
+      - name: Cross-process integration smoke
+        run: python scripts/smoke.py
