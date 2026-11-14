@@ -588,6 +588,144 @@
         }
       }
     },
+    "/api/v1/datasets": {
+      "get": {
+        "summary": "List Datasets",
+        "operationId": "list_datasets_api_v1_datasets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Dataset",
+        "operationId": "create_dataset_api_v1_datasets_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dataset"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{dataset_id}": {
+      "get": {
+        "summary": "Get Dataset",
+        "operationId": "get_dataset_api_v1_datasets__dataset_id__get",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dataset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dataset"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Edit Dataset",
+        "operationId": "edit_dataset_api_v1_datasets__dataset_id__post",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dataset Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dataset"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "summary": "Health",
@@ -995,6 +1133,16 @@
       },
       "ControlCommand": {
         "properties": {
+          "manual_values": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManualValues"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "action": {
             "type": "string",
             "enum": [
@@ -1188,6 +1336,288 @@
           "readings"
         ],
         "title": "CrewSummary"
+      },
+      "DataColumn": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,63}$",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Unit",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "DataColumn"
+      },
+      "Dataset": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "NASA",
+              "MANUAL"
+            ],
+            "title": "Source"
+          },
+          "source_url": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Source Url",
+            "default": ""
+          },
+          "accession": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Accession",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Notes",
+            "default": ""
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/DataColumn"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Columns"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Rows"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "digest": {
+            "type": "string",
+            "title": "Digest"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "source",
+          "columns",
+          "rows",
+          "id",
+          "created_at",
+          "digest"
+        ],
+        "title": "Dataset"
+      },
+      "DatasetEdit": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "NASA",
+              "MANUAL"
+            ],
+            "title": "Source"
+          },
+          "source_url": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Source Url",
+            "default": ""
+          },
+          "accession": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Accession",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Notes",
+            "default": ""
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/DataColumn"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Columns"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Rows"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "source",
+          "columns",
+          "rows",
+          "expected_revision"
+        ],
+        "title": "DatasetEdit"
+      },
+      "DatasetInput": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "NASA",
+              "MANUAL"
+            ],
+            "title": "Source"
+          },
+          "source_url": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Source Url",
+            "default": ""
+          },
+          "accession": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Accession",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Notes",
+            "default": ""
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/DataColumn"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Columns"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "source",
+          "columns",
+          "rows"
+        ],
+        "title": "DatasetInput"
       },
       "Device": {
         "properties": {
@@ -1893,6 +2323,65 @@
         ],
         "title": "InventoryItem"
       },
+      "ManualValues": {
+        "properties": {
+          "heart_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heart Rate"
+          },
+          "respiratory_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Respiratory Rate"
+          },
+          "spo2": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spo2"
+          },
+          "suit_pressure": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suit Pressure"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ManualValues"
+      },
       "Meal": {
         "properties": {
           "id": {
@@ -2371,6 +2860,9 @@
       },
       "SimulatorControl": {
         "properties": {
+          "manual_values": {
+            "$ref": "#/components/schemas/ManualValues"
+          },
           "scenario": {
             "type": "string",
             "enum": [

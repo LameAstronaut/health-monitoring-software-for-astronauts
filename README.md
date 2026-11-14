@@ -1,3 +1,5 @@
+> Recent additions: [Data workspace, manual telemetry, interactive body view, and alert behavior](docs/data-workspace.md).
+
 # ASTRA HEALTH
 
 **Integrated Astronaut Health Monitoring & Medical Operations Platform**  

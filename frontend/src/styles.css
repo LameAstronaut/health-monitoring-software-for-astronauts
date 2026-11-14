@@ -2071,19 +2071,17 @@ summary {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* Turn-signal cadence: 500 ms on, 500 ms off; readings and text stay steady. */
-.alert-takeover.is-flashing {
-  animation: alert-attention 1s step-end infinite;
+/* Localized two-cycle-per-second indicator; the reading surface stays steady. */
+.alert-takeover.is-flashing .alert-symbol {
+  animation: alert-attention 500ms step-end infinite;
 }
 @keyframes alert-attention {
   0%,
   100% {
-    background-color: #a3102c;
-    border-color: #ff3655;
+    opacity: 1;
   }
   50% {
-    background-color: #28070e;
-    border-color: #571320;
+    opacity: 0.35;
   }
 }
 body:has(.alert-takeover[open]) {
@@ -2281,4 +2279,118 @@ body:has(.alert-takeover[open]) {
   body {
     background: white;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-takeover.is-flashing .alert-symbol {
+    animation: none;
+  }
+}
+
+.body-figure {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 2 / 3;
+}
+.body-diagram {
+  padding: 0;
+}
+.body-region path {
+  fill: #087f8c16;
+  stroke: #75d4df;
+  stroke-width: 1;
+}
+.body-region.selected path,
+.body-region:hover path {
+  fill: #087f8c55;
+}
+.body-region text {
+  fill: white;
+  paint-order: stroke;
+  stroke: #163e50;
+  stroke-width: 3px;
+}
+.body-model {
+  max-width: 360px;
+  margin: auto;
+  background: #edf3f6;
+  border-radius: 12px;
+  padding: 12px;
+}
+.body-model svg {
+  width: 100%;
+  display: block;
+}
+.body-model polygon {
+  cursor: pointer;
+}
+.body-view-controls {
+  margin-bottom: 20px;
+}
+.region-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+button[aria-pressed="true"] {
+  border-color: #087f8c;
+  background: #e1f3f3;
+  color: #124c56;
+}
+.manual-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin: 20px 0;
+}
+.dataset-editor {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.dataset-editor textarea {
+  min-height: 90px;
+  width: 100%;
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #90a8b6;
+  border-radius: 6px;
+}
+.table-scroll {
+  overflow: auto;
+  max-height: 600px;
+  margin: 20px 0;
+  border: 1px solid #cbd8df;
+  border-radius: 8px;
+}
+.table-scroll input {
+  min-width: 150px;
+  width: 100%;
+}
+.table-scroll thead {
+  position: sticky;
+  top: 0;
+  background: #edf3f6;
+}
+.dataset-library {
+  list-style: none;
+  padding: 0;
+  max-height: 220px;
+  overflow: auto;
+}
+.dataset-library button {
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
+}
+.dataset-library small {
+  display: block;
+  color: #425e70;
+  margin-top: 5px;
+}
+.dataset-digest {
+  overflow-wrap: anywhere;
 }

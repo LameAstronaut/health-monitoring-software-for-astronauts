@@ -138,6 +138,12 @@ def change_control(db: Session, command: ControlCommand) -> SimulatorControl:
         update["running"] = True
     if command.action == "RESTART":
         update |= {"run_id": uuid4().hex, "running": True, "simulated_at": 0}
+    if command.action == "RESTART" or (
+        command.astronaut_id is not None and command.astronaut_id != old.astronaut_id
+    ):
+        update["manual_values"] = {}
+    if command.manual_values is not None:
+        update["manual_values"] = command.manual_values.model_dump(exclude_none=True)
     row.data = row.data | update | {"revision": old.revision + 1}
     db.commit()
     return control_state(db)

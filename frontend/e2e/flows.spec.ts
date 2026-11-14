@@ -160,18 +160,18 @@ test('pulse rises quickly at 1x and every alert opens full screen with controlla
   await expect(dialog).toBeVisible({timeout:20000});
   await expect(dialog.getByRole('heading',{name:'Pulse rising'})).toBeVisible();
   await expect(dialog).toContainText('PRIORITY 2');
-  await expect(dialog).toHaveCSS('animation-name','alert-attention');
-  await expect(dialog).toHaveCSS('animation-duration','1s');
+  await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-name','alert-attention');
+  await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-duration','0.5s');
   await expect(dialog.locator('.alert-evidence-value')).toHaveCSS('animation-name','none');
   await expect(dialog.getByText(/Rule pulse-rise/)).not.toBeVisible();
   await dialog.getByRole('button',{name:'Stop flashing'}).click();
-  await expect(dialog).toHaveCSS('animation-name','none');
+  await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-name','none');
   await dialog.getByRole('button',{name:'Enable flashing'}).click();
   await page.emulateMedia({reducedMotion:'reduce'});
-  await expect(dialog).toHaveCSS('animation-name','none');
+  await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-name','none');
   await expect(dialog.getByRole('button',{name:'Stop flashing'})).toHaveCount(0);
   await page.emulateMedia({reducedMotion:'no-preference'});
-  await expect(dialog).toHaveCSS('animation-name','alert-attention');
+  await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-name','alert-attention');
   await page.screenshot({path:'../artifacts/screenshots/pulse-alert-laptop.png',animations:'disabled'});
   await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
   await expect(dialog).not.toBeVisible();
@@ -183,4 +183,39 @@ test('pulse rises quickly at 1x and every alert opens full screen with controlla
   await expect(dialog).not.toBeVisible();
   await page.getByRole('button',{name:'Alerts',exact:true}).click();
   await expect(page.locator('.alert-record').filter({hasText:'respiratory-rise'})).toContainText('ACKNOWLEDGED');
+});
+
+test('reference tables import, persist and retain NASA provenance', async ({page}) => {
+  await page.getByRole('button', {name:'Data workspace',exact:true}).click();
+  await page.getByLabel('Import CSV').setInputFiles({name:'research.csv',mimeType:'text/csv',buffer:Buffer.from('Subject,Temperature\n001,22.5\n002,23.1\n')});
+  await page.getByLabel('Dataset identifier').fill('OSD-test-fixture');
+  await page.getByLabel('Original NASA source URL').fill('https://osdr.nasa.gov/bio/repo/');
+  await page.getByLabel('Column 2 unit').fill('C');
+  await page.getByRole('button',{name:'Save reference table'}).click();
+  await expect(page.getByText('Table saved. Provenance and checksum recorded.')).toBeVisible();
+  await expect(page.getByLabel('Row 1, Subject')).toHaveValue('001');
+  await expect(page.getByLabel('Row 1, Subject')).toBeDisabled();
+  await page.reload();
+  await page.getByRole('button',{name:'Data workspace',exact:true}).click();
+  await page.getByRole('button',{name:/research NASA/}).click();
+  await expect(page.getByLabel('Column 2 unit')).toHaveValue('C');
+  await page.screenshot({path:'../artifacts/screenshots/data-workspace.png',fullPage:true});
+});
+
+test('manual editor changes worker readings and 3D body responds to selection', async ({page,request}) => {
+  await page.getByRole('button',{name:'Simulator controls',exact:true}).click();
+  await page.getByLabel(/Heart rate beats/).fill('88');
+  await page.getByRole('button',{name:'Apply readings'}).click();
+  await expect(page.getByText('Manual overrides active for this crew.')).toBeVisible();
+  await expect.poll(async () => {
+    const observations = await (await request.get(`${API}/observations?astronaut_id=DEMO-CREW-001`)).json();
+    return observations.filter((o: {code:string}) => o.code === 'heart_rate').at(-1)?.value;
+  }).toBe(88);
+  await page.getByRole('button',{name:'Risk monitoring',exact:true}).click();
+  expect((await page.locator('.body-figure').boundingBox())!.width).toBeGreaterThan(200);
+  await page.getByRole('button',{name:'3D schematic',exact:true}).click();
+  await page.getByRole('slider',{name:'Rotate body'}).fill('45');
+  await page.getByRole('button',{name:'Heart & lungs',exact:true}).click();
+  await expect(page.locator('.body-map-measurements')).toContainText('88');
+  await page.screenshot({path:'../artifacts/screenshots/body-3d.png',fullPage:true});
 });

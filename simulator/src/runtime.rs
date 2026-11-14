@@ -8,6 +8,8 @@ use std::{collections::HashMap, error::Error};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Control {
+    #[serde(default)]
+    pub manual_values: HashMap<String, Option<f64>>,
     pub scenario: Activity,
     pub astronaut_id: String,
     pub running: bool,
@@ -72,6 +74,17 @@ pub fn continuous_packet(
     control: &Control,
 ) -> Value {
     let crew = CREW_IDS[model.crew_index];
+    let mut measurements = summaries(
+        model,
+        control.fault == "SENSOR_ERROR" && control.astronaut_id == crew,
+    );
+    if control.astronaut_id == crew {
+        for measurement in &mut measurements {
+            if let Some(Some(value)) = control.manual_values.get(measurement.code) {
+                measurement.value = *value;
+            }
+        }
+    }
     json!({
         "schema_version": "1.0", "event_id": format!("demo-{run}-{}-{sequence}", model.crew_index),
         "sequence": sequence, "observed_at": Utc::now(), "astronaut_id": crew,
@@ -80,7 +93,7 @@ pub fn continuous_packet(
         "simulated_at": model.elapsed(), "model_state": model,
         "waveform": {"sample_rate_hz": ECG_HZ, "start_simulated_at": start,
                      "unit": "mV", "lead": "DEMO-II", "samples": wave},
-        "measurements": summaries(model, control.fault == "SENSOR_ERROR" && control.astronaut_id == crew)
+        "measurements": measurements
     })
 }
 
@@ -128,6 +141,25 @@ pub fn activity_for(scenario: Scenario) -> (Activity, &'static str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn manual_values_are_targeted_and_keep_sensor_quality() {
+        let control: Control = serde_json::from_value(json!({
+            "scenario": "REST", "astronaut_id": CREW_IDS[0], "running": true,
+            "speed": 1, "seed": 42, "fault": "SENSOR_ERROR", "revision": 1,
+            "run_id": "test", "manual_values": {"heart_rate": 88, "spo2": null}
+        }))
+        .unwrap();
+        let model = Physiology::new(42, 0);
+        let packet = continuous_packet(&model, vec![0.0], 0.0, 0, "test", &control);
+        assert_eq!(packet["measurements"][0]["value"], 88.0);
+        assert_eq!(packet["measurements"][0]["quality"], "INVALID");
+        assert_eq!(packet["model_state"]["heart_rate"], model.heart_rate);
+        let other = Physiology::new(42, 1);
+        let packet = continuous_packet(&other, vec![0.0], 0.0, 0, "test", &control);
+        assert_ne!(packet["measurements"][0]["value"], 88.0);
+        assert_eq!(packet["measurements"][0]["quality"], "VALID");
+    }
+
     #[test]
     fn static_results_only_exist_in_exam_packets() {
         let mut model = Physiology::new(42, 0);

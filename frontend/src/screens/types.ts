@@ -12,6 +12,7 @@ export const PAGES = [
   "EVA operations",
   "Alerts",
   "Simulator controls",
+  "Data workspace",
 ] as const;
 export type Page = (typeof PAGES)[number];
 export type Mission = ReturnType<typeof useMission>;

@@ -21,7 +21,15 @@ Fault = Literal[
 ExamKind = Literal["BLOOD_PRESSURE", "LAB_PANEL", "BONE_DENSITY"]
 
 
+class ManualValues(StrictModel):
+    heart_rate: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
+    respiratory_rate: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
+    spo2: float | None = Field(default=None, ge=0, le=100, allow_inf_nan=False)
+    suit_pressure: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
+
+
 class SimulatorControl(StrictModel):
+    manual_values: ManualValues = Field(default_factory=ManualValues)
     scenario: Activity = "REST"
     astronaut_id: CrewId = "DEMO-CREW-001"
     running: bool = True
@@ -38,6 +46,7 @@ class SimulatorControl(StrictModel):
 
 
 class ControlCommand(StrictModel):
+    manual_values: ManualValues | None = None
     action: Literal["CONFIGURE", "PAUSE", "RESUME", "RESTART"]
     scenario: Activity | None = None
     astronaut_id: CrewId | None = None

@@ -1,3 +1,4 @@
+import { ManualTelemetry } from "../components/ManualTelemetry";
 import { useEffect, useState } from "react";
 import { elapsed, Empty, Panel, stamp, Status } from "../components/medical";
 import type { ControlCommand } from "../services/api";
@@ -8,6 +9,7 @@ export function SimulatorControls({
   crewId,
   busy,
   action,
+  ...rest
 }: ScreenProps) {
   const control = mission.operations?.control;
   const [seed, setSeed] = useState(42);
@@ -31,6 +33,14 @@ export function SimulatorControls({
     mission.serverNow - Date.parse(control.worker_seen) < 5000;
   return (
     <div className="screen-stack">
+      <ManualTelemetry
+        key={`${crewId}-${control.run_id}`}
+        mission={mission}
+        crewId={crewId}
+        busy={busy}
+        action={action}
+        {...rest}
+      />
       <div className="two-columns">
         <Panel
           title="Playback"

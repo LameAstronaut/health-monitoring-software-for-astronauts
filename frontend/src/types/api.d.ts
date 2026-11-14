@@ -244,6 +244,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Datasets */
+        get: operations["list_datasets_api_v1_datasets_get"];
+        put?: never;
+        /** Create Dataset */
+        post: operations["create_dataset_api_v1_datasets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/datasets/{dataset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Dataset */
+        get: operations["get_dataset_api_v1_datasets__dataset_id__get"];
+        put?: never;
+        /** Edit Dataset */
+        post: operations["edit_dataset_api_v1_datasets__dataset_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -434,6 +470,7 @@ export interface components {
         };
         /** ControlCommand */
         ControlCommand: {
+            manual_values?: components["schemas"]["ManualValues"] | null;
             /**
              * Action
              * @enum {string}
@@ -503,6 +540,124 @@ export interface components {
             crew: components["schemas"]["CrewMember"];
             /** Readings */
             readings: components["schemas"]["Observation"][];
+        };
+        /** DataColumn */
+        DataColumn: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Unit
+             * @default
+             */
+            unit: string;
+        };
+        /** Dataset */
+        Dataset: {
+            /** Title */
+            title: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "NASA" | "MANUAL";
+            /**
+             * Source Url
+             * @default
+             */
+            source_url: string;
+            /**
+             * Accession
+             * @default
+             */
+            accession: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Columns */
+            columns: components["schemas"]["DataColumn"][];
+            /** Rows */
+            rows: {
+                [key: string]: string | number | null;
+            }[];
+            /** Id */
+            id: string;
+            /** Created At */
+            created_at: string;
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
+            /** Digest */
+            digest: string;
+        };
+        /** DatasetEdit */
+        DatasetEdit: {
+            /** Title */
+            title: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "NASA" | "MANUAL";
+            /**
+             * Source Url
+             * @default
+             */
+            source_url: string;
+            /**
+             * Accession
+             * @default
+             */
+            accession: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Columns */
+            columns: components["schemas"]["DataColumn"][];
+            /** Rows */
+            rows: {
+                [key: string]: string | number | null;
+            }[];
+            /** Expected Revision */
+            expected_revision: number;
+        };
+        /** DatasetInput */
+        DatasetInput: {
+            /** Title */
+            title: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "NASA" | "MANUAL";
+            /**
+             * Source Url
+             * @default
+             */
+            source_url: string;
+            /**
+             * Accession
+             * @default
+             */
+            accession: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Columns */
+            columns: components["schemas"]["DataColumn"][];
+            /** Rows */
+            rows: {
+                [key: string]: string | number | null;
+            }[];
         };
         /** Device */
         Device: {
@@ -826,6 +981,17 @@ export interface components {
              */
             source_type: "SIMULATED";
         };
+        /** ManualValues */
+        ManualValues: {
+            /** Heart Rate */
+            heart_rate?: number | null;
+            /** Respiratory Rate */
+            respiratory_rate?: number | null;
+            /** Spo2 */
+            spo2?: number | null;
+            /** Suit Pressure */
+            suit_pressure?: number | null;
+        };
         /** Meal */
         Meal: {
             /** Id */
@@ -1017,6 +1183,7 @@ export interface components {
         };
         /** SimulatorControl */
         SimulatorControl: {
+            manual_values?: components["schemas"]["ManualValues"];
             /**
              * Scenario
              * @default REST
@@ -1733,6 +1900,125 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_datasets_api_v1_datasets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    create_dataset_api_v1_datasets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DatasetInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dataset"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dataset_api_v1_datasets__dataset_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dataset"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_dataset_api_v1_datasets__dataset_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DatasetEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dataset"];
                 };
             };
             /** @description Validation Error */

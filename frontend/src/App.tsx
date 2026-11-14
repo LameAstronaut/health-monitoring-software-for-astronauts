@@ -1,3 +1,4 @@
+import { DataWorkspace } from "./screens/data";
 import { useState } from "react";
 import { post } from "./services/api";
 import { useMission } from "./useMission";
@@ -14,6 +15,8 @@ import { EvaOperations, Fitness, Nutrition } from "./screens/lifestyle";
 import { RiskMonitoring } from "./screens/risk";
 
 const DESCRIPTIONS: Record<Page, string> = {
+  "Data workspace":
+    "Import NASA reference tables, define data fields, and edit simulation research records.",
   "Mission dashboard":
     "A clear view of your crew, physiological data, and scheduled medical work.",
   "Crew profiles":
@@ -37,8 +40,9 @@ const DESCRIPTIONS: Record<Page, string> = {
   "Simulator controls":
     "Reproducible physiological scenarios, playback, speed, and sensor faults.",
 };
-const ICONS = ["▦", "♧", "⌁", "✚", "◇", "◉", "◫", "↗", "◎", "△", "▷"];
+const ICONS = ["▦", "♧", "⌁", "✚", "◇", "◉", "◫", "↗", "◎", "△", "▷", "▤"];
 const SCREENS: Record<Page, (props: ScreenProps) => React.ReactNode> = {
+  "Data workspace": DataWorkspace,
   "Mission dashboard": Dashboard,
   "Crew profiles": CrewProfiles,
   "Live monitoring": LiveMonitoring,

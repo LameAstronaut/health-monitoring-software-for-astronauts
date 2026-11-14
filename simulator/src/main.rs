@@ -72,6 +72,7 @@ async fn run(config: Config) -> Result<(), Box<dyn Error>> {
         initial.control
     } else {
         Control {
+            manual_values: Default::default(),
             scenario: activity,
             astronaut_id: CREW_IDS[0].into(),
             running: true,
