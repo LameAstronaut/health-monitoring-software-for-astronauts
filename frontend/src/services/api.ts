@@ -5,6 +5,7 @@ export type Alert = components["schemas"]["Alert"];
 export type Device = components["schemas"]["Device"];
 export type Health = components["schemas"]["Health"];
 export type CrewMember = components["schemas"]["CrewMember"];
+export type ExaminationPlan = components["schemas"]["ExaminationPlan"];
 export type Examination = components["schemas"]["Examination"];
 export type SimulatorControl = components["schemas"]["SimulatorControl"];
 export type Operations = components["schemas"]["OperationsSnapshot"];

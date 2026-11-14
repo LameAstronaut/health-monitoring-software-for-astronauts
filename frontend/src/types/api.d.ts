@@ -107,6 +107,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/examination-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule Examination */
+        post: operations["schedule_examination_api_v1_examination_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/examination-plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change Examination Plan */
+        post: operations["change_examination_plan_api_v1_examination_plans__plan_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/examinations": {
         parameters: {
             query?: never;
@@ -806,6 +840,8 @@ export interface components {
         };
         /** ExamRequest */
         ExamRequest: {
+            /** Plan Id */
+            plan_id?: string | null;
             /**
              * Astronaut Id
              * @enum {string}
@@ -821,6 +857,8 @@ export interface components {
         };
         /** Examination */
         Examination: {
+            /** Plan Id */
+            plan_id?: string | null;
             /** Id */
             id: string;
             /**
@@ -866,6 +904,89 @@ export interface components {
              * @constant
              */
             source_type: "SIMULATED";
+        };
+        /** ExaminationPlan */
+        ExaminationPlan: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY" | "BODY_TEMPERATURE";
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Id */
+            id: string;
+            /**
+             * Status
+             * @default PLANNED
+             * @enum {string}
+             */
+            status: "PLANNED" | "COMPLETED" | "CANCELLED";
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
+            /** Examination Id */
+            examination_id?: string | null;
+            /** Task Id */
+            task_id?: string | null;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
+        /** ExaminationPlanChange */
+        ExaminationPlanChange: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "RESCHEDULE" | "CANCEL";
+            /** Expected Revision */
+            expected_revision: number;
+            /** Scheduled At */
+            scheduled_at?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** ExaminationPlanRequest */
+        ExaminationPlanRequest: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY" | "BODY_TEMPERATURE";
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
         };
         /** FitnessRequest */
         FitnessRequest: {
@@ -1188,6 +1309,8 @@ export interface components {
         };
         /** OperationsSnapshot */
         OperationsSnapshot: {
+            /** Exam Plans */
+            exam_plans?: components["schemas"]["ExaminationPlan"][];
             /** Moods */
             moods?: components["schemas"]["MoodEntry"][];
             control: components["schemas"]["SimulatorControl"];
@@ -1353,7 +1476,7 @@ export interface components {
              * @default PENDING
              * @enum {string}
              */
-            status: "PENDING" | "COMPLETE";
+            status: "PENDING" | "COMPLETE" | "CANCELLED";
             /**
              * Destination
              * @enum {string}
@@ -1701,6 +1824,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SimulatorControl"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schedule_examination_api_v1_examination_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExaminationPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExaminationPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_examination_plan_api_v1_examination_plans__plan_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExaminationPlanChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExaminationPlan"];
                 };
             };
             /** @description Validation Error */

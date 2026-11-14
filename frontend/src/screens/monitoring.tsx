@@ -1,3 +1,4 @@
+import { ExaminationCalendar } from "../components/ExaminationCalendar";
 import { useVitalRecovery } from "../useVitalRecovery";
 import { useState } from "react";
 import {
@@ -228,6 +229,7 @@ export function Dashboard(props: ScreenProps) {
           )}
         </Panel>
       </div>
+      <ExaminationCalendar {...props} />
     </div>
   );
 }

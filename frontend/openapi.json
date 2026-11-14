@@ -239,6 +239,93 @@
         }
       }
     },
+    "/api/v1/examination-plans": {
+      "post": {
+        "summary": "Schedule Examination",
+        "operationId": "schedule_examination_api_v1_examination_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExaminationPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExaminationPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/examination-plans/{plan_id}": {
+      "post": {
+        "summary": "Change Examination Plan",
+        "operationId": "change_examination_plan_api_v1_examination_plans__plan_id__post",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExaminationPlanChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExaminationPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/examinations": {
       "get": {
         "summary": "Examinations",
@@ -1928,6 +2015,18 @@
       },
       "ExamRequest": {
         "properties": {
+          "plan_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
           "astronaut_id": {
             "type": "string",
             "enum": [
@@ -1963,6 +2062,17 @@
       },
       "Examination": {
         "properties": {
+          "plan_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
           "id": {
             "type": "string",
             "title": "Id"
@@ -2082,6 +2192,186 @@
           "started_at"
         ],
         "title": "Examination"
+      },
+      "ExaminationPlan": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "BLOOD_PRESSURE",
+              "LAB_PANEL",
+              "BONE_DENSITY",
+              "BODY_TEMPERATURE"
+            ],
+            "title": "Kind"
+          },
+          "scheduled_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scheduled At"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "default": ""
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PLANNED",
+              "COMPLETED",
+              "CANCELLED"
+            ],
+            "title": "Status",
+            "default": "PLANNED"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "examination_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examination Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "kind",
+          "scheduled_at",
+          "id"
+        ],
+        "title": "ExaminationPlan"
+      },
+      "ExaminationPlanChange": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "RESCHEDULE",
+              "CANCEL"
+            ],
+            "title": "Action"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "scheduled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled At"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action",
+          "expected_revision"
+        ],
+        "title": "ExaminationPlanChange"
+      },
+      "ExaminationPlanRequest": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "BLOOD_PRESSURE",
+              "LAB_PANEL",
+              "BONE_DENSITY",
+              "BODY_TEMPERATURE"
+            ],
+            "title": "Kind"
+          },
+          "scheduled_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scheduled At"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "kind",
+          "scheduled_at"
+        ],
+        "title": "ExaminationPlanRequest"
       },
       "FitnessRequest": {
         "properties": {
@@ -2836,6 +3126,13 @@
       },
       "OperationsSnapshot": {
         "properties": {
+          "exam_plans": {
+            "items": {
+              "$ref": "#/components/schemas/ExaminationPlan"
+            },
+            "type": "array",
+            "title": "Exam Plans"
+          },
           "moods": {
             "items": {
               "$ref": "#/components/schemas/MoodEntry"
@@ -3193,7 +3490,8 @@
             "type": "string",
             "enum": [
               "PENDING",
-              "COMPLETE"
+              "COMPLETE",
+              "CANCELLED"
             ],
             "title": "Status",
             "default": "PENDING"

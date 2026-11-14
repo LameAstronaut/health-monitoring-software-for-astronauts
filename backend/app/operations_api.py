@@ -19,6 +19,9 @@ from .operation_schemas import (
     EvaSession,
     ExamAction,
     Examination,
+    ExaminationPlan,
+    ExaminationPlanChange,
+    ExaminationPlanRequest,
     ExamRequest,
     FitnessRequest,
     FitnessSession,
@@ -151,6 +154,55 @@ def build_operations_router(sessions, service, config):
             ops.heartbeat(db, message.run_id, message.revision, message.state)
             return ops.control_state(db)
 
+    @router.post(
+        "/examination-plans", response_model=ExaminationPlan, dependencies=[Depends(operator)]
+    )
+    async def schedule_examination(request: ExaminationPlanRequest):
+        plan = ExaminationPlan(
+            **(request.model_dump() | {"scheduled_at": request.scheduled_at.astimezone(UTC)}),
+            id=f"demo-plan-{uuid4().hex}",
+        )
+        with sessions() as db:
+            ops.insert(db, "exam-plan", plan.model_dump(mode="json"), plan.astronaut_id)
+            db.commit()
+        return plan
+
+    @router.post(
+        "/examination-plans/{plan_id}",
+        response_model=ExaminationPlan,
+        dependencies=[Depends(operator)],
+    )
+    async def change_examination_plan(plan_id: str, change: ExaminationPlanChange):
+        with sessions() as db:
+            row = ops.get_record(db, plan_id, "exam-plan")
+            if row.data["revision"] != change.expected_revision:
+                raise HTTPException(409, "This plan changed. Refresh the calendar and try again.")
+            if row.data["status"] == "COMPLETED":
+                raise HTTPException(409, "A completed examination plan cannot be changed")
+            if any(
+                exam.data.get("plan_id") == plan_id
+                and exam.data["status"] in ("ACQUIRING", "REVIEW")
+                for exam in ops.records(db, "examination")
+            ):
+                raise HTTPException(409, "Cancel the active acquisition before changing this plan")
+            update = {
+                "revision": row.data["revision"] + 1,
+                "status": "CANCELLED" if change.action == "CANCEL" else "PLANNED",
+            }
+            if change.scheduled_at is not None:
+                update["scheduled_at"] = change.scheduled_at.astimezone(UTC).isoformat()
+            if change.notes is not None:
+                update["notes"] = change.notes
+            row.data = row.data | update
+            if row.data.get("task_id"):
+                task = ops.get_record(db, row.data["task_id"], "task")
+                task.data = task.data | {
+                    "due_at": row.data["scheduled_at"],
+                    "status": "CANCELLED" if change.action == "CANCEL" else "PENDING",
+                }
+            db.commit()
+            return row.data
+
     @router.get("/examinations", response_model=list[Examination])
     async def examinations():
         with sessions() as db:
@@ -175,10 +227,29 @@ def build_operations_router(sessions, service, config):
             )
             SimulatedAdapter(request.device_id).acquire(request, live and control.running)
             if any(
-                r.data["status"] == "ACQUIRING" and r.astronaut_id == request.astronaut_id
+                r.data["status"] in ("ACQUIRING", "REVIEW")
+                and r.astronaut_id == request.astronaut_id
                 for r in ops.records(db, "examination")
             ):
-                raise HTTPException(409, "This crew already has an acquisition in progress")
+                raise HTTPException(
+                    409, "This crew already has an examination in progress or awaiting review"
+                )
+            if request.plan_id:
+                plan = ops.get_record(db, request.plan_id, "exam-plan")
+                if (
+                    plan.data["astronaut_id"] != request.astronaut_id
+                    or plan.data["kind"] != request.kind
+                    or plan.data["status"] != "PLANNED"
+                ):
+                    raise HTTPException(
+                        409, "This plan does not match a pending examination for this crew"
+                    )
+                if any(
+                    exam.data.get("plan_id") == request.plan_id
+                    and exam.data["status"] in ("ACQUIRING", "REVIEW")
+                    for exam in ops.records(db, "examination")
+                ):
+                    raise HTTPException(409, "This plan already has an acquisition in progress")
             exam = Examination(
                 id=f"demo-exam-{uuid4().hex}",
                 **request.model_dump(),
@@ -207,6 +278,16 @@ def build_operations_router(sessions, service, config):
                     "saved_at": ops.now_iso(),
                     "note": action.note,
                 }
+                if row.data.get("plan_id"):
+                    plan = ops.get_record(db, row.data["plan_id"], "exam-plan")
+                    plan.data = plan.data | {
+                        "status": "COMPLETED",
+                        "examination_id": exam_id,
+                        "revision": plan.data["revision"] + 1,
+                    }
+                    if plan.data.get("task_id"):
+                        task = ops.get_record(db, plan.data["task_id"], "task")
+                        task.data = task.data | {"status": "COMPLETE"}
             else:
                 if row.data["status"] not in ("ACQUIRING", "REVIEW"):
                     raise HTTPException(409, "This examination can no longer be cancelled")
@@ -397,7 +478,25 @@ def build_operations_router(sessions, service, config):
     async def complete_task(task_id: str):
         with sessions() as db:
             row = ops.get_record(db, task_id, "task")
+            if row.data["status"] == "CANCELLED":
+                raise HTTPException(
+                    409, "Reschedule the cancelled examination before completing this task"
+                )
             row.data = row.data | {"status": "COMPLETE"}
+            plan = db.get(RecordRow, f"planned-{task_id}")
+            if plan and plan.data["status"] == "PLANNED":
+                if any(
+                    exam.data.get("plan_id") == plan.id
+                    and exam.data["status"] in ("ACQUIRING", "REVIEW")
+                    for exam in ops.records(db, "examination")
+                ):
+                    raise HTTPException(
+                        409, "Review the active examination before completing this task"
+                    )
+                plan.data = plan.data | {
+                    "status": "COMPLETED",
+                    "revision": plan.data["revision"] + 1,
+                }
             db.commit()
             return row.data
 

@@ -9,6 +9,7 @@ from .database import PacketRow, RecordRow
 from .operation_schemas import (
     ControlCommand,
     Examination,
+    ExaminationPlan,
     InventoryItem,
     OperationsSnapshot,
     SimulatorControl,
@@ -29,6 +30,7 @@ def records(db: Session, kind: str) -> list[RecordRow]:
             row.data.get("started_at")
             or row.data.get("logged_at")
             or row.data.get("created_at")
+            or row.data.get("scheduled_at")
             or row.data.get("recorded_at")
             or row.data.get("due_at")
             or "",
@@ -97,6 +99,22 @@ def initialize(db: Session):
                     destination=destination,
                 )
                 insert(db, "task", task.model_dump(mode="json"), crew["id"])
+    # Existing routine-examination tasks become calendar plans once, without inventing a regimen.
+    for i, crew in enumerate(CREW):
+        task_id = f"demo-task-{i}-1"
+        task = db.get(RecordRow, task_id)
+        plan_id = f"planned-{task_id}"
+        if task and db.get(RecordRow, plan_id) is None:
+            plan = ExaminationPlan(
+                id=plan_id,
+                astronaut_id=crew["id"],
+                kind="BLOOD_PRESSURE",
+                scheduled_at=task.data["due_at"],
+                task_id=task_id,
+                status="COMPLETED" if task.data["status"] == "COMPLETE" else "PLANNED",
+                notes="Imported from the existing routine examination task.",
+            )
+            insert(db, "exam-plan", plan.model_dump(mode="json"), crew["id"])
     db.commit()
 
 
@@ -217,6 +235,7 @@ def snapshot(db: Session) -> OperationsSnapshot:
         return [row.data for row in rows][-200:][::-1]
 
     return OperationsSnapshot(
+        exam_plans=[row.data for row in records(db, "exam-plan")],
         moods=items("mood"),
         control=control_state(db),
         examinations=items("examination"),

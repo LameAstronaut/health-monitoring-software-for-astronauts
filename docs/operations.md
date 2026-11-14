@@ -62,3 +62,28 @@ previous days remain recorded. Reloads, crew selection and playback restarts ret
 saved choices. A new day shows a neutral placeholder labeled Not recorded until
 a choice is submitted. Mood is a self-reported demo record, not a derived clinical
 assessment or a simulator fault.
+
+
+## Weekly examination calendars
+
+Mission dashboard and Examinations show a Monday–Sunday calendar for the selected
+crew member, using UTC to match the rest of the interface. Previous week, This week
+and Next week navigate across month/year boundaries. Tablet calendars scroll
+horizontally; phone calendars stack the seven labeled days without page overflow.
+
+Schedule examination (or a day's Plan exam button) adds an examination type, date,
+time and optional notes. Plans persist in local operational records across reloads
+and playback/API restarts. Reschedule uses a revision guard; Cancel plan preserves
+the record, and rescheduling can restore a cancelled plan. Completed plans cannot
+be edited. Existing routine blood-pressure tasks are imported once per crew and
+keep their original due dates; no clinical schedule or recurring regimen is generated.
+Cancelling/rescheduling an imported plan also updates its linked task.
+
+Start examination uses the planned crew, type and registered virtual instrument.
+Planning works while playback is paused, but acquisition requires fresh running
+telemetry and a living crew member. An active acquisition/review must be finished
+or cancelled before another begins. Acquiring or reviewing alone does not complete
+a plan: Review & save result records completion and links the report atomically.
+A failed/cancelled acquisition leaves the plan available to retry. The existing
+explicit Complete task action can also mark an imported plan complete without a
+linked report. Historical records and independent crew calendars are retained.

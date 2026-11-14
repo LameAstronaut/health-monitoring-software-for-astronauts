@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import Field
+from pydantic import AwareDatetime, Field, model_validator
 
 from .schemas import CrewMember, Measurement, Observation, PhysiologyState, StrictModel
 
@@ -68,12 +68,14 @@ class WorkerHeartbeat(StrictModel):
 
 
 class ExamRequest(StrictModel):
+    plan_id: str | None = Field(default=None, max_length=100)
     astronaut_id: CrewId
     kind: ExamKind
     device_id: str
 
 
 class Examination(StrictModel):
+    plan_id: str | None = None
     id: str
     astronaut_id: CrewId
     kind: ExamKind
@@ -182,7 +184,7 @@ class Task(StrictModel):
     astronaut_id: CrewId
     title: str
     due_at: datetime
-    status: Literal["PENDING", "COMPLETE"] = "PENDING"
+    status: Literal["PENDING", "COMPLETE", "CANCELLED"] = "PENDING"
     destination: Literal["Examinations", "Fitness", "Nutrition"]
     source_type: Literal["SIMULATED"] = "SIMULATED"
 
@@ -198,7 +200,37 @@ class MoodEntry(MoodRequest):
     source_type: Literal["SIMULATED"] = "SIMULATED"
 
 
+class ExaminationPlanRequest(StrictModel):
+    astronaut_id: CrewId
+    kind: ExamKind
+    scheduled_at: AwareDatetime
+    notes: str = Field(default="", max_length=1000)
+
+
+class ExaminationPlan(ExaminationPlanRequest):
+    id: str
+    status: Literal["PLANNED", "COMPLETED", "CANCELLED"] = "PLANNED"
+    revision: int = 0
+    examination_id: str | None = None
+    task_id: str | None = None
+    source_type: Literal["SIMULATED"] = "SIMULATED"
+
+
+class ExaminationPlanChange(StrictModel):
+    action: Literal["RESCHEDULE", "CANCEL"]
+    expected_revision: int = Field(ge=0)
+    scheduled_at: AwareDatetime | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+
+    @model_validator(mode="after")
+    def require_time(self):
+        if self.action == "RESCHEDULE" and self.scheduled_at is None:
+            raise ValueError("Rescheduling requires a date and time")
+        return self
+
+
 class OperationsSnapshot(StrictModel):
+    exam_plans: list[ExaminationPlan] = Field(default_factory=list)
     moods: list[MoodEntry] = Field(default_factory=list)
     control: SimulatorControl
     examinations: list[Examination]

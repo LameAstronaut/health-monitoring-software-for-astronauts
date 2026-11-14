@@ -3,32 +3,8 @@ import { Empty, NAMES, Panel, stamp, Status } from "../components/medical";
 import type { Examination } from "../services/api";
 import type { ScreenProps } from "./types";
 
-const EXAMS = [
-  {
-    kind: "BLOOD_PRESSURE",
-    label: "Blood pressure",
-    device: "DEMO-BP-001",
-    description: "Event-based cuff fixture · systolic / diastolic",
-  },
-  {
-    kind: "LAB_PANEL",
-    label: "Laboratory panel",
-    device: "DEMO-LAB-001",
-    description: "Synthetic report · WBC / hemoglobin",
-  },
-  {
-    kind: "BONE_DENSITY",
-    label: "Bone density",
-    device: "DEMO-DXA-001",
-    description: "Synthetic report · bone mineral density",
-  },
-  {
-    kind: "BODY_TEMPERATURE",
-    label: "Body temperature",
-    device: "DEMO-TEMP-001",
-    description: "Event-based thermometer fixture · degrees Celsius",
-  },
-] as const;
+import { EXAM_TYPES as EXAMS } from "../examinationTypes";
+import { ExaminationCalendar } from "../components/ExaminationCalendar";
 
 function downloadReport(exam: Examination) {
   const url = URL.createObjectURL(
@@ -53,13 +29,13 @@ export function Examinations({
   const [kind, setKind] = useState<string>("BLOOD_PRESSURE");
   const [note, setNote] = useState("");
   const [selected, setSelected] = useState<string>();
-  const definition = EXAMS.find((e) => e.kind === kind)!;
   const exams =
     mission.operations?.examinations.filter((e) => e.astronaut_id === crewId) ??
     [];
   const active = exams.find(
     (e) => e.status === "ACQUIRING" || e.status === "REVIEW",
   );
+  const definition = EXAMS.find((e) => e.kind === (active?.kind ?? kind))!;
   const report = active ?? exams.find((e) => e.id === selected);
   const saved = exams.filter((e) => e.status === "SAVED");
   const failed = exams.find((e) => e.status === "FAILED");
@@ -110,14 +86,14 @@ export function Examinations({
             <div className="exam-options">
               {EXAMS.map((exam) => (
                 <label
-                  className={`exam-option ${kind === exam.kind ? "selected" : ""}`}
+                  className={`exam-option ${(active?.kind ?? kind) === exam.kind ? "selected" : ""}`}
                   key={exam.kind}
                 >
                   <input
                     type="radio"
                     name="examination-type"
                     value={exam.kind}
-                    checked={kind === exam.kind}
+                    checked={(active?.kind ?? kind) === exam.kind}
                     onChange={() => setKind(exam.kind)}
                   />
                   <span>
@@ -386,6 +362,12 @@ export function Examinations({
           </div>
         )}
       </Panel>
+      <ExaminationCalendar
+        mission={mission}
+        crewId={crewId}
+        navigate={navigate}
+        deceasedCrewIds={deceasedCrewIds}
+      />
     </div>
   );
 }

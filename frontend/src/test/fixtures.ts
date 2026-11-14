@@ -121,6 +121,7 @@ export function makeMission(overrides: Partial<Mission> = {}): Mission {
     serverNow: NOW,
     refresh: vi.fn().mockResolvedValue(undefined),
     operations: {
+      exam_plans: [],
       moods: [],
       control: {
         scenario: "REST",

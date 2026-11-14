@@ -1,0 +1,212 @@
+import pytest
+from fastapi.testclient import TestClient
+from test_api import TOKEN, packet
+from test_operations import control, live
+
+
+def plans(client):
+    return client.get("/api/v1/operations").json()["exam_plans"]
+
+
+def schedule(client, **changes):
+    return client.post(
+        "/api/v1/examination-plans",
+        json={
+            "astronaut_id": "DEMO-CREW-001",
+            "kind": "BODY_TEMPERATURE",
+            "scheduled_at": "2026-11-16T09:00:00+03:00",
+            "notes": "Routine demo",
+            **changes,
+        },
+    )
+
+
+def test_existing_examination_tasks_are_imported_once_per_crew(client, app_factory):
+    initial = plans(client)
+    assert len(initial) == 3
+    assert {entry["astronaut_id"] for entry in initial} == {f"DEMO-CREW-00{i}" for i in (1, 2, 3)}
+    assert all(entry["kind"] == "BLOOD_PRESSURE" and entry["task_id"] for entry in initial)
+    tasks = client.get("/api/v1/operations").json()["tasks"]
+    for entry in initial:
+        assert entry["scheduled_at"] == next(
+            task["due_at"] for task in tasks if task["id"] == entry["task_id"]
+        )
+    with TestClient(app_factory()) as restarted:
+        assert plans(restarted) == initial
+
+
+def test_plans_are_persistent_crew_specific_and_use_utc(client, app_factory):
+    control(client, "PAUSE")
+    created = schedule(client)
+    assert created.status_code == 200
+    first = created.json()
+    assert first["scheduled_at"] == "2026-11-16T06:00:00Z"
+    assert first["status"] == "PLANNED"
+    assert first["source_type"] == "SIMULATED"
+    assert schedule(client, astronaut_id="DEMO-CREW-002", kind="LAB_PANEL").status_code == 200
+    assert client.get("/api/v1/examinations").json() == []
+    stored = plans(client)
+    control(client, "RESTART")
+    assert plans(client) == stored
+    with TestClient(app_factory()) as restarted:
+        assert plans(restarted) == stored
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"astronaut_id": "UNKNOWN"},
+        {"kind": "UNKNOWN"},
+        {"scheduled_at": "2026-11-16T09:00:00"},
+        {"scheduled_at": "invalid"},
+        {"notes": "x" * 1001},
+    ],
+)
+def test_plan_schema_rejects_invalid_input(client, changes):
+    assert schedule(client, **changes).status_code == 422
+    assert len(plans(client)) == 3
+
+
+def test_reschedule_cancel_and_restore_use_revision_checks(client):
+    created = schedule(client).json()
+    route = f"/api/v1/examination-plans/{created['id']}"
+    assert (
+        client.post(route, json={"action": "RESCHEDULE", "expected_revision": 0}).status_code == 422
+    )
+    updated = client.post(
+        route,
+        json={
+            "action": "RESCHEDULE",
+            "expected_revision": 0,
+            "scheduled_at": "2026-11-23T11:30:00Z",
+            "notes": "Changed",
+        },
+    ).json()
+    assert updated["revision"] == 1
+    assert updated["notes"] == "Changed"
+    assert client.post(route, json={"action": "CANCEL", "expected_revision": 0}).status_code == 409
+    cancelled = client.post(route, json={"action": "CANCEL", "expected_revision": 1}).json()
+    assert cancelled["status"] == "CANCELLED"
+    restored = client.post(
+        route,
+        json={
+            "action": "RESCHEDULE",
+            "expected_revision": 2,
+            "scheduled_at": "2026-11-24T10:00:00Z",
+        },
+    ).json()
+    assert restored["status"] == "PLANNED" and restored["revision"] == 3
+
+
+def test_saved_linked_examination_completes_its_plan_and_task_once(client):
+    live(client)
+    plan = next(entry for entry in plans(client) if entry["astronaut_id"] == "DEMO-CREW-001")
+    request = {
+        "astronaut_id": "DEMO-CREW-001",
+        "kind": "BLOOD_PRESSURE",
+        "device_id": "DEMO-BP-001",
+        "plan_id": plan["id"],
+    }
+    result = client.post("/api/v1/examinations", json=request)
+    assert result.status_code == 200
+    exam = result.json()
+    route = f"/api/v1/examination-plans/{plan['id']}"
+    assert client.post(route, json={"action": "CANCEL", "expected_revision": 0}).status_code == 409
+    measurements = [
+        {"code": "systolic_bp", "value": 118, "unit": "mmHg", "quality": "VALID"},
+        {"code": "diastolic_bp", "value": 76, "unit": "mmHg", "quality": "VALID"},
+    ]
+    payload = packet(
+        0,
+        scenario="EXAMINATION",
+        event_id="planned-result",
+        device_id="DEMO-BP-001",
+        examination_id=exam["id"],
+        measurements=measurements,
+    )
+    assert client.post("/api/v1/telemetry", json=payload, headers=TOKEN).status_code == 200
+    assert (
+        next(entry for entry in plans(client) if entry["id"] == plan["id"])["status"] == "PLANNED"
+    )
+    assert client.post("/api/v1/examinations", json=request).status_code == 409
+    save_route = f"/api/v1/examinations/{exam['id']}/actions"
+    assert client.post(save_route, json={"action": "SAVE"}).status_code == 200
+    assert client.post(save_route, json={"action": "SAVE"}).status_code == 200
+    completed = next(entry for entry in plans(client) if entry["id"] == plan["id"])
+    assert completed["status"] == "COMPLETED"
+    assert completed["examination_id"] == exam["id"]
+    assert completed["revision"] == 1
+    task = next(
+        task
+        for task in client.get("/api/v1/operations").json()["tasks"]
+        if task["id"] == plan["task_id"]
+    )
+    assert task["status"] == "COMPLETE"
+    assert (
+        client.post(
+            route,
+            json={
+                "action": "RESCHEDULE",
+                "expected_revision": 1,
+                "scheduled_at": "2026-11-23T10:00:00Z",
+            },
+        ).status_code
+        == 409
+    )
+
+
+def test_plan_must_match_crew_kind_and_pending_state(client):
+    live(client)
+    plan = schedule(client, astronaut_id="DEMO-CREW-002").json()
+    request = {
+        "astronaut_id": "DEMO-CREW-001",
+        "kind": "BODY_TEMPERATURE",
+        "device_id": "DEMO-TEMP-001",
+        "plan_id": plan["id"],
+    }
+    assert client.post("/api/v1/examinations", json=request).status_code == 409
+    plan = schedule(client).json()
+    request["plan_id"] = plan["id"]
+    assert (
+        client.post(
+            "/api/v1/examinations",
+            json=request | {"kind": "BLOOD_PRESSURE", "device_id": "DEMO-BP-001"},
+        ).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            f"/api/v1/examination-plans/{plan['id']}",
+            json={"action": "CANCEL", "expected_revision": 0},
+        ).status_code
+        == 200
+    )
+    assert client.post("/api/v1/examinations", json=request).status_code == 409
+
+
+def test_cancelling_and_rescheduling_imported_plans_updates_tasks(client):
+    plan = plans(client)[0]
+    route = f"/api/v1/examination-plans/{plan['id']}"
+    client.post(route, json={"action": "CANCEL", "expected_revision": 0})
+    task = next(
+        task
+        for task in client.get("/api/v1/operations").json()["tasks"]
+        if task["id"] == plan["task_id"]
+    )
+    assert task["status"] == "CANCELLED"
+    assert client.post(f"/api/v1/tasks/{task['id']}/complete").status_code == 409
+    client.post(
+        route,
+        json={
+            "action": "RESCHEDULE",
+            "expected_revision": 1,
+            "scheduled_at": "2026-11-23T11:00:00Z",
+        },
+    )
+    task = next(
+        task
+        for task in client.get("/api/v1/operations").json()["tasks"]
+        if task["id"] == plan["task_id"]
+    )
+    assert task["status"] == "PENDING"
+    assert task["due_at"] == "2026-11-23T11:00:00Z"
