@@ -5,6 +5,589 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/api/v1/operations": {
+      "get": {
+        "summary": "Operations",
+        "operationId": "operations_api_v1_operations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationsSnapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crew/summaries": {
+      "get": {
+        "summary": "Summaries",
+        "operationId": "summaries_api_v1_crew_summaries_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CrewSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Summaries Api V1 Crew Summaries Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/control": {
+      "get": {
+        "summary": "Control",
+        "operationId": "control_api_v1_demo_control_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulatorControl"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Configure",
+        "operationId": "configure_api_v1_demo_control_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulatorControl"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/runtime": {
+      "get": {
+        "summary": "Runtime",
+        "operationId": "runtime_api_v1_demo_runtime_get",
+        "parameters": [
+          {
+            "name": "x-demo-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/heartbeat": {
+      "post": {
+        "summary": "Heartbeat",
+        "operationId": "heartbeat_api_v1_demo_heartbeat_post",
+        "parameters": [
+          {
+            "name": "x-demo-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerHeartbeat"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulatorControl"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/examinations": {
+      "get": {
+        "summary": "Examinations",
+        "operationId": "examinations_api_v1_examinations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Examination"
+                  },
+                  "type": "array",
+                  "title": "Response Examinations Api V1 Examinations Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Examination",
+        "operationId": "create_examination_api_v1_examinations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Examination"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/examinations/{exam_id}/actions": {
+      "post": {
+        "summary": "Examination Action",
+        "operationId": "examination_action_api_v1_examinations__exam_id__actions_post",
+        "parameters": [
+          {
+            "name": "exam_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exam Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Examination"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{alert_id}/acknowledge": {
+      "post": {
+        "summary": "Acknowledge",
+        "operationId": "acknowledge_api_v1_alerts__alert_id__acknowledge_post",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Alert"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/nutrition/meals": {
+      "post": {
+        "summary": "Log Meal",
+        "operationId": "log_meal_api_v1_nutrition_meals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meal"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fitness/sessions": {
+      "post": {
+        "summary": "Start Fitness",
+        "operationId": "start_fitness_api_v1_fitness_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FitnessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitnessSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fitness/sessions/{session_id}/finish": {
+      "post": {
+        "summary": "Finish Fitness",
+        "operationId": "finish_fitness_api_v1_fitness_sessions__session_id__finish_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitnessSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/eva/sessions": {
+      "post": {
+        "summary": "Create Eva",
+        "operationId": "create_eva_api_v1_eva_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/eva/sessions/{session_id}/actions": {
+      "post": {
+        "summary": "Eva Action",
+        "operationId": "eva_action_api_v1_eva_sessions__session_id__actions_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/complete": {
+      "post": {
+        "summary": "Complete Task",
+        "operationId": "complete_task_api_v1_tasks__task_id__complete_post",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "summary": "Health",
@@ -88,9 +671,9 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "maximum": 1000,
+              "maximum": 2400,
               "minimum": 1,
-              "default": 120,
+              "default": 600,
               "title": "Limit"
             }
           }
@@ -106,6 +689,50 @@
                     "$ref": "#/components/schemas/Observation"
                   },
                   "title": "Response Observations Api V1 Observations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waveforms": {
+      "get": {
+        "summary": "Waveforms",
+        "operationId": "waveforms_api_v1_waveforms_get",
+        "parameters": [
+          {
+            "name": "astronaut_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DEMO-CREW-001",
+              "title": "Astronaut Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WaveformReading"
+                  },
+                  "title": "Response Waveforms Api V1 Waveforms Get"
                 }
               }
             }
@@ -252,7 +879,10 @@
           },
           "state": {
             "type": "string",
-            "const": "PENDING_REVIEW",
+            "enum": [
+              "PENDING_REVIEW",
+              "ACKNOWLEDGED"
+            ],
             "title": "State",
             "default": "PENDING_REVIEW"
           },
@@ -262,9 +892,8 @@
           },
           "rule_version": {
             "type": "string",
-            "const": "demo-fixture-v1",
             "title": "Rule Version",
-            "default": "demo-fixture-v1"
+            "default": "demo-fixture-v2"
           },
           "message": {
             "type": "string",
@@ -299,6 +928,29 @@
             },
             "type": "array",
             "title": "Evidence"
+          },
+          "acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged At"
+          },
+          "acknowledged_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged By"
           }
         },
         "additionalProperties": false,
@@ -316,6 +968,138 @@
           "evidence"
         ],
         "title": "Alert"
+      },
+      "ChecklistItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "ChecklistItem"
+      },
+      "ControlCommand": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "CONFIGURE",
+              "PAUSE",
+              "RESUME",
+              "RESTART"
+            ],
+            "title": "Action"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "REST",
+                  "EXERCISE",
+                  "RECOVERY",
+                  "ANOMALY"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "astronaut_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "DEMO-CREW-001",
+                  "DEMO-CREW-002",
+                  "DEMO-CREW-003"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Astronaut Id"
+          },
+          "speed": {
+            "anyOf": [
+              {
+                "enum": [
+                  0.25,
+                  0.5,
+                  1,
+                  2,
+                  4
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 4294967295.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          },
+          "fault": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "NONE",
+                  "OXYGEN",
+                  "PRESSURE",
+                  "BOTH",
+                  "DISCONNECT",
+                  "SENSOR_ERROR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fault"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action",
+          "expected_revision"
+        ],
+        "title": "ControlCommand"
       },
       "CrewMember": {
         "properties": {
@@ -339,11 +1123,68 @@
             "const": "SIMULATED",
             "title": "Source Type",
             "default": "SIMULATED"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "Commander"
+          },
+          "initials": {
+            "type": "string",
+            "title": "Initials",
+            "default": "AM"
+          },
+          "baseline": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Baseline"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "CrewMember"
+      },
+      "CrewRequest": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id"
+        ],
+        "title": "CrewRequest"
+      },
+      "CrewSummary": {
+        "properties": {
+          "crew": {
+            "$ref": "#/components/schemas/CrewMember"
+          },
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/Observation"
+            },
+            "type": "array",
+            "title": "Readings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "crew",
+          "readings"
+        ],
+        "title": "CrewSummary"
       },
       "Device": {
         "properties": {
@@ -358,7 +1199,14 @@
             "default": "Rust virtual telemetry instrument"
           },
           "astronaut_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Astronaut Id",
             "default": "DEMO-CREW-001"
           },
@@ -388,7 +1236,9 @@
               "STALE",
               "DISCONNECTED",
               "NOT_AVAILABLE",
-              "HISTORICAL"
+              "HISTORICAL",
+              "IDLE",
+              "ERROR"
             ],
             "title": "Status"
           },
@@ -403,6 +1253,32 @@
               }
             ],
             "title": "Last Seen"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "default": "CONTINUOUS"
+          },
+          "firmware": {
+            "type": "string",
+            "title": "Firmware",
+            "default": "sim-model-v2"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "calibration_note": {
+            "type": "string",
+            "title": "Calibration Note",
+            "default": "Synthetic fixture; no physical calibration certificate"
           }
         },
         "additionalProperties": false,
@@ -412,6 +1288,452 @@
           "last_seen"
         ],
         "title": "Device"
+      },
+      "EvaAction": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "CHECK",
+              "START",
+              "COMPLETE"
+            ],
+            "title": "Action"
+          },
+          "step_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Id"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "EvaAction"
+      },
+      "EvaEvent": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "at",
+          "description"
+        ],
+        "title": "EvaEvent"
+      },
+      "EvaSession": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PREPARATION",
+              "ACTIVE",
+              "COMPLETED"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "title": "Checklist"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/EvaEvent"
+            },
+            "type": "array",
+            "title": "Timeline"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "astronaut_id",
+          "status",
+          "created_at",
+          "checklist",
+          "timeline"
+        ],
+        "title": "EvaSession"
+      },
+      "ExamAction": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "SAVE",
+              "CANCEL"
+            ],
+            "title": "Action"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "ExamAction"
+      },
+      "ExamRequest": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "BLOOD_PRESSURE",
+              "LAB_PANEL",
+              "BONE_DENSITY"
+            ],
+            "title": "Kind"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "kind",
+          "device_id"
+        ],
+        "title": "ExamRequest"
+      },
+      "Examination": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "BLOOD_PRESSURE",
+              "LAB_PANEL",
+              "BONE_DENSITY"
+            ],
+            "title": "Kind"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACQUIRING",
+              "REVIEW",
+              "SAVED",
+              "CANCELLED",
+              "FAILED"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "acquired_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acquired At"
+          },
+          "saved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saved At"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/Measurement"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "astronaut_id",
+          "kind",
+          "device_id",
+          "status",
+          "started_at"
+        ],
+        "title": "Examination"
+      },
+      "FitnessRequest": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "activity": {
+            "type": "string",
+            "enum": [
+              "CYCLE",
+              "TREADMILL",
+              "RESISTANCE"
+            ],
+            "title": "Activity"
+          },
+          "planned_minutes": {
+            "type": "integer",
+            "maximum": 120.0,
+            "minimum": 1.0,
+            "title": "Planned Minutes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "activity",
+          "planned_minutes"
+        ],
+        "title": "FitnessRequest"
+      },
+      "FitnessSession": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "activity": {
+            "type": "string",
+            "enum": [
+              "CYCLE",
+              "TREADMILL",
+              "RESISTANCE"
+            ],
+            "title": "Activity"
+          },
+          "planned_minutes": {
+            "type": "integer",
+            "maximum": 120.0,
+            "minimum": 1.0,
+            "title": "Planned Minutes"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "COMPLETED"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "title": "Duration Seconds",
+            "default": 0
+          },
+          "peak_heart_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peak Heart Rate"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "activity",
+          "planned_minutes",
+          "id",
+          "status",
+          "started_at"
+        ],
+        "title": "FitnessSession"
       },
       "HTTPValidationError": {
         "properties": {
@@ -508,14 +1830,187 @@
         ],
         "title": "IngestResult"
       },
+      "InventoryItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "servings": {
+            "type": "number",
+            "title": "Servings"
+          },
+          "kcal": {
+            "type": "number",
+            "title": "Kcal"
+          },
+          "protein_g": {
+            "type": "number",
+            "title": "Protein G"
+          },
+          "carbohydrate_g": {
+            "type": "number",
+            "title": "Carbohydrate G"
+          },
+          "fat_g": {
+            "type": "number",
+            "title": "Fat G"
+          },
+          "fiber_g": {
+            "type": "number",
+            "title": "Fiber G"
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "servings",
+          "kcal",
+          "protein_g",
+          "carbohydrate_g",
+          "fat_g",
+          "fiber_g",
+          "expires_at"
+        ],
+        "title": "InventoryItem"
+      },
+      "Meal": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "food_id": {
+            "type": "string",
+            "title": "Food Id"
+          },
+          "food_name": {
+            "type": "string",
+            "title": "Food Name"
+          },
+          "servings": {
+            "type": "number",
+            "title": "Servings"
+          },
+          "kcal": {
+            "type": "number",
+            "title": "Kcal"
+          },
+          "protein_g": {
+            "type": "number",
+            "title": "Protein G"
+          },
+          "carbohydrate_g": {
+            "type": "number",
+            "title": "Carbohydrate G"
+          },
+          "fat_g": {
+            "type": "number",
+            "title": "Fat G"
+          },
+          "fiber_g": {
+            "type": "number",
+            "title": "Fiber G"
+          },
+          "logged_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Logged At"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "astronaut_id",
+          "food_id",
+          "food_name",
+          "servings",
+          "kcal",
+          "protein_g",
+          "carbohydrate_g",
+          "fat_g",
+          "fiber_g",
+          "logged_at"
+        ],
+        "title": "Meal"
+      },
+      "MealRequest": {
+        "properties": {
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "food_id": {
+            "type": "string",
+            "title": "Food Id"
+          },
+          "servings": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 0.25,
+            "title": "Servings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "astronaut_id",
+          "food_id",
+          "servings"
+        ],
+        "title": "MealRequest"
+      },
       "Measurement": {
         "properties": {
           "code": {
             "type": "string",
             "enum": [
               "heart_rate",
+              "respiratory_rate",
               "spo2",
-              "suit_pressure"
+              "suit_pressure",
+              "systolic_bp",
+              "diastolic_bp",
+              "wbc",
+              "hemoglobin",
+              "bone_density"
             ],
             "title": "Code"
           },
@@ -552,8 +2047,14 @@
             "type": "string",
             "enum": [
               "heart_rate",
+              "respiratory_rate",
               "spo2",
-              "suit_pressure"
+              "suit_pressure",
+              "systolic_bp",
+              "diastolic_bp",
+              "wbc",
+              "hemoglobin",
+              "bone_density"
             ],
             "title": "Code"
           },
@@ -612,6 +2113,11 @@
           "scenario_id": {
             "type": "string",
             "enum": [
+              "REST",
+              "EXERCISE",
+              "RECOVERY",
+              "ANOMALY",
+              "EXAMINATION",
               "normal",
               "oxygen_drop_demo",
               "pressure_anomaly_demo",
@@ -626,13 +2132,36 @@
               "STALE",
               "DISCONNECTED",
               "NOT_AVAILABLE",
-              "HISTORICAL"
+              "HISTORICAL",
+              "IDLE",
+              "ERROR"
             ],
             "title": "Freshness"
           },
           "sequence_gap": {
             "type": "boolean",
             "title": "Sequence Gap"
+          },
+          "examination_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examination Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id",
+            "default": "legacy"
+          },
+          "simulated_at": {
+            "type": "number",
+            "title": "Simulated At",
+            "default": 0
           }
         },
         "additionalProperties": false,
@@ -654,6 +2183,357 @@
           "sequence_gap"
         ],
         "title": "Observation"
+      },
+      "OperationsSnapshot": {
+        "properties": {
+          "control": {
+            "$ref": "#/components/schemas/SimulatorControl"
+          },
+          "examinations": {
+            "items": {
+              "$ref": "#/components/schemas/Examination"
+            },
+            "type": "array",
+            "title": "Examinations"
+          },
+          "inventory": {
+            "items": {
+              "$ref": "#/components/schemas/InventoryItem"
+            },
+            "type": "array",
+            "title": "Inventory"
+          },
+          "meals": {
+            "items": {
+              "$ref": "#/components/schemas/Meal"
+            },
+            "type": "array",
+            "title": "Meals"
+          },
+          "fitness": {
+            "items": {
+              "$ref": "#/components/schemas/FitnessSession"
+            },
+            "type": "array",
+            "title": "Fitness"
+          },
+          "eva": {
+            "items": {
+              "$ref": "#/components/schemas/EvaSession"
+            },
+            "type": "array",
+            "title": "Eva"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/Task"
+            },
+            "type": "array",
+            "title": "Tasks"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "control",
+          "examinations",
+          "inventory",
+          "meals",
+          "fitness",
+          "eva",
+          "tasks"
+        ],
+        "title": "OperationsSnapshot"
+      },
+      "PhysiologyState": {
+        "properties": {
+          "seed": {
+            "type": "integer",
+            "maximum": 9007199254740991.0,
+            "minimum": 0.0,
+            "title": "Seed"
+          },
+          "crew_index": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Crew Index"
+          },
+          "ticks": {
+            "type": "integer",
+            "maximum": 9007199254740991.0,
+            "minimum": 0.0,
+            "title": "Ticks"
+          },
+          "heart_rate": {
+            "type": "number",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Heart Rate"
+          },
+          "respiratory_rate": {
+            "type": "number",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Respiratory Rate"
+          },
+          "spo2": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Spo2"
+          },
+          "suit_pressure": {
+            "type": "number",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Suit Pressure"
+          },
+          "ecg_phase": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ecg Phase"
+          },
+          "activity": {
+            "type": "string",
+            "enum": [
+              "REST",
+              "EXERCISE",
+              "RECOVERY",
+              "ANOMALY"
+            ],
+            "title": "Activity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "seed",
+          "crew_index",
+          "ticks",
+          "heart_rate",
+          "respiratory_rate",
+          "spo2",
+          "suit_pressure",
+          "ecg_phase",
+          "activity"
+        ],
+        "title": "PhysiologyState"
+      },
+      "RuntimeState": {
+        "properties": {
+          "control": {
+            "$ref": "#/components/schemas/SimulatorControl"
+          },
+          "crew": {
+            "items": {
+              "$ref": "#/components/schemas/CrewMember"
+            },
+            "type": "array",
+            "title": "Crew"
+          },
+          "checkpoints": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PhysiologyState"
+            },
+            "type": "object",
+            "title": "Checkpoints"
+          },
+          "next_sequences": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Next Sequences"
+          },
+          "pending_examinations": {
+            "items": {
+              "$ref": "#/components/schemas/Examination"
+            },
+            "type": "array",
+            "title": "Pending Examinations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "control",
+          "crew",
+          "checkpoints",
+          "next_sequences",
+          "pending_examinations"
+        ],
+        "title": "RuntimeState"
+      },
+      "SimulatorControl": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "REST",
+              "EXERCISE",
+              "RECOVERY",
+              "ANOMALY"
+            ],
+            "title": "Scenario",
+            "default": "REST"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id",
+            "default": "DEMO-CREW-001"
+          },
+          "running": {
+            "type": "boolean",
+            "title": "Running",
+            "default": true
+          },
+          "speed": {
+            "enum": [
+              0.25,
+              0.5,
+              1,
+              2,
+              4
+            ],
+            "title": "Speed",
+            "default": 1
+          },
+          "seed": {
+            "type": "integer",
+            "maximum": 4294967295.0,
+            "minimum": 0.0,
+            "title": "Seed",
+            "default": 42
+          },
+          "fault": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "OXYGEN",
+              "PRESSURE",
+              "BOTH",
+              "DISCONNECT",
+              "SENSOR_ERROR"
+            ],
+            "title": "Fault",
+            "default": "NONE"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "worker_seen": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Seen"
+          },
+          "worker_revision": {
+            "type": "integer",
+            "title": "Worker Revision",
+            "default": -1
+          },
+          "worker_state": {
+            "type": "string",
+            "title": "Worker State",
+            "default": "NOT_AVAILABLE"
+          },
+          "simulated_at": {
+            "type": "number",
+            "title": "Simulated At",
+            "default": 0
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "title": "SimulatorControl"
+      },
+      "Task": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "enum": [
+              "DEMO-CREW-001",
+              "DEMO-CREW-002",
+              "DEMO-CREW-003"
+            ],
+            "title": "Astronaut Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Due At"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "COMPLETE"
+            ],
+            "title": "Status",
+            "default": "PENDING"
+          },
+          "destination": {
+            "type": "string",
+            "enum": [
+              "Examinations",
+              "Fitness",
+              "Nutrition"
+            ],
+            "title": "Destination"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "astronaut_id",
+          "title",
+          "due_at",
+          "destination"
+        ],
+        "title": "Task"
       },
       "TelemetryPacket": {
         "properties": {
@@ -680,12 +2560,10 @@
           },
           "astronaut_id": {
             "type": "string",
-            "const": "DEMO-CREW-001",
             "title": "Astronaut Id"
           },
           "device_id": {
             "type": "string",
-            "const": "DEMO-SUIT-001",
             "title": "Device Id"
           },
           "source_type": {
@@ -696,6 +2574,11 @@
           "scenario_id": {
             "type": "string",
             "enum": [
+              "REST",
+              "EXERCISE",
+              "RECOVERY",
+              "ANOMALY",
+              "EXAMINATION",
               "normal",
               "oxygen_drop_demo",
               "pressure_anomaly_demo",
@@ -708,9 +2591,59 @@
               "$ref": "#/components/schemas/Measurement"
             },
             "type": "array",
-            "maxItems": 3,
+            "maxItems": 9,
             "minItems": 1,
             "title": "Measurements"
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Run Id",
+            "default": "legacy"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision",
+            "default": 0
+          },
+          "simulated_at": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Simulated At",
+            "default": 0
+          },
+          "model_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PhysiologyState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "waveform": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Waveform"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "examination_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examination Id"
           }
         },
         "additionalProperties": false,
@@ -767,6 +2700,161 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "Waveform": {
+        "properties": {
+          "sample_rate_hz": {
+            "type": "integer",
+            "const": 125,
+            "title": "Sample Rate Hz",
+            "default": 125
+          },
+          "start_simulated_at": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Start Simulated At"
+          },
+          "unit": {
+            "type": "string",
+            "const": "mV",
+            "title": "Unit",
+            "default": "mV"
+          },
+          "lead": {
+            "type": "string",
+            "const": "DEMO-II",
+            "title": "Lead",
+            "default": "DEMO-II"
+          },
+          "samples": {
+            "items": {
+              "type": "number",
+              "maximum": 10.0,
+              "minimum": -10.0
+            },
+            "type": "array",
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Samples"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start_simulated_at",
+          "samples"
+        ],
+        "title": "Waveform"
+      },
+      "WaveformReading": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "astronaut_id": {
+            "type": "string",
+            "title": "Astronaut Id"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "INVALID"
+            ],
+            "title": "Quality",
+            "default": "VALID"
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "LIVE",
+              "STALE",
+              "DISCONNECTED",
+              "NOT_AVAILABLE",
+              "HISTORICAL",
+              "IDLE",
+              "ERROR"
+            ],
+            "title": "Freshness"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "waveform": {
+            "$ref": "#/components/schemas/Waveform"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event_id",
+          "astronaut_id",
+          "device_id",
+          "observed_at",
+          "received_at",
+          "freshness",
+          "run_id",
+          "waveform"
+        ],
+        "title": "WaveformReading"
+      },
+      "WorkerHeartbeat": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "RUNNING",
+              "PAUSED",
+              "DISCONNECTED"
+            ],
+            "title": "State"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "revision",
+          "state"
+        ],
+        "title": "WorkerHeartbeat"
       }
     }
   }

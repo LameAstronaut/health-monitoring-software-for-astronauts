@@ -4,6 +4,246 @@
  */
 
 export interface paths {
+    "/api/v1/operations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Operations */
+        get: operations["operations_api_v1_operations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crew/summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Summaries */
+        get: operations["summaries_api_v1_crew_summaries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/demo/control": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Control */
+        get: operations["control_api_v1_demo_control_get"];
+        put?: never;
+        /** Configure */
+        post: operations["configure_api_v1_demo_control_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/demo/runtime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Runtime */
+        get: operations["runtime_api_v1_demo_runtime_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/demo/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Heartbeat */
+        post: operations["heartbeat_api_v1_demo_heartbeat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/examinations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Examinations */
+        get: operations["examinations_api_v1_examinations_get"];
+        put?: never;
+        /** Create Examination */
+        post: operations["create_examination_api_v1_examinations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/examinations/{exam_id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Examination Action */
+        post: operations["examination_action_api_v1_examinations__exam_id__actions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/{alert_id}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acknowledge */
+        post: operations["acknowledge_api_v1_alerts__alert_id__acknowledge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/nutrition/meals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log Meal */
+        post: operations["log_meal_api_v1_nutrition_meals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fitness/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Fitness */
+        post: operations["start_fitness_api_v1_fitness_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fitness/sessions/{session_id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finish Fitness */
+        post: operations["finish_fitness_api_v1_fitness_sessions__session_id__finish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eva/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Eva */
+        post: operations["create_eva_api_v1_eva_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eva/sessions/{session_id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Eva Action */
+        post: operations["eva_action_api_v1_eva_sessions__session_id__actions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Task */
+        post: operations["complete_task_api_v1_tasks__task_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -72,6 +312,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/waveforms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Waveforms */
+        get: operations["waveforms_api_v1_waveforms_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts": {
         parameters: {
             query?: never;
@@ -127,17 +384,16 @@ export interface components {
             /**
              * State
              * @default PENDING_REVIEW
-             * @constant
+             * @enum {string}
              */
-            state: "PENDING_REVIEW";
+            state: "PENDING_REVIEW" | "ACKNOWLEDGED";
             /** Rule Id */
             rule_id: string;
             /**
              * Rule Version
-             * @default demo-fixture-v1
-             * @constant
+             * @default demo-fixture-v2
              */
-            rule_version: "demo-fixture-v1";
+            rule_version: string;
             /** Message */
             message: string;
             /** Event Id */
@@ -159,6 +415,42 @@ export interface components {
             source_type: "SIMULATED";
             /** Evidence */
             evidence: components["schemas"]["Observation"][];
+            /** Acknowledged At */
+            acknowledged_at?: string | null;
+            /** Acknowledged By */
+            acknowledged_by?: string | null;
+        };
+        /** ChecklistItem */
+        ChecklistItem: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Complete
+             * @default false
+             */
+            complete: boolean;
+        };
+        /** ControlCommand */
+        ControlCommand: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "CONFIGURE" | "PAUSE" | "RESUME" | "RESTART";
+            /** Scenario */
+            scenario?: ("REST" | "EXERCISE" | "RECOVERY" | "ANOMALY") | null;
+            /** Astronaut Id */
+            astronaut_id?: ("DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003") | null;
+            /** Speed */
+            speed?: (0.25 | 0.5 | 1 | 2 | 4) | null;
+            /** Seed */
+            seed?: number | null;
+            /** Fault */
+            fault?: ("NONE" | "OXYGEN" | "PRESSURE" | "BOTH" | "DISCONNECT" | "SENSOR_ERROR") | null;
+            /** Expected Revision */
+            expected_revision: number;
         };
         /** CrewMember */
         CrewMember: {
@@ -183,6 +475,34 @@ export interface components {
              * @constant
              */
             source_type: "SIMULATED";
+            /**
+             * Role
+             * @default Commander
+             */
+            role: string;
+            /**
+             * Initials
+             * @default AM
+             */
+            initials: string;
+            /** Baseline */
+            baseline?: {
+                [key: string]: number;
+            };
+        };
+        /** CrewRequest */
+        CrewRequest: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+        };
+        /** CrewSummary */
+        CrewSummary: {
+            crew: components["schemas"]["CrewMember"];
+            /** Readings */
+            readings: components["schemas"]["Observation"][];
         };
         /** Device */
         Device: {
@@ -200,7 +520,7 @@ export interface components {
              * Astronaut Id
              * @default DEMO-CREW-001
              */
-            astronaut_id: string;
+            astronaut_id: string | null;
             /**
              * Source Type
              * @default SIMULATED
@@ -219,9 +539,218 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "LIVE" | "STALE" | "DISCONNECTED" | "NOT_AVAILABLE" | "HISTORICAL";
+            status: "LIVE" | "STALE" | "DISCONNECTED" | "NOT_AVAILABLE" | "HISTORICAL" | "IDLE" | "ERROR";
             /** Last Seen */
             last_seen: string | null;
+            /**
+             * Kind
+             * @default CONTINUOUS
+             */
+            kind: string;
+            /**
+             * Firmware
+             * @default sim-model-v2
+             */
+            firmware: string;
+            /** Last Error */
+            last_error?: string | null;
+            /**
+             * Calibration Note
+             * @default Synthetic fixture; no physical calibration certificate
+             */
+            calibration_note: string;
+        };
+        /** EvaAction */
+        EvaAction: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "CHECK" | "START" | "COMPLETE";
+            /** Step Id */
+            step_id?: string | null;
+            /**
+             * Complete
+             * @default true
+             */
+            complete: boolean;
+        };
+        /** EvaEvent */
+        EvaEvent: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Description */
+            description: string;
+        };
+        /** EvaSession */
+        EvaSession: {
+            /** Id */
+            id: string;
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PREPARATION" | "ACTIVE" | "COMPLETED";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at?: string | null;
+            /** Completed At */
+            completed_at?: string | null;
+            /** Checklist */
+            checklist: components["schemas"]["ChecklistItem"][];
+            /** Timeline */
+            timeline: components["schemas"]["EvaEvent"][];
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
+        /** ExamAction */
+        ExamAction: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "SAVE" | "CANCEL";
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /** ExamRequest */
+        ExamRequest: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY";
+            /** Device Id */
+            device_id: string;
+        };
+        /** Examination */
+        Examination: {
+            /** Id */
+            id: string;
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "BLOOD_PRESSURE" | "LAB_PANEL" | "BONE_DENSITY";
+            /** Device Id */
+            device_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ACQUIRING" | "REVIEW" | "SAVED" | "CANCELLED" | "FAILED";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Acquired At */
+            acquired_at?: string | null;
+            /** Saved At */
+            saved_at?: string | null;
+            /** Results */
+            results?: components["schemas"]["Measurement"][];
+            /** Event Id */
+            event_id?: string | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Error */
+            error?: string | null;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
+        /** FitnessRequest */
+        FitnessRequest: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Activity
+             * @enum {string}
+             */
+            activity: "CYCLE" | "TREADMILL" | "RESISTANCE";
+            /** Planned Minutes */
+            planned_minutes: number;
+        };
+        /** FitnessSession */
+        FitnessSession: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Activity
+             * @enum {string}
+             */
+            activity: "CYCLE" | "TREADMILL" | "RESISTANCE";
+            /** Planned Minutes */
+            planned_minutes: number;
+            /** Id */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ACTIVE" | "COMPLETED";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Completed At */
+            completed_at?: string | null;
+            /**
+             * Duration Seconds
+             * @default 0
+             */
+            duration_seconds: number;
+            /** Peak Heart Rate */
+            peak_heart_rate?: number | null;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -270,13 +799,89 @@ export interface components {
             /** Alerts */
             alerts: components["schemas"]["Alert"][];
         };
+        /** InventoryItem */
+        InventoryItem: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Servings */
+            servings: number;
+            /** Kcal */
+            kcal: number;
+            /** Protein G */
+            protein_g: number;
+            /** Carbohydrate G */
+            carbohydrate_g: number;
+            /** Fat G */
+            fat_g: number;
+            /** Fiber G */
+            fiber_g: number;
+            /** Expires At */
+            expires_at: string;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
+        /** Meal */
+        Meal: {
+            /** Id */
+            id: string;
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /** Food Id */
+            food_id: string;
+            /** Food Name */
+            food_name: string;
+            /** Servings */
+            servings: number;
+            /** Kcal */
+            kcal: number;
+            /** Protein G */
+            protein_g: number;
+            /** Carbohydrate G */
+            carbohydrate_g: number;
+            /** Fat G */
+            fat_g: number;
+            /** Fiber G */
+            fiber_g: number;
+            /**
+             * Logged At
+             * Format: date-time
+             */
+            logged_at: string;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
+        /** MealRequest */
+        MealRequest: {
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /** Food Id */
+            food_id: string;
+            /** Servings */
+            servings: number;
+        };
         /** Measurement */
         Measurement: {
             /**
              * Code
              * @enum {string}
              */
-            code: "heart_rate" | "spo2" | "suit_pressure";
+            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "wbc" | "hemoglobin" | "bone_density";
             /** Value */
             value: number;
             /** Unit */
@@ -293,7 +898,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "heart_rate" | "spo2" | "suit_pressure";
+            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "wbc" | "hemoglobin" | "bone_density";
             /** Value */
             value: number;
             /** Unit */
@@ -333,14 +938,183 @@ export interface components {
              * Scenario Id
              * @enum {string}
              */
-            scenario_id: "normal" | "oxygen_drop_demo" | "pressure_anomaly_demo" | "simultaneous_demo";
+            scenario_id: "REST" | "EXERCISE" | "RECOVERY" | "ANOMALY" | "EXAMINATION" | "normal" | "oxygen_drop_demo" | "pressure_anomaly_demo" | "simultaneous_demo";
             /**
              * Freshness
              * @enum {string}
              */
-            freshness: "LIVE" | "STALE" | "DISCONNECTED" | "NOT_AVAILABLE" | "HISTORICAL";
+            freshness: "LIVE" | "STALE" | "DISCONNECTED" | "NOT_AVAILABLE" | "HISTORICAL" | "IDLE" | "ERROR";
             /** Sequence Gap */
             sequence_gap: boolean;
+            /** Examination Id */
+            examination_id?: string | null;
+            /**
+             * Run Id
+             * @default legacy
+             */
+            run_id: string;
+            /**
+             * Simulated At
+             * @default 0
+             */
+            simulated_at: number;
+        };
+        /** OperationsSnapshot */
+        OperationsSnapshot: {
+            control: components["schemas"]["SimulatorControl"];
+            /** Examinations */
+            examinations: components["schemas"]["Examination"][];
+            /** Inventory */
+            inventory: components["schemas"]["InventoryItem"][];
+            /** Meals */
+            meals: components["schemas"]["Meal"][];
+            /** Fitness */
+            fitness: components["schemas"]["FitnessSession"][];
+            /** Eva */
+            eva: components["schemas"]["EvaSession"][];
+            /** Tasks */
+            tasks: components["schemas"]["Task"][];
+        };
+        /** PhysiologyState */
+        PhysiologyState: {
+            /** Seed */
+            seed: number;
+            /** Crew Index */
+            crew_index: number;
+            /** Ticks */
+            ticks: number;
+            /** Heart Rate */
+            heart_rate: number;
+            /** Respiratory Rate */
+            respiratory_rate: number;
+            /** Spo2 */
+            spo2: number;
+            /** Suit Pressure */
+            suit_pressure: number;
+            /** Ecg Phase */
+            ecg_phase: number;
+            /**
+             * Activity
+             * @enum {string}
+             */
+            activity: "REST" | "EXERCISE" | "RECOVERY" | "ANOMALY";
+        };
+        /** RuntimeState */
+        RuntimeState: {
+            control: components["schemas"]["SimulatorControl"];
+            /** Crew */
+            crew: components["schemas"]["CrewMember"][];
+            /** Checkpoints */
+            checkpoints: {
+                [key: string]: components["schemas"]["PhysiologyState"];
+            };
+            /** Next Sequences */
+            next_sequences: {
+                [key: string]: number;
+            };
+            /** Pending Examinations */
+            pending_examinations: components["schemas"]["Examination"][];
+        };
+        /** SimulatorControl */
+        SimulatorControl: {
+            /**
+             * Scenario
+             * @default REST
+             * @enum {string}
+             */
+            scenario: "REST" | "EXERCISE" | "RECOVERY" | "ANOMALY";
+            /**
+             * Astronaut Id
+             * @default DEMO-CREW-001
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /**
+             * Running
+             * @default true
+             */
+            running: boolean;
+            /**
+             * Speed
+             * @default 1
+             * @enum {unknown}
+             */
+            speed: 0.25 | 0.5 | 1 | 2 | 4;
+            /**
+             * Seed
+             * @default 42
+             */
+            seed: number;
+            /**
+             * Fault
+             * @default NONE
+             * @enum {string}
+             */
+            fault: "NONE" | "OXYGEN" | "PRESSURE" | "BOTH" | "DISCONNECT" | "SENSOR_ERROR";
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
+            /** Run Id */
+            run_id: string;
+            /** Worker Seen */
+            worker_seen?: string | null;
+            /**
+             * Worker Revision
+             * @default -1
+             */
+            worker_revision: number;
+            /**
+             * Worker State
+             * @default NOT_AVAILABLE
+             */
+            worker_state: string;
+            /**
+             * Simulated At
+             * @default 0
+             */
+            simulated_at: number;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
+        /** Task */
+        Task: {
+            /** Id */
+            id: string;
+            /**
+             * Astronaut Id
+             * @enum {string}
+             */
+            astronaut_id: "DEMO-CREW-001" | "DEMO-CREW-002" | "DEMO-CREW-003";
+            /** Title */
+            title: string;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /**
+             * Status
+             * @default PENDING
+             * @enum {string}
+             */
+            status: "PENDING" | "COMPLETE";
+            /**
+             * Destination
+             * @enum {string}
+             */
+            destination: "Examinations" | "Fitness" | "Nutrition";
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
         };
         /** TelemetryPacket */
         TelemetryPacket: {
@@ -358,16 +1132,10 @@ export interface components {
              * Format: date-time
              */
             observed_at: string;
-            /**
-             * Astronaut Id
-             * @constant
-             */
-            astronaut_id: "DEMO-CREW-001";
-            /**
-             * Device Id
-             * @constant
-             */
-            device_id: "DEMO-SUIT-001";
+            /** Astronaut Id */
+            astronaut_id: string;
+            /** Device Id */
+            device_id: string;
             /**
              * Source Type
              * @constant
@@ -377,9 +1145,28 @@ export interface components {
              * Scenario Id
              * @enum {string}
              */
-            scenario_id: "normal" | "oxygen_drop_demo" | "pressure_anomaly_demo" | "simultaneous_demo";
+            scenario_id: "REST" | "EXERCISE" | "RECOVERY" | "ANOMALY" | "EXAMINATION" | "normal" | "oxygen_drop_demo" | "pressure_anomaly_demo" | "simultaneous_demo";
             /** Measurements */
             measurements: components["schemas"]["Measurement"][];
+            /**
+             * Run Id
+             * @default legacy
+             */
+            run_id: string;
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
+            /**
+             * Simulated At
+             * @default 0
+             */
+            simulated_at: number;
+            model_state?: components["schemas"]["PhysiologyState"] | null;
+            waveform?: components["schemas"]["Waveform"] | null;
+            /** Examination Id */
+            examination_id?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -394,6 +1181,88 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** Waveform */
+        Waveform: {
+            /**
+             * Sample Rate Hz
+             * @default 125
+             * @constant
+             */
+            sample_rate_hz: 125;
+            /** Start Simulated At */
+            start_simulated_at: number;
+            /**
+             * Unit
+             * @default mV
+             * @constant
+             */
+            unit: "mV";
+            /**
+             * Lead
+             * @default DEMO-II
+             * @constant
+             */
+            lead: "DEMO-II";
+            /** Samples */
+            samples: number[];
+        };
+        /** WaveformReading */
+        WaveformReading: {
+            /** Event Id */
+            event_id: string;
+            /** Astronaut Id */
+            astronaut_id: string;
+            /** Device Id */
+            device_id: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+            /**
+             * Quality
+             * @default VALID
+             * @enum {string}
+             */
+            quality: "VALID" | "INVALID";
+            /**
+             * Freshness
+             * @enum {string}
+             */
+            freshness: "LIVE" | "STALE" | "DISCONNECTED" | "NOT_AVAILABLE" | "HISTORICAL" | "IDLE" | "ERROR";
+            /** Run Id */
+            run_id: string;
+            waveform: components["schemas"]["Waveform"];
+        };
+        /** WorkerHeartbeat */
+        WorkerHeartbeat: {
+            /** Run Id */
+            run_id: string;
+            /** Revision */
+            revision: number;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "RUNNING" | "PAUSED" | "DISCONNECTED";
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+        };
     };
     responses: never;
     parameters: never;
@@ -403,6 +1272,480 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    operations_api_v1_operations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationsSnapshot"];
+                };
+            };
+        };
+    };
+    summaries_api_v1_crew_summaries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CrewSummary"][];
+                };
+            };
+        };
+    };
+    control_api_v1_demo_control_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimulatorControl"];
+                };
+            };
+        };
+    };
+    configure_api_v1_demo_control_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ControlCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimulatorControl"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    runtime_api_v1_demo_runtime_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuntimeState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    heartbeat_api_v1_demo_heartbeat_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkerHeartbeat"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimulatorControl"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    examinations_api_v1_examinations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Examination"][];
+                };
+            };
+        };
+    };
+    create_examination_api_v1_examinations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Examination"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    examination_action_api_v1_examinations__exam_id__actions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Examination"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    acknowledge_api_v1_alerts__alert_id__acknowledge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Alert"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_meal_api_v1_nutrition_meals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MealRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Meal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_fitness_api_v1_fitness_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FitnessRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FitnessSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finish_fitness_api_v1_fitness_sessions__session_id__finish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FitnessSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_eva_api_v1_eva_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CrewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    eva_action_api_v1_eva_sessions__session_id__actions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_task_api_v1_tasks__task_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_api_v1_health_get: {
         parameters: {
             query?: never;
@@ -482,6 +1825,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Observation"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    waveforms_api_v1_waveforms_get: {
+        parameters: {
+            query?: {
+                astronaut_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaveformReading"][];
                 };
             };
             /** @description Validation Error */

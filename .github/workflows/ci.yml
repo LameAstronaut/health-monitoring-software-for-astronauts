@@ -40,10 +40,25 @@ jobs:
           npm ci --prefix frontend
           python scripts/export-openapi.py
           npm run generate:api --prefix frontend
-          git diff --exit-code -- frontend/openapi.json frontend/src/types/api.d.ts
+          git diff --exit-code -- frontend/openapi.json frontend/src/types/api.d.ts contracts/telemetry.schema.json
           npm run lint --prefix frontend
           npm run format:check --prefix frontend
           npm test --prefix frontend
           npm run build --prefix frontend
       - name: Cross-process integration smoke
-        run: python scripts/smoke.py
+        run: python scripts/smoke.py --frontend
+      - name: Local launcher startup and shutdown
+        env:
+          ASTRA_DATABASE_URL: sqlite:///${{ runner.temp }}/astra-launcher.db
+        run: python scripts/dev.py --check --no-simulator
+      - name: Browser workflows and readability
+        run: |
+          frontend/node_modules/.bin/playwright install --with-deps chromium
+          npm run test:e2e --prefix frontend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: astra-visual-review
+          path: |
+            artifacts/screenshots
+            frontend/test-results

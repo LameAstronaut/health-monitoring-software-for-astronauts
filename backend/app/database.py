@@ -44,6 +44,21 @@ class AlertRow(Base):
     rule_id: Mapped[str]
     message: Mapped[str]
     observation_id: Mapped[int] = mapped_column(ForeignKey("observations.id"))
+    state: Mapped[str] = mapped_column(default="PENDING_REVIEW")
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    acknowledged_by: Mapped[str | None] = mapped_column(nullable=True)
+    astronaut_id: Mapped[str] = mapped_column(default="DEMO-CREW-001")
+    run_id: Mapped[str] = mapped_column(default="legacy")
+
+
+class RecordRow(Base):
+    """Durable, typed-at-boundary demo operations; never contains real records."""
+
+    __tablename__ = "operation_records"
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(40), index=True)
+    astronaut_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)
+    data: Mapped[dict] = mapped_column(JSON)
 
 
 def connect(url: str):

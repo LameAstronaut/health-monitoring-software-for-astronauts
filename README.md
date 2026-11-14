@@ -2,14 +2,18 @@
 
 **Integrated Astronaut Health Monitoring & Medical Operations Platform**  
 **Project:** NASA Space Apps Challenge — research and engineering prototype  
-**Status:** Pre-MVP / development specification  
+**Status:** Working local DEMO — stateful simulation and medical operations
+
 **Target concept:** A unified, easy-to-use medical interface for astronauts aboard the International Space Station (ISS) and authorized ground medical personnel.  
 **Prototype environment:** An ordinary laptop with simulated medical and spacesuit telemetry.
 
-**Codebase:** A working Rust → FastAPI → React telemetry slice is now included.
+**Codebase:** Rust → FastAPI → React now includes stateful three-crew physiology,
+separate ECG sampling, playback controls, examinations with saved reports, equipment,
+eleven shared risk views, nutrition, fitness, conceptual EVA operations and alert acknowledgment.
 See [local setup and commands](docs/development.md), [implemented scope and remaining work](docs/implementation-status.md),
-and [architecture](docs/architecture.md). The roadmap below remains the full product specification;
-examination workflows, the eleven specialized modules, roles, and ground synchronization are future work.
+and [architecture](docs/architecture.md). See [model assumptions and limitations](docs/simulation-model.md)
+and [screenshots / visual review](docs/visual-review.md). Specialist instruments, clinician roles,
+ground synchronization and formal validation remain future work.
 
 > [!IMPORTANT]
 > **NOT FLIGHT SOFTWARE. NOT A MEDICAL DEVICE. NOT NASA-CERTIFIED.**
@@ -511,6 +515,8 @@ astra-health/
 
 For the current codebase, follow **[the verified local setup guide](docs/development.md)**,
 including dependency lockfiles and `alembic upgrade head` before starting the API.
+On Arch Linux, run `make setup` once, then `make dev` to start the API, UI and simulator.
+Open `http://127.0.0.1:5173`; Ctrl+C stops the stack. Run `make check` and `make smoke` to verify it.
 The bootstrap examples below describe the original project initialization and are retained
 as specification context; do not rerun project generators over the existing source.
 
@@ -642,93 +648,99 @@ Do **not** call the laptop simulation NASA-approved, NASA-compliant, high-fideli
 ### M0 — Documentation and project foundation (P0)
 
 - [ ] Add the source PDF under `docs/reference/` (with permission) and link it here.
-- [ ] Add project license and `.gitignore`.
-- [ ] Create the Rust, backend, React/TS projects.
-- [ ] Add root development instructions and `.env.example`.
-- [ ] Write `docs/architecture.md` with boundaries, trust zones and diagram.
-- [ ] Write `docs/interface-control.md` with telemetry JSON schema and WS events.
-- [ ] Write `docs/measurement-dictionary.md` with measurement codes, units, quality/source values.
-- [ ] Create health endpoint and a frontend connection indicator.
-- [ ] Add one basic CI workflow for lint/build/tests.
+- [ ] Add project license (owner selection pending).
+- [x] Add `.gitignore`.
+- [x] Create the Rust, backend, React/TS projects.
+- [x] Add root development instructions and `.env.example`.
+- [x] Write `docs/architecture.md` with boundaries, trust zones and diagram.
+- [x] Write `docs/interface-control.md` with telemetry JSON schema and WS events.
+- [x] Write `docs/measurement-dictionary.md` with measurement codes, units, quality/source values.
+- [x] Create health endpoint and a frontend connection indicator.
+- [x] Add one basic CI workflow for lint/build/tests.
 
 **Done when:** All three project areas compile/run, the UI reaches `GET /api/v1/health`, and a fresh checkout can be set up from instructions.
 
 ### M1 — Rust telemetry simulator (P0)
 
-- [ ] Define typed telemetry structures and JSON serialization.
-- [ ] Implement deterministic seeded normal scenario.
-- [ ] Generate HR, SpO₂ and suit-pressure readings with source timestamps.
-- [ ] Generate monotonically increasing sequence numbers and unique event IDs.
-- [ ] POST to `/api/v1/telemetry` with retries/backoff appropriate for demo.
-- [ ] Implement CLI `--scenario`, `--seed`, `--api-url` and `--rate-hz`.
-- [ ] Implement controlled `oxygen_drop_demo` and `pressure_anomaly_demo` fixtures.
-- [ ] Implement disconnected-sensor and invalid-packet test fixtures.
-- [ ] Test serialization, determinism, state transitions and error handling.
+- [x] Define typed telemetry structures and JSON serialization.
+- [x] Implement deterministic seeded normal scenario.
+- [x] Add individual stateful baselines and gradual REST / EXERCISE / RECOVERY / ANOMALY dynamics.
+- [x] Separate physiological integration, ECG sampling, numerical publication and UI rendering.
+- [x] Add seeded pause/resume/restart, adjustable speed and persisted model checkpoints.
+- [x] Generate HR, SpO₂ and suit-pressure readings with source timestamps.
+- [x] Generate monotonically increasing sequence numbers and unique event IDs.
+- [x] POST to `/api/v1/telemetry` with retries/backoff appropriate for demo.
+- [x] Implement CLI `--scenario`, `--seed`, `--api-url` and `--rate-hz`.
+- [x] Implement controlled `oxygen_drop_demo` and `pressure_anomaly_demo` fixtures.
+- [x] Implement disconnected-sensor and invalid-packet test fixtures.
+- [x] Test serialization, determinism, state transitions and error handling.
 
 **Done when:** Rust publishes repeatable packets to the backend and tests reproduce the same synthetic timeline from a seed.
 
 ### M2 — FastAPI ingestion and persistence (P0)
 
-- [ ] Define Pydantic telemetry schema and error responses.
-- [ ] Validate source mode, required fields, units, time and sequence.
-- [ ] Add SQLAlchemy models and database migrations.
-- [ ] Persist raw packet metadata and normalized observations.
-- [ ] Prevent duplicate writes by event ID.
-- [ ] Implement `/api/v1/crew`, `/api/v1/devices`, `/api/v1/observations`.
-- [ ] Implement `/api/v1/stream` WebSocket with heartbeat/reconnect design.
-- [ ] Add reliable device last-seen and connection-state tracking.
-- [ ] Add tests for malformed, duplicate, missing, delayed and out-of-order inputs.
+- [x] Define Pydantic telemetry schema and error responses.
+- [x] Validate source mode, required fields, units, time and sequence.
+- [x] Add SQLAlchemy models and database migrations.
+- [x] Persist raw packet metadata and normalized observations.
+- [x] Prevent duplicate writes by event ID.
+- [x] Implement `/api/v1/crew`, `/api/v1/devices`, `/api/v1/observations`.
+- [x] Implement `/api/v1/stream` WebSocket with heartbeat/reconnect design.
+- [x] Add reliable device last-seen and connection-state tracking.
+- [x] Add tests for malformed, duplicate, missing, delayed and out-of-order inputs.
 
 **Done when:** Data is validated, durable, queryable and streamable after backend restart.
 
 ### M3 — Crew-facing interface (P0)
 
-- [ ] Create application shell, responsive sidebar and header.
-- [ ] Add visible `DEMO / SIMULATED` state to every medical view.
-- [ ] Create Mission Dashboard with connection, device and stream freshness states.
-- [ ] Create Live Telemetry cards and time-series chart.
-- [ ] Create Crew Profile and measurement history.
-- [ ] Create Equipment registry screen.
-- [ ] Create Alerts panel with priority order and traceable evidence.
-- [ ] Create Simulator Control screen only for demo users.
-- [ ] Add accessible focus states, keyboard interaction, text status labels.
-- [ ] Test reconnection, stale data and empty/loading/error states.
+- [x] Create application shell, responsive sidebar and header.
+- [x] Add visible `DEMO / SIMULATED` state to every medical view.
+- [x] Create Mission Dashboard with connection, device and stream freshness states.
+- [x] Create Live Telemetry cards and time-series chart.
+- [x] Create Crew Profile and measurement history.
+- [x] Create Equipment registry screen.
+- [x] Create Alerts panel with priority order and traceable evidence.
+- [x] Create Simulator Control screen only for demo users.
+- [x] Add accessible focus states, keyboard interaction, text status labels.
+- [x] Verify 1366×768, 1920×1080 and 1024×768 layouts, 44 px buttons and keyboard navigation.
+- [x] Test reconnection, stale data and empty/loading/error states.
 
 **Done when:** A user can understand what is live, what is simulated, which device produced it and whether the data is trustworthy.
 
 ### M4 — First end-to-end examination (P1)
 
-- [ ] Implement common device adapter interface and virtual blood-pressure monitor.
-- [ ] Implement `Examination` session lifecycle.
-- [ ] Build Select Crew → Select Device → Acquire → Review → Save workflow.
-- [ ] Store source ID, device ID, quality, units, timestamps and report association.
-- [ ] Add examination history and simple export for synthetic records.
+- [x] Implement common device adapter interface and virtual blood-pressure monitor.
+- [x] Implement `Examination` session lifecycle.
+- [x] Build Select Crew → Select Device → Acquire → Review → Save workflow.
+- [x] Store source ID, device ID, quality, units, timestamps and report association.
+- [x] Add examination history and simple export for synthetic records.
 - [ ] Test repeated acquisitions, disconnect during test and restart recovery.
 
 **Done when:** A complete simulated examination is saved and can be inspected later with its provenance intact.
 
 ### M5 — Safety, anomaly and assurance layer (P1)
 
-- [ ] Introduce versioned **demo-only** anomaly rules and explainable evidence.
-- [ ] Implement deterministic alert priority and state machine.
-- [ ] Implement `STALE`, `DISCONNECTED`, `INVALID`, `SIMULATED` states.
-- [ ] Implement safe software startup/restart and sequence rejection.
+- [x] Introduce versioned **demo-only** anomaly rules and explainable evidence.
+- [x] Implement deterministic alert priority and state machine.
+- [x] Implement `STALE`, `DISCONNECTED`, `INVALID`, `SIMULATED` states.
+- [x] Implement safe software startup/restart and sequence rejection.
 - [ ] Test all failure scenarios in §13.
 - [ ] Add audit logs and traceability from requirement → code → test.
 - [ ] Enable linters, static analysis, dependency checks and CI gates.
-- [ ] Document hazard assumptions and what is *not* medically validated.
+- [x] Document hazard assumptions and what is *not* medically validated.
 
 **Done when:** The judge can force a fault and inspect the exact event, evidence and consistent UI response.
 
 ### M6 — Expand instrument and health modules (P2)
 
-- [ ] Add virtual ECG with synthetic waveform and clear limits.
+- [x] Add virtual ECG with synthetic waveform and clear limits.
 - [ ] Add virtual pulse oximeter and quality/error states.
-- [ ] Add virtual blood/urine laboratory report formats.
+- [x] Add an event-based synthetic blood-panel fixture (WBC / hemoglobin).
+- [ ] Add urine and extended laboratory report formats.
 - [ ] Add optional ultrasound, DXA and OCT **synthetic report** import.
-- [ ] Add all eleven health-risk views from §6.
-- [ ] Add longitudinal trends and availability indicators per module.
-- [ ] Add Nutrition and Fitness tracking using demo records.
+- [x] Add all eleven health-risk views from §6.
+- [x] Add longitudinal trends and availability indicators per module.
+- [x] Add Nutrition and Fitness tracking using demo records.
 - [ ] Add permitted clinician review/annotation workflow.
 - [ ] Add optional HUD **concept-only** screen.
 
@@ -736,7 +748,7 @@ Do **not** call the laptop simulation NASA-approved, NASA-compliant, high-fideli
 
 ### M7 — Offline and synchronized operations (P2)
 
-- [ ] Persist local data with recovery and migrations.
+- [x] Persist local data with recovery and migrations.
 - [ ] Queue remote-sync records with idempotency keys.
 - [ ] Implement pending/synced/failed states and retries.
 - [ ] Test loss of Internet/ground connectivity.
@@ -804,17 +816,17 @@ A development milestone is **done** only when its functionality works in a fresh
 
 ### First demo release acceptance checklist
 
-- [ ] Rust simulator sends reproducible packets to FastAPI.
-- [ ] API validates, stores and streams measurements.
-- [ ] React UI displays timestamp, unit, source and freshness.
-- [ ] Device disconnect is visible; stale data never masquerades as live.
-- [ ] Two independent demo fault scenarios create explainable synthetic alerts.
-- [ ] Alert queue prioritizes scenarios consistently.
-- [ ] A complete simulated examination is stored and replayable.
-- [ ] All demo screens say `SIMULATED` clearly.
-- [ ] `cargo test`, backend tests, TypeScript checks and frontend build pass.
+- [x] Rust simulator sends reproducible packets to FastAPI.
+- [x] API validates, stores and streams measurements.
+- [x] React UI displays timestamp, unit, source and freshness.
+- [x] Device disconnect is visible; stale data never masquerades as live.
+- [x] Two independent demo fault scenarios create explainable synthetic alerts.
+- [x] Alert queue prioritizes scenarios consistently.
+- [x] A complete simulated examination is stored and replayable.
+- [x] All demo screens say `SIMULATED` clearly.
+- [x] `cargo test`, backend tests, TypeScript checks and frontend build pass.
 - [ ] README setup instructions work on a fresh laptop.
-- [ ] No claim of medical diagnosis, real-device support or NASA certification appears in the product.
+- [x] No claim of medical diagnosis, real-device support or NASA certification appears in the product.
 
 ### Primary project source
 

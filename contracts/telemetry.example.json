@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "event_id": "demo-contract-000001",
+  "sequence": 1,
+  "observed_at": "2026-11-14T09:00:00Z",
+  "astronaut_id": "DEMO-CREW-001",
+  "device_id": "DEMO-SUIT-001",
+  "source_type": "SIMULATED",
+  "scenario_id": "normal",
+  "measurements": [
+    {"code": "heart_rate", "value": 72, "unit": "beats/min", "quality": "VALID"},
+    {"code": "spo2", "value": 98, "unit": "%", "quality": "VALID"},
+    {"code": "suit_pressure", "value": 30.0, "unit": "kPa", "quality": "VALID"}
+  ]
+}

@@ -1,119 +1,188 @@
-import { useEffect, useState } from "react";
-import { connectStream, snapshot } from "./services/api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { connectStream, get, snapshot } from "./services/api";
 import type {
   Alert,
   CrewMember,
+  CrewSummary,
   Device,
   Health,
   Observation,
+  Operations,
   StreamEvent,
+  WaveformReading,
 } from "./services/api";
 import { mergeObservations } from "./telemetry";
 
-export function useMission() {
-  const [observations, setObservations] = useState<Observation[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [crew, setCrew] = useState<CrewMember[]>([]);
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [health, setHealth] = useState<Health>();
+type MissionData = {
+  observations: Observation[];
+  alerts: Alert[];
+  crew: CrewMember[];
+  devices: Device[];
+  health?: Health;
+  operations?: Operations;
+  summaries: CrewSummary[];
+  waveforms: WaveformReading[];
+};
+const empty: MissionData = {
+  observations: [],
+  alerts: [],
+  crew: [],
+  devices: [],
+  summaries: [],
+  waveforms: [],
+};
+
+export function useMission(astronautId = "DEMO-CREW-001") {
+  const [data, setData] = useState<MissionData>(empty);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
-  const [clockOffset, setClockOffset] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const refreshRef = useRef<() => Promise<void>>(async () => {});
+  const refresh = useCallback(() => refreshRef.current(), []);
 
   useEffect(() => {
     let disposed = false;
-    let controller: AbortController | undefined;
     let buffering = true;
-    let events: StreamEvent[] = [];
     let generation = 0;
-    const apply = (event: StreamEvent) => {
-      switch (event.type) {
-        case "telemetry.observation":
-          setObservations((old) => mergeObservations(old, [event.data]));
-          break;
-        case "alert.created":
-          setAlerts((old) => [
-            ...old.filter((a) => a.id !== event.data.id),
-            event.data,
-          ]);
-          break;
-        case "device.status":
-          setDevices([event.data]);
-          break;
-        case "system.status":
-          setHealth(event.data);
-          setClockOffset(Date.parse(event.data.server_time) - Date.now());
-          break;
-      }
+    let pending: StreamEvent[] = [];
+    let controller: AbortController | undefined;
+    const apply = (events: StreamEvent[]) => {
+      if (disposed || events.length === 0) return;
+      const system = events
+        .filter(
+          (event): event is Extract<StreamEvent, { type: "system.status" }> =>
+            event.type === "system.status",
+        )
+        .at(-1);
+      if (system) setOffset(Date.parse(system.data.server_time) - Date.now());
+      setData((previous) => {
+        const next = { ...previous };
+        for (const event of events) {
+          switch (event.type) {
+            case "telemetry.observation":
+              if (event.data.astronaut_id === astronautId)
+                next.observations = mergeObservations(next.observations, [
+                  event.data,
+                ]);
+              break;
+            case "telemetry.waveform":
+              if (event.data.astronaut_id === astronautId)
+                next.waveforms = [
+                  ...next.waveforms.filter(
+                    (w) =>
+                      w.event_id !== event.data.event_id &&
+                      w.run_id === event.data.run_id,
+                  ),
+                  event.data,
+                ].slice(-8);
+              break;
+            case "alert.created":
+              next.alerts = [
+                ...next.alerts.filter((a) => a.id !== event.data.id),
+                event.data,
+              ]
+                .sort((a, b) => a.priority - b.priority || b.id - a.id)
+                .slice(0, 200);
+              break;
+            case "device.status":
+              next.devices = [
+                ...next.devices.filter((d) => d.id !== event.data.id),
+                event.data,
+              ];
+              break;
+            case "system.status":
+              next.health = event.data;
+              break;
+          }
+        }
+        return next;
+      });
     };
-    const refresh = async () => {
+    const resnapshot = async () => {
       controller?.abort();
-      controller = new AbortController();
-      const currentController = controller;
-      const currentGeneration = ++generation;
+      const current = new AbortController();
+      controller = current;
+      const version = ++generation;
       buffering = true;
-      events = [];
+      pending = [];
       try {
-        const data = await snapshot(currentController.signal);
-        if (disposed || currentGeneration !== generation) return;
-        setHealth(data.health);
-        setClockOffset(Date.parse(data.health.server_time) - Date.now());
-        setCrew(data.crew);
-        setDevices(data.devices);
-        setObservations(data.observations);
-        setAlerts(data.alerts);
+        const result = await snapshot(current.signal, astronautId);
+        if (disposed || version !== generation) return;
+        setData(result);
+        setOffset(Date.parse(result.health.server_time) - Date.now());
         setError("");
-        for (const event of events) apply(event);
+        apply(pending);
       } catch (cause) {
-        if (!disposed && !currentController.signal.aborted)
-          setError(String(cause));
+        if (!disposed && !current.signal.aborted) setError(String(cause));
       } finally {
-        if (!disposed && currentGeneration === generation) {
+        if (!disposed && version === generation) {
           buffering = false;
-          events = [];
+          pending = [];
           setLoading(false);
         }
       }
     };
+    refreshRef.current = resnapshot;
     const stop = connectStream(
       (event) => {
-        if (buffering) {
-          if (events.length < 1000) events.push(event);
-          else {
-            setError("Stream backlog exceeded. Reload to resynchronize.");
-            controller?.abort();
-          }
-        } else apply(event);
+        if (pending.length >= 5000) {
+          pending = [];
+          setError("Stream backlog exceeded. Refresh to resynchronize.");
+          void resnapshot();
+        } else pending.push(event);
       },
       (status) => {
         if (disposed) return;
         setConnected(status);
-        if (status) void refresh();
+        if (status) void resnapshot();
       },
-      setError,
+      (message) => {
+        if (!disposed) setError(message);
+      },
     );
-    void refresh();
-    const clock = setInterval(() => setNow(Date.now()), 1000);
+    void resnapshot();
+    const render = setInterval(() => {
+      setNow(Date.now());
+      if (!buffering) {
+        const events = pending;
+        pending = [];
+        apply(events);
+      }
+    }, 250);
+    const polling = setInterval(() => {
+      const pollingGeneration = generation;
+      void Promise.all([
+        get<Operations>("operations"),
+        get<CrewSummary[]>("crew/summaries"),
+        get<Alert[]>("alerts"),
+      ])
+        .then(([operations, summaries, alerts]) => {
+          if (!disposed && generation === pollingGeneration)
+            setData((old) => ({ ...old, operations, summaries, alerts }));
+        })
+        .catch((cause) => {
+          if (!disposed)
+            setError(`Operational records unavailable: ${String(cause)}`);
+        });
+    }, 2000);
     return () => {
       disposed = true;
       controller?.abort();
       stop();
-      clearInterval(clock);
+      clearInterval(render);
+      clearInterval(polling);
     };
-  }, []);
+  }, [astronautId]);
 
   return {
-    observations,
-    alerts: [...alerts].sort((a, b) => a.priority - b.priority || b.id - a.id),
-    crew,
-    devices,
-    health,
+    ...data,
     connected,
     error,
     loading,
     now,
-    serverNow: now + clockOffset,
+    serverNow: now + offset,
+    refresh,
   };
 }

@@ -12,8 +12,20 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from .config import Settings
-from .database import AlertRow, ObservationRow, connect
-from .schemas import Alert, CrewMember, Device, Health, IngestResult, Observation, TelemetryPacket
+from .database import AlertRow, ObservationRow, PacketRow, connect
+from .operations import initialize
+from .operations_api import build_operations_router
+from .registry import CREW, CREW_IDS, DEVICES
+from .schemas import (
+    Alert,
+    CrewMember,
+    Device,
+    Health,
+    IngestResult,
+    Observation,
+    TelemetryPacket,
+    WaveformReading,
+)
 from .service import TelemetryService
 
 
@@ -29,6 +41,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # Fail clearly if migrations were not applied. Never erase or silently replace storage.
         with engine.connect() as conn:
             conn.execute(text("SELECT event_id FROM packets LIMIT 1"))
+        with sessions() as db:
+            initialize(db)
         yield
         engine.dispose()
 
@@ -53,6 +67,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["GET", "POST"],
         allow_headers=["Content-Type", "X-Demo-Token"],
     )
+    app.include_router(build_operations_router(sessions, service, config))
 
     @app.get("/api/v1/health", response_model=Health)
     async def health():
@@ -66,25 +81,51 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/v1/crew", response_model=list[CrewMember])
     async def crew():
-        return [CrewMember()]
+        return [CrewMember(**member) for member in CREW]
 
     @app.get("/api/v1/devices", response_model=list[Device])
     async def devices():
         with sessions() as db:
-            return [service.device(db, datetime.now(UTC))]
+            return [service.device(db, datetime.now(UTC), device["id"]) for device in DEVICES]
 
     @app.get("/api/v1/observations", response_model=list[Observation])
     async def observations(
-        astronaut_id: str = "DEMO-CREW-001", limit: Annotated[int, Query(ge=1, le=1000)] = 120
+        astronaut_id: str = "DEMO-CREW-001", limit: Annotated[int, Query(ge=1, le=2400)] = 600
     ):
-        if astronaut_id != "DEMO-CREW-001":
+        if astronaut_id not in CREW_IDS:
             raise HTTPException(404, "Unknown demo crew")
         with sessions() as db:
             rows = list(
-                db.scalars(select(ObservationRow).order_by(ObservationRow.id.desc()).limit(limit))
+                db.scalars(
+                    select(ObservationRow)
+                    .join(PacketRow)
+                    .where(PacketRow.raw["astronaut_id"].as_string() == astronaut_id)
+                    .order_by(ObservationRow.id.desc())
+                    .limit(limit)
+                )
             )
             now = datetime.now(UTC)
             return [service.observation(db, row, now) for row in reversed(rows)]
+
+    @app.get("/api/v1/waveforms", response_model=list[WaveformReading])
+    async def waveforms(astronaut_id: str = "DEMO-CREW-001"):
+        if astronaut_id not in CREW_IDS:
+            raise HTTPException(404, "Unknown demo crew")
+        with sessions() as db:
+            rows = db.scalars(
+                select(PacketRow)
+                .where(
+                    PacketRow.raw["astronaut_id"].as_string() == astronaut_id,
+                    PacketRow.raw["waveform"].is_not(None),
+                )
+                .order_by(PacketRow.received_at.desc())
+                .limit(8)
+            )
+            return [
+                service.waveform(db, row, datetime.now(UTC))
+                for row in reversed(list(rows))
+                if row.raw.get("waveform")
+            ]
 
     @app.get("/api/v1/alerts", response_model=list[Alert])
     async def alerts(limit: Annotated[int, Query(ge=1, le=500)] = 100):
@@ -98,7 +139,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def telemetry(
         packet: TelemetryPacket, x_demo_token: Annotated[str | None, Header()] = None
     ):
-        if not secrets.compare_digest(x_demo_token or "", config.demo_token):
+        if not secrets.compare_digest((x_demo_token or "").encode(), config.demo_token.encode()):
             raise HTTPException(401, "A valid X-Demo-Token is required")
         async with ingest_lock:
             with sessions() as db:
@@ -112,7 +153,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if not result.duplicate:
                 for queue in list(subscribers):
                     if (
-                        queue.qsize() + len(result.observations) + len(result.alerts)
+                        queue.qsize() + len(result.observations) + len(result.alerts) + 1
                         > queue.maxsize
                     ):
                         # Bound memory. Slow clients are closed and must resnapshot.
@@ -132,6 +173,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                             queue.put_nowait(
                                 {"type": "alert.created", "data": alert.model_dump(mode="json")}
                             )
+                        if packet.waveform:
+                            with sessions() as db:
+                                stored = db.get(PacketRow, packet.event_id)
+                                queue.put_nowait(
+                                    {
+                                        "type": "telemetry.waveform",
+                                        "data": service.waveform(
+                                            db, stored, datetime.now(UTC)
+                                        ).model_dump(mode="json"),
+                                    }
+                                )
             return result
 
     @app.websocket("/api/v1/stream")
@@ -145,13 +197,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             while True:
                 with sessions() as db:
-                    device = service.device(db, datetime.now(UTC))
+                    devices = [
+                        service.device(db, datetime.now(UTC), item["id"]) for item in DEVICES
+                    ]
                 await ws.send_json(
                     {"type": "system.status", "data": (await health()).model_dump(mode="json")}
                 )
-                await ws.send_json(
-                    {"type": "device.status", "data": device.model_dump(mode="json")}
-                )
+                for device in devices:
+                    await ws.send_json(
+                        {"type": "device.status", "data": device.model_dump(mode="json")}
+                    )
                 # Timeout keeps heartbeat and freshness updates flowing without packets.
                 deadline = asyncio.get_running_loop().time() + 1
                 while (remaining := deadline - asyncio.get_running_loop().time()) > 0:

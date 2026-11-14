@@ -1,11 +1,20 @@
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use serde::Serialize;
+pub mod physiology;
+pub mod runtime;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
 #[clap(rename_all = "snake_case")]
 pub enum Scenario {
+    #[value(alias = "REST", alias = "rest")]
     Normal,
+    #[value(alias = "EXERCISE")]
+    Exercise,
+    #[value(alias = "RECOVERY")]
+    Recovery,
+    #[value(alias = "ANOMALY")]
+    Anomaly,
     OxygenDropDemo,
     PressureAnomalyDemo,
     SimultaneousDemo,
@@ -16,6 +25,9 @@ pub enum Scenario {
 impl Scenario {
     pub fn id(self) -> &'static str {
         match self {
+            Self::Exercise => "EXERCISE",
+            Self::Recovery => "RECOVERY",
+            Self::Anomaly => "ANOMALY",
             Self::Normal | Self::SensorDisconnect | Self::InvalidPacket => "normal",
             Self::OxygenDropDemo => "oxygen_drop_demo",
             Self::PressureAnomalyDemo => "pressure_anomaly_demo",
@@ -47,46 +59,10 @@ pub struct Packet {
 
 /// Reproducible demo values. No physiological or spacesuit model is claimed.
 pub fn measurements(seed: u64, tick: u64, scenario: Scenario) -> Vec<Measurement> {
-    let noise = seed.wrapping_add(tick).wrapping_mul(6364136223846793005);
-    let fault = tick == 5;
-    let oxygen = fault
-        && matches!(
-            scenario,
-            Scenario::OxygenDropDemo | Scenario::SimultaneousDemo
-        );
-    let pressure = fault
-        && matches!(
-            scenario,
-            Scenario::PressureAnomalyDemo | Scenario::SimultaneousDemo
-        );
-    vec![
-        Measurement {
-            code: "heart_rate",
-            value: 70.0 + (noise % 7) as f64,
-            unit: "beats/min",
-            quality: "VALID",
-        },
-        Measurement {
-            code: "spo2",
-            value: if oxygen {
-                88.0
-            } else {
-                97.0 + (noise % 3) as f64
-            },
-            unit: "%",
-            quality: "VALID",
-        },
-        Measurement {
-            code: "suit_pressure",
-            value: if pressure {
-                20.0
-            } else {
-                30.0 + (noise % 4) as f64 / 10.0
-            },
-            unit: "kPa",
-            quality: "VALID",
-        },
-    ]
+    let mut model = physiology::Physiology::new(seed, 0);
+    let (activity, fault) = runtime::activity_for(scenario);
+    model.advance(((tick + 1) * 125) as usize, activity, fault);
+    runtime::summaries(&model, false)
 }
 
 pub fn packet(seed: u64, tick: u64, sequence: u64, scenario: Scenario, run: &str) -> Packet {
@@ -120,25 +96,18 @@ mod tests {
             );
         }
         assert_ne!(
-            measurements(42, 0, Scenario::Normal),
-            measurements(43, 0, Scenario::Normal)
+            measurements(42, 60, Scenario::Normal),
+            measurements(43, 60, Scenario::Normal)
         );
     }
 
     #[test]
-    fn faults_are_one_sample_fixtures() {
-        let both = measurements(42, 5, Scenario::SimultaneousDemo);
-        assert_eq!(both[1].value, 88.0);
-        assert_eq!(both[2].value, 20.0);
-        assert_ne!(
-            measurements(42, 6, Scenario::SimultaneousDemo)[1].value,
-            88.0
-        );
-        assert_eq!(measurements(42, 5, Scenario::OxygenDropDemo)[1].value, 88.0);
-        assert_eq!(
-            measurements(42, 5, Scenario::PressureAnomalyDemo)[2].value,
-            20.0
-        );
+    fn faults_are_gradual_and_seeded() {
+        let first = measurements(42, 0, Scenario::SimultaneousDemo);
+        let later = measurements(42, 120, Scenario::SimultaneousDemo);
+        assert!(first[2].value > later[2].value);
+        assert!(first[3].value > later[3].value);
+        assert_eq!(later, measurements(42, 120, Scenario::SimultaneousDemo));
     }
 
     #[test]

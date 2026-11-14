@@ -1,0 +1,296 @@
+{
+  "$defs": {
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "heart_rate",
+            "respiratory_rate",
+            "spo2",
+            "suit_pressure",
+            "systolic_bp",
+            "diastolic_bp",
+            "wbc",
+            "hemoglobin",
+            "bone_density"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "quality": {
+          "enum": [
+            "VALID",
+            "INVALID"
+          ],
+          "title": "Quality",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "value",
+        "unit",
+        "quality"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "PhysiologyState": {
+      "additionalProperties": false,
+      "properties": {
+        "seed": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "crew_index": {
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Crew Index",
+          "type": "integer"
+        },
+        "ticks": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Ticks",
+          "type": "integer"
+        },
+        "heart_rate": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Heart Rate",
+          "type": "number"
+        },
+        "respiratory_rate": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Respiratory Rate",
+          "type": "number"
+        },
+        "spo2": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Spo2",
+          "type": "number"
+        },
+        "suit_pressure": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Suit Pressure",
+          "type": "number"
+        },
+        "ecg_phase": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Ecg Phase",
+          "type": "number"
+        },
+        "activity": {
+          "enum": [
+            "REST",
+            "EXERCISE",
+            "RECOVERY",
+            "ANOMALY"
+          ],
+          "title": "Activity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "seed",
+        "crew_index",
+        "ticks",
+        "heart_rate",
+        "respiratory_rate",
+        "spo2",
+        "suit_pressure",
+        "ecg_phase",
+        "activity"
+      ],
+      "title": "PhysiologyState",
+      "type": "object"
+    },
+    "Waveform": {
+      "additionalProperties": false,
+      "properties": {
+        "sample_rate_hz": {
+          "const": 125,
+          "default": 125,
+          "title": "Sample Rate Hz",
+          "type": "integer"
+        },
+        "start_simulated_at": {
+          "minimum": 0,
+          "title": "Start Simulated At",
+          "type": "number"
+        },
+        "unit": {
+          "const": "mV",
+          "default": "mV",
+          "title": "Unit",
+          "type": "string"
+        },
+        "lead": {
+          "const": "DEMO-II",
+          "default": "DEMO-II",
+          "title": "Lead",
+          "type": "string"
+        },
+        "samples": {
+          "items": {
+            "maximum": 10,
+            "minimum": -10,
+            "type": "number"
+          },
+          "maxItems": 10000,
+          "minItems": 1,
+          "title": "Samples",
+          "type": "array"
+        }
+      },
+      "required": [
+        "start_simulated_at",
+        "samples"
+      ],
+      "title": "Waveform",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "event_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,100}$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "sequence": {
+      "maximum": 9223372036854775807,
+      "minimum": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "astronaut_id": {
+      "title": "Astronaut Id",
+      "type": "string"
+    },
+    "device_id": {
+      "title": "Device Id",
+      "type": "string"
+    },
+    "source_type": {
+      "const": "SIMULATED",
+      "title": "Source Type",
+      "type": "string"
+    },
+    "scenario_id": {
+      "enum": [
+        "REST",
+        "EXERCISE",
+        "RECOVERY",
+        "ANOMALY",
+        "EXAMINATION",
+        "normal",
+        "oxygen_drop_demo",
+        "pressure_anomaly_demo",
+        "simultaneous_demo"
+      ],
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "measurements": {
+      "items": {
+        "$ref": "#/$defs/Measurement"
+      },
+      "maxItems": 9,
+      "minItems": 1,
+      "title": "Measurements",
+      "type": "array"
+    },
+    "run_id": {
+      "default": "legacy",
+      "maxLength": 100,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "revision": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "simulated_at": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Simulated At",
+      "type": "number"
+    },
+    "model_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PhysiologyState"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "waveform": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Waveform"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "examination_id": {
+      "anyOf": [
+        {
+          "maxLength": 100,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Examination Id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "event_id",
+    "sequence",
+    "observed_at",
+    "astronaut_id",
+    "device_id",
+    "source_type",
+    "scenario_id",
+    "measurements"
+  ],
+  "title": "TelemetryPacket",
+  "type": "object"
+}

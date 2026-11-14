@@ -6,9 +6,7 @@ export function mergeObservations(
 ): Observation[] {
   const unique = new Map(previous.map((item) => [item.id, item]));
   for (const item of incoming) unique.set(item.id, item);
-  return [...unique.values()]
-    .sort((a, b) => a.sequence - b.sequence || a.id - b.id)
-    .slice(-240);
+  return [...unique.values()].sort((a, b) => a.id - b.id).slice(-2400);
 }
 
 export function displayState(

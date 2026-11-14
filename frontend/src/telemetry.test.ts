@@ -19,6 +19,8 @@ const reading: Observation = {
   quality: "VALID",
   freshness: "LIVE",
   sequence_gap: false,
+  run_id: "test-run",
+  simulated_at: 0,
 };
 
 describe("freshness display", () => {

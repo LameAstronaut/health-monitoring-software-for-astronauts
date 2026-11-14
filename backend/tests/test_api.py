@@ -1,28 +1,13 @@
+import json
 from datetime import UTC, datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
-from alembic import command
-from alembic.config import Config
 from fastapi.testclient import TestClient
 
-from app.config import Settings
-from app.main import create_app
+from app.schemas import TelemetryPacket
 
 TOKEN = {"X-Demo-Token": "test-demo-token"}
-
-
-@pytest.fixture
-def app_factory(tmp_path, monkeypatch):
-    url = f"sqlite:///{tmp_path / 'test.db'}"
-    monkeypatch.setenv("ASTRA_DATABASE_URL", url)
-    command.upgrade(Config("alembic.ini"), "head")
-    return lambda: create_app(Settings(database_url=url, demo_token="test-demo-token"))
-
-
-@pytest.fixture
-def client(app_factory):
-    with TestClient(app_factory()) as client:
-        yield client
 
 
 def packet(sequence=1, scenario="normal", **updates):
@@ -52,6 +37,30 @@ def packet(sequence=1, scenario="normal", **updates):
         ],
     }
     return result | updates
+
+
+def test_health_and_safe_initial_state(client):
+    response = client.get("/api/v1/health")
+    assert response.status_code == 200
+    health = response.json()
+    assert health["status"] == "ok"
+    assert health["mode"] == "DEMO"
+    assert health["version"] == "0.1.0"
+    assert datetime.fromisoformat(health["server_time"]).utcoffset() == timedelta(0)
+    assert health["disconnect_seconds"] > health["stale_seconds"] > 0
+    assert client.get("/api/v1/devices").json()[0]["status"] == "NOT_AVAILABLE"
+    assert client.get("/api/v1/observations").json() == []
+
+
+def test_versioned_telemetry_contract_matches_backend():
+    contracts = Path(__file__).resolve().parents[2] / "contracts"
+    example = TelemetryPacket.model_validate_json(
+        (contracts / "telemetry.example.json").read_text()
+    )
+    assert example.source_type == "SIMULATED"
+    assert json.loads((contracts / "telemetry.schema.json").read_text()) == (
+        TelemetryPacket.model_json_schema()
+    )
 
 
 def test_normal_duplicate_and_conflict(client):
@@ -200,6 +209,8 @@ def test_websocket_publishes_persisted_data(client):
         assert ws.receive_json()["data"]["status"] == "NOT_AVAILABLE"
         client.post("/api/v1/telemetry", json=packet(), headers=TOKEN)
         event = ws.receive_json()
+        while event["type"] != "telemetry.observation":
+            event = ws.receive_json()
         assert event["type"] == "telemetry.observation"
         assert event["data"]["event_id"] == client.get("/api/v1/observations").json()[0]["event_id"]
 
