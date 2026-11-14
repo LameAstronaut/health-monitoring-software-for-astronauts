@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from . import operations as ops
 from .database import AlertRow, ObservationRow, PacketRow
@@ -62,15 +62,18 @@ def build_operations_router(sessions, service, config):
             now = datetime.now(UTC)
             result = []
             for crew in CREW:
-                rows = db.scalars(
-                    select(ObservationRow)
+                latest_ids = (
+                    select(func.max(ObservationRow.id))
                     .join(PacketRow)
                     .where(
-                        PacketRow.raw["astronaut_id"].as_string() == crew["id"],
-                        PacketRow.device_id.like("DEMO-SUIT-%"),
+                        PacketRow.device_id == f"DEMO-SUIT-{crew['id'][-3:]}",
                     )
-                    .order_by(ObservationRow.id.desc())
-                    .limit(4)
+                    .group_by(ObservationRow.data["code"].as_string())
+                )
+                rows = db.scalars(
+                    select(ObservationRow)
+                    .where(ObservationRow.id.in_(latest_ids))
+                    .order_by(ObservationRow.id)
                 )
                 result.append(
                     CrewSummary(
@@ -139,6 +142,11 @@ def build_operations_router(sessions, service, config):
         with sessions() as db:
             ops.expire_examinations(db)
             control = ops.control_state(db)
+            if ops.crew_deceased(db, request.astronaut_id, control.run_id):
+                raise HTTPException(
+                    409,
+                    "Crew is deceased in this run. Restart playback for new acquisitions.",
+                )
             live = (
                 service.device(
                     db, datetime.now(UTC), f"DEMO-SUIT-{request.astronaut_id[-3:]}"

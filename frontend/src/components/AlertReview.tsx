@@ -4,12 +4,26 @@ import { NAMES, stamp } from "./medical";
 
 const TITLES: Record<string, string> = {
   "pulse-rise-fixture": "Pulse rising",
+  "pulse-decrease-fixture": "Pulse falling",
   "respiratory-rise-fixture": "Breathing rate rising",
   "oxygen-fixture": "Oxygen falling",
   "pressure-fixture": "Suit pressure falling",
 };
 
-/** Native modal semantics keep the workspace inert; evidence stays available on demand. */
+const RESPONSE_STEPS: Record<string, string> = {
+  "pulse-decrease-fixture":
+    "Review the heart-rate trend, sensor quality, and active pulse-decrease fault setting.",
+  "pulse-rise-fixture":
+    "Review the heart-rate trend and active exercise scenario for the affected crew member.",
+  "respiratory-rise-fixture":
+    "Review the respiratory-rate trend alongside heart rate and oxygen saturation.",
+  "oxygen-fixture":
+    "Review oxygen saturation, sensor quality, and the active oxygen fault setting.",
+  "pressure-fixture":
+    "Review the suit-pressure trend, sensor connection, and active pressure fault setting.",
+};
+
+/** Native modal semantics keep the workspace inert during review. */
 export function AlertReview({
   alert,
   crewName,
@@ -59,7 +73,7 @@ export function AlertReview({
       className={`alert-takeover priority-${alert.priority} ${flashing && !reducedMotion ? "is-flashing" : ""}`}
       role="alertdialog"
       aria-labelledby="takeover-title takeover-crew"
-      aria-describedby="takeover-description"
+      aria-describedby="takeover-description takeover-response"
       onKeyDown={(event) => {
         if (event.key !== "Tab") return;
         const controls = event.currentTarget.querySelectorAll<HTMLElement>(
@@ -118,26 +132,29 @@ export function AlertReview({
         <p id="takeover-description">
           At trigger · {stamp(alert.occurred_at)} · {pendingCount} pending
         </p>
-        <details className="alert-details">
-          <summary>Evidence</summary>
-          <p>{alert.message}</p>
-          <p>
-            {stamp(alert.occurred_at, true)} · {alert.astronaut_id}
-          </p>
-          {alert.evidence.map((item) => (
-            <p key={item.id}>
-              {item.device_id} · {item.quality} at trigger ·{" "}
-              {stamp(item.observed_at, true)}
-            </p>
-          ))}
-          <p className="monospace">
-            Rule {alert.rule_id} / {alert.rule_version} · Event {alert.event_id}
-          </p>
-          <p>
-            SIMULATED test markers, not clinical limits. Minimize leaves the
-            alert pending. Acknowledgment saves review, not resolution.
-          </p>
-        </details>
+        <section
+          className="alert-response"
+          aria-labelledby="takeover-response-title"
+        >
+          <h2 id="takeover-response-title">What to do · simulation</h2>
+          <ol id="takeover-response">
+            <li>
+              {RESPONSE_STEPS[alert.rule_id] ??
+                "Review the affected readings, timestamps, and sensor quality."}
+            </li>
+            <li>
+              Minimize this warning to open Simulator controls. Pause playback
+              to inspect the event. Clear manual overrides, set the fault to
+              None and press Apply fault, then select Recovery to let modeled
+              readings return toward baseline; resume playback when ready.
+            </li>
+            <li>
+              Check Live monitoring for fresh readings and recovery. Acknowledge
+              after review; acknowledgment records review and does not resolve
+              the anomaly.
+            </li>
+          </ol>
+        </section>
         {error && (
           <p className="alert-review-error" role="alert">
             Could not save: {error}. Retry acknowledgment.

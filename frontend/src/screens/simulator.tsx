@@ -167,9 +167,9 @@ export function SimulatorControls({
             />
           </label>
           <p className="caption">
-            Restart resets physiological state and ECG phase using this seed.
-            Existing examinations and history remain intact, under their
-            original run IDs.
+            Restart revives all crew, resets vitals and ECG using this seed, and
+            clears faults and manual overrides. Existing examinations and
+            history remain intact, under their original run IDs.
           </p>
           <button
             disabled={
@@ -186,52 +186,13 @@ export function SimulatorControls({
             Restart seeded playback
           </button>
         </Panel>
-        <Panel title="Fault injection">
-          <label className="field">
-            Synthetic sensor / anomaly fault
-            <select
-              value={control.fault ?? "NONE"}
-              disabled={busy}
-              onChange={(e) =>
-                void send({
-                  action: "CONFIGURE",
-                  fault: e.target.value as ControlCommand["fault"],
-                  astronaut_id: crewId as ControlCommand["astronaut_id"],
-                  ...([
-                    "OXYGEN",
-                    "PRESSURE",
-                    "BOTH",
-                    "PULSE_SURGE",
-                    "RESPIRATORY_SURGE",
-                    "MULTI_SYSTEM",
-                  ].includes(e.target.value)
-                    ? { scenario: "ANOMALY" as const }
-                    : {}),
-                })
-              }
-            >
-              <option value="NONE">None</option>
-              <option value="OXYGEN">Gradual oxygen-decrease fixture</option>
-              <option value="PRESSURE">Gradual suit-pressure fixture</option>
-              <option value="BOTH">Oxygen + pressure · priority 1 & 2</option>
-              <option value="PULSE_SURGE">Pulse rise · priority 2</option>
-              <option value="RESPIRATORY_SURGE">
-                Respiratory rise · priority 1
-              </option>
-              <option value="MULTI_SYSTEM">
-                Combined stress · all four markers
-              </option>
-              <option value="DISCONNECT">Sensor disconnected</option>
-              <option value="SENSOR_ERROR">Sensor quality error</option>
-            </select>
-          </label>
-          <p className="caption">
-            Anomaly markers are arbitrary demonstration settings. They are not
-            clinical or spacesuit operating limits. Every new anomaly marker
-            opens a full-screen alert. Disconnect and quality faults affect only
-            the target crew.
-          </p>
-        </Panel>
+        <FaultInjection
+          key={`${crewId}-${control.run_id}-${control.astronaut_id}-${control.fault}`}
+          control={control}
+          crewId={crewId}
+          busy={busy}
+          send={send}
+        />
       </div>
       <div className="info-banner">
         Simplified, non-validated dynamics: individual baselines, smooth
@@ -240,5 +201,89 @@ export function SimulatorControls({
         actuation.
       </div>
     </div>
+  );
+}
+
+function FaultInjection({
+  control,
+  crewId,
+  busy,
+  send,
+}: {
+  control: NonNullable<ScreenProps["mission"]["operations"]>["control"];
+  crewId: string;
+  busy: boolean;
+  send: (values: Omit<ControlCommand, "expected_revision">) => Promise<boolean>;
+}) {
+  const [fault, setFault] = useState<NonNullable<ControlCommand["fault"]>>(
+    control.astronaut_id === crewId ? control.fault : "NONE",
+  );
+  return (
+    <Panel title="Fault injection">
+      <label className="field">
+        Synthetic sensor / anomaly fault
+        <select
+          value={fault}
+          disabled={busy}
+          onChange={(e) =>
+            setFault(e.target.value as NonNullable<ControlCommand["fault"]>)
+          }
+        >
+          <option value="NONE">None</option>
+          <option value="OXYGEN">Gradual oxygen-decrease fixture</option>
+          <option value="PRESSURE">Gradual suit-pressure fixture</option>
+          <option value="BOTH">Oxygen + pressure · priority 1 & 2</option>
+          <option value="PULSE_SURGE">Pulse rise · priority 2</option>
+          <option value="PULSE_DECREASE">Pulse decrease · priority 2</option>
+          <option value="RESPIRATORY_SURGE">
+            Respiratory rise · priority 1
+          </option>
+          <option value="MULTI_SYSTEM">
+            Combined stress · all four markers
+          </option>
+          <option value="DISCONNECT">Sensor disconnected</option>
+          <option value="SENSOR_ERROR">Sensor quality error</option>
+        </select>
+      </label>
+      <div className="button-row">
+        <button
+          className="primary-button"
+          disabled={busy}
+          onClick={() =>
+            void send({
+              action: "CONFIGURE",
+              fault,
+              astronaut_id: crewId as ControlCommand["astronaut_id"],
+              ...([
+                "OXYGEN",
+                "PRESSURE",
+                "BOTH",
+                "PULSE_SURGE",
+                "PULSE_DECREASE",
+                "RESPIRATORY_SURGE",
+                "MULTI_SYSTEM",
+              ].includes(fault)
+                ? { scenario: "ANOMALY" as const }
+                : {}),
+            })
+          }
+        >
+          Apply fault
+        </button>
+        <span className="caption">
+          Applied fault:{" "}
+          {control.astronaut_id === crewId ? control.fault : "NONE"}
+        </span>
+      </div>
+      <p className="caption">
+        Selections take effect when you press Apply fault.
+      </p>
+      <p className="caption">
+        Anomaly markers are arbitrary demonstration settings. They are not
+        clinical or spacesuit operating limits. Every new anomaly marker opens a
+        full-screen alert. Disconnect and quality faults affect only the target
+        crew.
+      </p>
+    </Panel>
   );
 }

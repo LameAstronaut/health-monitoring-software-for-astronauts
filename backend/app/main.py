@@ -115,10 +115,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             rows = db.scalars(
                 select(PacketRow)
                 .where(
-                    PacketRow.raw["astronaut_id"].as_string() == astronaut_id,
+                    PacketRow.device_id == f"DEMO-SUIT-{astronaut_id[-3:]}",
                     PacketRow.raw["waveform"].is_not(None),
                 )
-                .order_by(PacketRow.received_at.desc())
+                .order_by(PacketRow.sequence.desc())
                 .limit(8)
             )
             return [

@@ -4,6 +4,7 @@ import type { Observation, Examination } from "../services/api";
 
 export const NOW = Date.parse("2026-11-14T09:00:00Z");
 export const reading: Observation = {
+  deceased: false,
   id: 1,
   event_id: "demo-test-1",
   sequence: 1,

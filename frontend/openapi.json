@@ -1226,6 +1226,7 @@
                   "PRESSURE",
                   "BOTH",
                   "PULSE_SURGE",
+                  "PULSE_DECREASE",
                   "RESPIRATORY_SURGE",
                   "MULTI_SYSTEM",
                   "DISCONNECT",
@@ -2376,6 +2377,32 @@
               }
             ],
             "title": "Suit Pressure"
+          },
+          "systolic_bp": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Systolic Bp"
+          },
+          "diastolic_bp": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diastolic Bp"
           }
         },
         "additionalProperties": false,
@@ -2566,6 +2593,11 @@
             ],
             "title": "Quality"
           },
+          "deceased": {
+            "type": "boolean",
+            "title": "Deceased",
+            "default": false
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -2739,6 +2771,11 @@
       },
       "PhysiologyState": {
         "properties": {
+          "deceased": {
+            "type": "boolean",
+            "title": "Deceased",
+            "default": false
+          },
           "seed": {
             "type": "integer",
             "maximum": 9007199254740991.0,
@@ -2780,6 +2817,20 @@
             "maximum": 1000.0,
             "minimum": 0.0,
             "title": "Suit Pressure"
+          },
+          "systolic_bp": {
+            "type": "number",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Systolic Bp",
+            "default": 118
+          },
+          "diastolic_bp": {
+            "type": "number",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Diastolic Bp",
+            "default": 76
           },
           "ecg_phase": {
             "type": "number",
@@ -2915,6 +2966,7 @@
               "PRESSURE",
               "BOTH",
               "PULSE_SURGE",
+              "PULSE_DECREASE",
               "RESPIRATORY_SURGE",
               "MULTI_SYSTEM",
               "DISCONNECT",

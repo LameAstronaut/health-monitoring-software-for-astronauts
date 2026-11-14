@@ -227,3 +227,64 @@ def test_device_faults_are_separate_from_calibration_and_data_quality(client):
     assert device["calibration"] == "CALIBRATION_UNKNOWN"
     control(client, "CONFIGURE", fault="SENSOR_ERROR")
     assert client.get("/api/v1/devices").json()[0]["status"] == "ERROR"
+
+
+def test_crew_summary_includes_all_vitals_and_preserves_partial_packet_readings(client):
+    measurements = [
+        {"code": code, "value": value, "unit": unit, "quality": "VALID"}
+        for code, value, unit in [
+            ("heart_rate", 68, "beats/min"),
+            ("respiratory_rate", 13, "breaths/min"),
+            ("spo2", 98.2, "%"),
+            ("suit_pressure", 30, "kPa"),
+            ("systolic_bp", 118, "mmHg"),
+            ("diastolic_bp", 76, "mmHg"),
+        ]
+    ]
+    assert (
+        client.post(
+            "/api/v1/telemetry", json=packet(measurements=measurements), headers=TOKEN
+        ).status_code
+        == 200
+    )
+    summaries = client.get("/api/v1/crew/summaries").json()
+    readings = summaries[0]["readings"]
+    assert {r["code"] for r in readings} == {m["code"] for m in measurements}
+    assert all(r["freshness"] == "LIVE" for r in readings)
+    assert (
+        client.post(
+            "/api/v1/telemetry",
+            json=packet(sequence=2, measurements=[measurements[-1] | {"value": 80}]),
+            headers=TOKEN,
+        ).status_code
+        == 200
+    )
+    readings = client.get("/api/v1/crew/summaries").json()[0]["readings"]
+    assert len(readings) == 6
+    assert next(r["value"] for r in readings if r["code"] == "heart_rate") == 68
+    assert next(r["value"] for r in readings if r["code"] == "diastolic_bp") == 80
+    assert client.get("/api/v1/crew/summaries").json()[1]["readings"] == []
+
+
+def test_restart_clears_lethal_overrides_and_faults_even_if_supplied_again(client):
+    configured = control(
+        client,
+        "CONFIGURE",
+        scenario="ANOMALY",
+        fault="DISCONNECT",
+        manual_values={"heart_rate": 0, "spo2": 0},
+    ).json()
+    restarted = control(client, "RESTART").json()
+    assert restarted["run_id"] != configured["run_id"]
+    assert restarted["scenario"] == "REST"
+    assert restarted["fault"] == "NONE"
+    assert all(value is None for value in restarted["manual_values"].values())
+    assert restarted["running"] is True
+    restarted = control(
+        client,
+        "RESTART",
+        manual_values={"heart_rate": 0},
+        fault="SENSOR_ERROR",
+    ).json()
+    assert restarted["fault"] == "NONE"
+    assert all(value is None for value in restarted["manual_values"].values())

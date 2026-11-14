@@ -41,7 +41,9 @@ export function Examinations({
   busy,
   action,
   navigate,
+  deceasedCrewIds,
 }: ScreenProps) {
+  const deceased = deceasedCrewIds?.has(crewId) ?? false;
   const [kind, setKind] = useState<string>("BLOOD_PRESSURE");
   const [note, setNote] = useState("");
   const [selected, setSelected] = useState<string>();
@@ -91,7 +93,13 @@ export function Examinations({
             </strong>
             . Use the crew selector in the header to change participants.
           </p>
-          <fieldset disabled={busy || Boolean(active)}>
+          {deceased && (
+            <p className="error-inline">
+              Crew is deceased in this simulation run. Restart playback to
+              acquire new results.
+            </p>
+          )}
+          <fieldset disabled={busy || Boolean(active) || deceased}>
             <legend>Examination type</legend>
             <div className="exam-options">
               {EXAMS.map((exam) => (

@@ -111,8 +111,8 @@ def control_state(db: Session) -> SimulatorControl:
         }
     latest = db.scalar(
         select(PacketRow)
-        .where(PacketRow.raw["astronaut_id"].as_string() == data["astronaut_id"])
-        .order_by(PacketRow.received_at.desc())
+        .where(PacketRow.device_id == f"DEMO-SUIT-{data['astronaut_id'][-3:]}")
+        .order_by(PacketRow.sequence.desc())
         .limit(1)
     )
     if latest and latest.raw.get("run_id") == data["run_id"]:
@@ -137,12 +137,18 @@ def change_control(db: Session, command: ControlCommand) -> SimulatorControl:
             raise HTTPException(409, "Simulator is already running")
         update["running"] = True
     if command.action == "RESTART":
-        update |= {"run_id": uuid4().hex, "running": True, "simulated_at": 0}
+        update |= {
+            "run_id": uuid4().hex,
+            "running": True,
+            "simulated_at": 0,
+            "scenario": command.scenario or "REST",
+            "fault": "NONE",
+        }
     if command.action == "RESTART" or (
         command.astronaut_id is not None and command.astronaut_id != old.astronaut_id
     ):
         update["manual_values"] = {}
-    if command.manual_values is not None:
+    if command.manual_values is not None and command.action != "RESTART":
         update["manual_values"] = command.manual_values.model_dump(exclude_none=True)
     row.data = row.data | update | {"revision": old.revision + 1}
     db.commit()
@@ -162,9 +168,32 @@ def heartbeat(db: Session, run_id: str, revision: int, state: str):
     db.commit()
 
 
+def crew_deceased(db: Session, astronaut_id: str, run_id: str) -> bool:
+    latest = db.scalar(
+        select(PacketRow)
+        .where(
+            PacketRow.device_id == f"DEMO-SUIT-{astronaut_id[-3:]}",
+            PacketRow.raw["run_id"].as_string() == run_id,
+            PacketRow.raw["model_state"]["deceased"].as_boolean().is_not(None),
+        )
+        .order_by(PacketRow.sequence.desc())
+        .limit(1)
+    )
+    return bool(latest and latest.raw["model_state"].get("deceased", False))
+
+
 def expire_examinations(db: Session):
     changed = False
     for row in records(db, "examination"):
+        if row.data["status"] == "ACQUIRING" and crew_deceased(
+            db, row.astronaut_id, control_state(db).run_id
+        ):
+            row.data = row.data | {
+                "status": "FAILED",
+                "error": "Crew is deceased in this run. Restart playback for new acquisitions.",
+            }
+            changed = True
+            continue
         if (
             row.data["status"] == "ACQUIRING"
             and (datetime.now(UTC) - datetime.fromisoformat(row.data["started_at"])).total_seconds()

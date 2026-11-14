@@ -31,6 +31,20 @@ export const METRICS = [
     range: [15, 35],
     color: "#8759ab",
   },
+  {
+    code: "systolic_bp",
+    label: "Systolic pressure",
+    unit: "mmHg",
+    range: [80, 180],
+    color: "#b45465",
+  },
+  {
+    code: "diastolic_bp",
+    label: "Diastolic pressure",
+    unit: "mmHg",
+    range: [40, 110],
+    color: "#a46b24",
+  },
 ] as const;
 export const NAMES: Record<string, string> = {
   heart_rate: "Heart rate",
@@ -121,6 +135,8 @@ export function MetricCard({
   disconnect = 15,
   deviceStatus,
   baseline,
+  recovering = false,
+  deceased = false,
 }: {
   code: string;
   reading?: Observation;
@@ -131,6 +147,8 @@ export function MetricCard({
   disconnect?: number;
   deviceStatus?: string;
   baseline?: number;
+  recovering?: boolean;
+  deceased?: boolean;
 }) {
   const metric = METRICS.find((m) => m.code === code)!;
   let status = displayState(
@@ -143,11 +161,20 @@ export function MetricCard({
   );
   if (deviceStatus === "ERROR" || deviceStatus === "DISCONNECTED")
     status = deviceStatus;
+  const live = status === "LIVE";
+  const noOxygenSignal = deceased && code === "spo2";
+  if (live && deceased && code !== "suit_pressure") status = "DECEASED";
+  if (noOxygenSignal && status === "INVALID") status = "NO_SIGNAL";
   return (
     <article
-      className="metric-card"
+      className={`metric-card ${recovering ? "is-recovering" : ""}`}
       style={{ "--metric-color": metric.color } as React.CSSProperties}
     >
+      {recovering && (
+        <p className="recovery-note">
+          Acknowledged · awaiting baseline recovery
+        </p>
+      )}
       <div className="metric-heading">
         <h3>{metric.label}</h3>
         <Status value={status} />
@@ -165,8 +192,14 @@ export function MetricCard({
       <p className="source-line">
         SIMULATED · {reading?.device_id ?? "No source received"}
       </p>
-      {status !== "LIVE" && reading ? (
+      {noOxygenSignal ? (
+        <p className="last-known-label">No pulsatile signal · SIMULATED</p>
+      ) : !live && reading ? (
         <p className="last-known-label">Last known value · NO LIVE DATA</p>
+      ) : deceased && code !== "suit_pressure" ? (
+        <p className="baseline-note">
+          Terminal fixture · restart playback to reset
+        </p>
       ) : (
         baseline !== undefined && (
           <p className="baseline-note">
@@ -273,7 +306,9 @@ export function EcgChart({
   serverNow = Date.now(),
   stale = 5,
   disconnect = 15,
+  deceased = false,
 }: {
+  deceased?: boolean;
   chunks: WaveformReading[];
   connected: boolean;
   serverNow?: number;
@@ -326,8 +361,9 @@ export function EcgChart({
     <figure className="ecg-chart">
       <div className="chart-summary">
         <span>DEMO-II · 125 Hz · mV</span>
-        <Status value={status} />
+        <Status value={deceased && status === "LIVE" ? "DECEASED" : status} />
       </div>
+      {deceased && <p>Terminal fixture · ECG from simulator</p>}
       <svg
         viewBox="0 0 720 180"
         role="img"

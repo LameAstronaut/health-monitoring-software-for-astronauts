@@ -1,3 +1,4 @@
+import { useVitalRecovery } from "../useVitalRecovery";
 import { useState } from "react";
 import {
   EcgChart,
@@ -16,7 +17,10 @@ import type { ScreenProps } from "./types";
 export function MetricGrid({
   mission,
   crewId,
-}: Pick<ScreenProps, "mission" | "crewId">) {
+  deceasedCrewIds,
+}: Pick<ScreenProps, "mission" | "crewId" | "deceasedCrewIds">) {
+  const deceased = deceasedCrewIds?.has(crewId) ?? false;
+  const recovering = useVitalRecovery(mission, crewId);
   const crew = mission.crew.find((c) => c.id === crewId);
   const suit = mission.devices.find(
     (d) => d.astronaut_id === crewId && d.kind === "CONTINUOUS",
@@ -42,6 +46,8 @@ export function MetricGrid({
           disconnect={mission.health?.disconnect_seconds}
           deviceStatus={suit?.status}
           baseline={crew?.baseline?.[metric.code]}
+          deceased={deceased}
+          recovering={!deceased && recovering.has(metric.code)}
         />
       ))}
     </div>
@@ -52,12 +58,25 @@ export function CrewStrip({
   mission,
   crewId,
   selectCrew,
-}: Pick<ScreenProps, "mission" | "crewId" | "selectCrew">) {
+  deceasedCrewIds,
+}: Pick<ScreenProps, "mission" | "crewId" | "selectCrew" | "deceasedCrewIds">) {
   return (
     <div className="crew-strip">
       {mission.crew.map((crew) => {
         const summary = mission.summaries.find((c) => c.crew.id === crew.id);
-        const reading = summary?.readings.find((r) => r.code === "heart_rate");
+        const reading = [...(summary?.readings ?? []), ...mission.observations]
+          .filter(
+            (r) =>
+              r.astronaut_id === crew.id &&
+              r.code === "heart_rate" &&
+              !r.examination_id,
+          )
+          .sort(
+            (a, b) =>
+              Date.parse(a.observed_at) - Date.parse(b.observed_at) ||
+              a.id - b.id,
+          )
+          .at(-1);
         const state = displayState(
           reading,
           mission.connected,
@@ -82,7 +101,9 @@ export function CrewStrip({
               {reading?.quality === "VALID"
                 ? `${reading.value.toFixed(0)} bpm`
                 : "No data"}
-              <Status value={state} />
+              <Status
+                value={deceasedCrewIds?.has(crew.id) ? "DECEASED" : state}
+              />
             </span>
           </button>
         );
@@ -105,22 +126,15 @@ export function Dashboard(props: ScreenProps) {
       <CrewStrip {...props} />
       <MetricGrid {...props} />
       <div className="dashboard-grid">
-        <Panel
-          title="Heart rate trend"
-          action={
-            <button
-              className="link-button"
-              onClick={() => navigate("Live monitoring")}
-            >
-              Open live monitoring ↗
-            </button>
-          }
-        >
-          <TrendChart readings={mission.observations} code="heart_rate" />
-          <p className="caption">
-            Stable display scale · Source timestamps · Synthetic fixture
-            dynamics
-          </p>
+        <Panel title="ECG · synthetic lead">
+          <EcgChart
+            deceased={props.deceasedCrewIds?.has(crewId)}
+            chunks={mission.waveforms}
+            connected={mission.connected}
+            serverNow={mission.serverNow}
+            stale={mission.health?.stale_seconds}
+            disconnect={mission.health?.disconnect_seconds}
+          />
         </Panel>
         <Panel
           title="Review queue"
@@ -154,14 +168,22 @@ export function Dashboard(props: ScreenProps) {
         </Panel>
       </div>
       <div className="dashboard-grid">
-        <Panel title="ECG · synthetic lead">
-          <EcgChart
-            chunks={mission.waveforms}
-            connected={mission.connected}
-            serverNow={mission.serverNow}
-            stale={mission.health?.stale_seconds}
-            disconnect={mission.health?.disconnect_seconds}
-          />
+        <Panel
+          title="Heart rate trend"
+          action={
+            <button
+              className="link-button"
+              onClick={() => navigate("Live monitoring")}
+            >
+              Open live monitoring ↗
+            </button>
+          }
+        >
+          <TrendChart readings={mission.observations} code="heart_rate" />
+          <p className="caption">
+            Stable display scale · Source timestamps · Synthetic fixture
+            dynamics
+          </p>
         </Panel>
         <Panel
           title="Upcoming tasks"
@@ -256,6 +278,7 @@ export function LiveMonitoring(props: ScreenProps) {
       </Panel>
       <Panel title="Continuous ECG waveform">
         <EcgChart
+          deceased={props.deceasedCrewIds?.has(props.crewId)}
           chunks={props.mission.waveforms}
           connected={props.mission.connected}
           serverNow={props.mission.serverNow}

@@ -47,6 +47,11 @@
     "PhysiologyState": {
       "additionalProperties": false,
       "properties": {
+        "deceased": {
+          "default": false,
+          "title": "Deceased",
+          "type": "boolean"
+        },
         "seed": {
           "maximum": 9007199254740991,
           "minimum": 0,
@@ -87,6 +92,20 @@
           "maximum": 1000,
           "minimum": 0,
           "title": "Suit Pressure",
+          "type": "number"
+        },
+        "systolic_bp": {
+          "default": 118,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Systolic Bp",
+          "type": "number"
+        },
+        "diastolic_bp": {
+          "default": 76,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Diastolic Bp",
           "type": "number"
         },
         "ecg_phase": {

@@ -9,8 +9,8 @@ manual or derived ingestion paths. Codes and units are enforced by Pydantic.
 | respiratory_rate | breaths/min | 0–1000 | Per-crew baseline 13 / 14 / 12, correlated with modeled HR load |
 | spo2 | % | 0–100 | Baseline 98.2 with small slow drift |
 | suit_pressure | kPa | 0–1000 | Baseline 30 with small slow drift |
-| systolic_bp | mmHg | 0–1000 | Explicit BP acquisition only |
-| diastolic_bp | mmHg | 0–1000 | Explicit BP acquisition only |
+| systolic_bp | mmHg | 0–1000 | Continuous modeled pressure plus explicit BP acquisition |
+| diastolic_bp | mmHg | 0–1000 | Continuous modeled pressure plus explicit BP acquisition |
 | wbc | 10^9/L | 0–1000 | Explicit lab-panel acquisition only |
 | hemoglobin | g/dL | 0–1000 | Explicit lab-panel acquisition only |
 | bone_density | g/cm2 | 0–1000 | Explicit bone-density report acquisition only |

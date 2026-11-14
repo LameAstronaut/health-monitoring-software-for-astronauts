@@ -1,13 +1,13 @@
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .config import Settings
 from .database import AlertRow, ObservationRow, PacketRow, RecordRow
 from .operations import finish_examination
-from .registry import DEVICE_MAP
+from .registry import CREW, DEVICE_MAP, DEVICES
 from .schemas import Alert, Device, IngestResult, Observation, TelemetryPacket, WaveformReading
 
 
@@ -43,6 +43,7 @@ class TelemetryService:
     def observation(self, db: Session, row: ObservationRow, now: datetime) -> Observation:
         packet = db.get(PacketRow, row.event_id)
         return Observation(
+            deceased=bool((packet.raw.get("model_state") or {}).get("deceased", False)),
             id=row.id,
             event_id=packet.event_id,
             sequence=packet.sequence,
@@ -90,11 +91,21 @@ class TelemetryService:
         )
         status = self.freshness(latest, now, db) if latest else "NOT_AVAILABLE"
         if definition["kind"] != "CONTINUOUS":
-            worker = db.scalar(
-                select(PacketRow)
-                .where(PacketRow.device_id.like("DEMO-SUIT-%"))
-                .order_by(PacketRow.received_at.desc())
-                .limit(1)
+            # Read each monitor's newest indexed sequence instead of sorting packet history.
+            workers = [
+                db.scalar(
+                    select(PacketRow)
+                    .where(PacketRow.device_id == device["id"])
+                    .order_by(PacketRow.sequence.desc())
+                    .limit(1)
+                )
+                for device in DEVICES
+                if device["kind"] == "CONTINUOUS"
+            ]
+            worker = max(
+                (packet for packet in workers if packet),
+                key=lambda packet: utc(packet.received_at),
+                default=None,
             )
             status = (
                 "IDLE" if worker and self.freshness(worker, now, db) == "LIVE" else "DISCONNECTED"
@@ -117,6 +128,31 @@ class TelemetryService:
             quality=packet.raw["measurements"][0]["quality"],
             freshness=self.freshness(packet, now, db),
             waveform=packet.raw["waveform"],
+        )
+
+    def recovered_since(self, db: Session, prior: AlertRow, code: str) -> bool:
+        # Match the UI's synthetic baseline bands, not clinical recovery criteria.
+        tolerance = {"heart_rate": 4, "respiratory_rate": 1.5, "spo2": 0.7, "suit_pressure": 0.35}
+        baseline = next(crew for crew in CREW if crew["id"] == prior.astronaut_id)["baseline"][code]
+        candidates = db.execute(
+            select(ObservationRow, PacketRow)
+            .join(PacketRow, ObservationRow.event_id == PacketRow.event_id)
+            .where(
+                ObservationRow.id > prior.observation_id,
+                ObservationRow.data["code"].as_string() == code,
+                ObservationRow.data["quality"].as_string() == "VALID",
+                ObservationRow.data["value"]
+                .as_float()
+                .between(baseline - tolerance[code], baseline + tolerance[code]),
+                PacketRow.raw["astronaut_id"].as_string() == prior.astronaut_id,
+                func.coalesce(PacketRow.raw["run_id"].as_string(), "legacy") == prior.run_id,
+            )
+        )
+        return any(
+            not packet.raw.get("examination_id")
+            and (utc(packet.received_at) - utc(packet.observed_at)).total_seconds()
+            <= self.settings.stale_seconds
+            for _, packet in candidates
         )
 
     def ingest(self, db: Session, packet: TelemetryPacket, now: datetime) -> IngestResult:
@@ -218,6 +254,12 @@ class TelemetryService:
                             "pulse-rise-fixture",
                             "SIMULATED pulse-rise test marker reached",
                         )
+                    if measurement.code == "heart_rate" and measurement.value <= 45:
+                        rule = (
+                            2,
+                            "pulse-decrease-fixture",
+                            "SIMULATED pulse-decrease test marker reached",
+                        )
                     if measurement.code == "respiratory_rate" and measurement.value >= 26:
                         rule = (
                             1,
@@ -232,9 +274,13 @@ class TelemetryService:
                         AlertRow.rule_id == rule[1],
                         AlertRow.run_id == packet.run_id,
                     )
+                    .order_by(AlertRow.id.desc())
                     .limit(1)
                 )
-                if prior:
+                if prior and (
+                    prior.state == "PENDING_REVIEW"
+                    or not self.recovered_since(db, prior, measurement.code)
+                ):
                     continue
                 alert = AlertRow(
                     event_id=packet.event_id,

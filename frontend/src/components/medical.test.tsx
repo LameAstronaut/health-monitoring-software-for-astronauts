@@ -53,3 +53,25 @@ it("does not fabricate an ECG when only numeric readings exist", () => {
   expect(screen.getByText("ECG waveform unavailable")).toBeVisible();
   expect(screen.queryByRole("img")).not.toBeInTheDocument();
 });
+
+it("renders the simulator's terminal ECG samples flat while retaining freshness", () => {
+  const terminal = {
+    ...chunk,
+    waveform: { ...chunk.waveform, samples: [0, 0, 0, 0] },
+  };
+  const view = render(
+    <EcgChart deceased chunks={[terminal]} connected serverNow={NOW} />,
+  );
+  expect(screen.getByText("DECEASED")).toBeVisible();
+  const waveform = screen.getByRole("img").querySelector("polyline")!;
+  expect(
+    waveform
+      .getAttribute("points")!
+      .split(" ")
+      .every((point) => point.endsWith(",108")),
+  ).toBe(true);
+  view.rerender(
+    <EcgChart deceased chunks={[terminal]} connected={false} serverNow={NOW} />,
+  );
+  expect(screen.getByText("DISCONNECTED")).toBeVisible();
+});

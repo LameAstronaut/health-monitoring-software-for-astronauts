@@ -485,7 +485,7 @@ export interface components {
             /** Seed */
             seed?: number | null;
             /** Fault */
-            fault?: ("NONE" | "OXYGEN" | "PRESSURE" | "BOTH" | "PULSE_SURGE" | "RESPIRATORY_SURGE" | "MULTI_SYSTEM" | "DISCONNECT" | "SENSOR_ERROR") | null;
+            fault?: ("NONE" | "OXYGEN" | "PRESSURE" | "BOTH" | "PULSE_SURGE" | "PULSE_DECREASE" | "RESPIRATORY_SURGE" | "MULTI_SYSTEM" | "DISCONNECT" | "SENSOR_ERROR") | null;
             /** Expected Revision */
             expected_revision: number;
         };
@@ -991,6 +991,10 @@ export interface components {
             spo2?: number | null;
             /** Suit Pressure */
             suit_pressure?: number | null;
+            /** Systolic Bp */
+            systolic_bp?: number | null;
+            /** Diastolic Bp */
+            diastolic_bp?: number | null;
         };
         /** Meal */
         Meal: {
@@ -1074,6 +1078,11 @@ export interface components {
              * @enum {string}
              */
             quality: "VALID" | "INVALID";
+            /**
+             * Deceased
+             * @default false
+             */
+            deceased: boolean;
             /** Id */
             id: number;
             /** Event Id */
@@ -1143,6 +1152,11 @@ export interface components {
         };
         /** PhysiologyState */
         PhysiologyState: {
+            /**
+             * Deceased
+             * @default false
+             */
+            deceased: boolean;
             /** Seed */
             seed: number;
             /** Crew Index */
@@ -1157,6 +1171,16 @@ export interface components {
             spo2: number;
             /** Suit Pressure */
             suit_pressure: number;
+            /**
+             * Systolic Bp
+             * @default 118
+             */
+            systolic_bp: number;
+            /**
+             * Diastolic Bp
+             * @default 76
+             */
+            diastolic_bp: number;
             /** Ecg Phase */
             ecg_phase: number;
             /**
@@ -1217,7 +1241,7 @@ export interface components {
              * @default NONE
              * @enum {string}
              */
-            fault: "NONE" | "OXYGEN" | "PRESSURE" | "BOTH" | "PULSE_SURGE" | "RESPIRATORY_SURGE" | "MULTI_SYSTEM" | "DISCONNECT" | "SENSOR_ERROR";
+            fault: "NONE" | "OXYGEN" | "PRESSURE" | "BOTH" | "PULSE_SURGE" | "PULSE_DECREASE" | "RESPIRATORY_SURGE" | "MULTI_SYSTEM" | "DISCONNECT" | "SENSOR_ERROR";
             /**
              * Revision
              * @default 0

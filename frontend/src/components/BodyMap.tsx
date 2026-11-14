@@ -1,4 +1,3 @@
-import { BodyModel } from "./BodyModel";
 import { useState } from "react";
 import type { Observation, Examination } from "../services/api";
 import { NAMES, stamp, Status } from "./medical";
@@ -87,7 +86,6 @@ export function BodyMap({
   observations: Observation[];
   examinations: Examination[];
 }) {
-  const [view, setView] = useState("illustration");
   const [selected, setSelected] = useState("chest");
   const part = PARTS.find((item) => item.id === selected) ?? PARTS[1];
   const latest = part.codes.map((code) => {
@@ -119,82 +117,57 @@ export function BodyMap({
         <span className="body-map-origin">SIMULATED · tap a body region</span>
       </div>
       <div className="button-row body-view-controls" aria-label="Body display">
-        <button
-          aria-pressed={view === "illustration"}
-          onClick={() => setView("illustration")}
-        >
-          High-resolution image
-        </button>
-        <button aria-pressed={view === "3d"} onClick={() => setView("3d")}>
-          3D schematic
-        </button>
+        <button aria-pressed={true}>High-resolution image</button>
       </div>
       <div className="body-map-layout">
         <div>
-          {view === "3d" ? (
-            <BodyModel selected={selected} onSelect={setSelected} />
-          ) : (
-            <div
-              className="body-figure"
+          <div
+            className="body-figure"
+            role="group"
+            aria-label="Interactive astronaut body regions"
+          >
+            <img
+              className="body-image"
+              src="/assets/astronaut-body-realistic.png"
+              alt="Realistic synthetic astronaut body illustration"
+            />
+            <svg
+              className="body-diagram"
+              viewBox="0 0 360 540"
               role="group"
-              aria-label="Interactive astronaut body regions"
+              aria-label="Clickable astronaut body diagram"
             >
-              <img
-                className="body-image"
-                src="/assets/astronaut-body-realistic.png"
-                alt="Realistic synthetic astronaut body illustration"
-              />
-              <svg
-                className="body-diagram"
-                viewBox="0 0 360 540"
-                role="group"
-                aria-label="Clickable astronaut body diagram"
-              >
-                {PARTS.map((item) => {
-                  const region = REGION_SHAPES[item.id];
-                  return (
-                    <g
-                      key={item.id}
-                      className={`body-region ${selected === item.id ? "selected" : ""}`}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={item.label}
-                      aria-pressed={selected === item.id}
-                      onClick={() => setSelected(item.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelected(item.id);
-                        }
-                      }}
+              {PARTS.map((item) => {
+                const region = REGION_SHAPES[item.id];
+                return (
+                  <g
+                    key={item.id}
+                    className={`body-region ${selected === item.id ? "selected" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={item.label}
+                    aria-pressed={selected === item.id}
+                    onClick={() => setSelected(item.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelected(item.id);
+                      }
+                    }}
+                  >
+                    <path d={region.shape} />
+                    <text
+                      x={region.label[0]}
+                      y={region.label[1]}
+                      textAnchor="middle"
                     >
-                      <path d={region.shape} />
-                      <text
-                        x={region.label[0]}
-                        y={region.label[1]}
-                        textAnchor="middle"
-                      >
-                        {item.short}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-          )}
-          {view === "3d" && (
-            <div className="region-buttons">
-              {PARTS.map((item) => (
-                <button
-                  key={item.id}
-                  aria-pressed={selected === item.id}
-                  onClick={() => setSelected(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
+                      {item.short}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
         </div>
         <div className="body-map-detail">
           <p className="eyebrow">SELECTED REGION</p>

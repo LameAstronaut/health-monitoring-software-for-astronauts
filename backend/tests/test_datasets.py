@@ -68,10 +68,12 @@ def test_manual_overrides_validate_and_reset(client):
 
     assert send({"manual_values": {"spo2": 101}}).status_code == 422
     assert send({"manual_values": {"unknown": 2}}).status_code == 422
-    result = send({"manual_values": {"heart_rate": 110}})
+    result = send({"manual_values": {"heart_rate": 110, "systolic_bp": 130, "diastolic_bp": 85}})
     assert result.status_code == 200
     control = result.json()
     assert control["manual_values"]["heart_rate"] == 110
+    assert control["manual_values"]["systolic_bp"] == 130
+    assert control["manual_values"]["diastolic_bp"] == 85
     result = send({"astronaut_id": "DEMO-CREW-002"})
     assert result.status_code == 200
     assert all(value is None for value in result.json()["manual_values"].values())

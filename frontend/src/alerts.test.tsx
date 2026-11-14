@@ -127,7 +127,9 @@ it("escalates a newly arriving critical alert while a warning is being reviewed"
   );
   view.rerender(<App />);
   expect(screen.getByRole("alertdialog")).toHaveTextContent("PRIORITY 1");
-  expect(screen.getByRole("alertdialog")).toHaveTextContent("respiratory-rise");
+  expect(screen.getByRole("alertdialog")).toHaveTextContent(
+    "Breathing rate rising",
+  );
 });
 
 it("keeps failed acknowledgment visible and saves an explicit successful retry", async () => {
@@ -154,14 +156,21 @@ it("keeps failed acknowledgment visible and saves an explicit successful retry",
   ).not.toBeInTheDocument();
 });
 
-it("keeps provenance collapsed and allows flashing to stop without acknowledgment", async () => {
+it("omits Evidence and allows flashing to stop without acknowledgment", async () => {
   vi.mocked(useMission).mockReturnValue(makeMission({ alerts: [critical] }));
   render(<App />);
   const dialog = screen.getByRole("alertdialog");
   expect(dialog).toHaveClass("is-flashing");
-  expect(within(dialog).getByText(/Rule respiratory-rise/)).not.toBeVisible();
-  await userEvent.click(within(dialog).getByText("Evidence", { exact: true }));
-  expect(within(dialog).getByText(/Rule respiratory-rise/)).toBeVisible();
+  expect(
+    within(dialog).getByRole("heading", { name: "What to do · simulation" }),
+  ).toBeVisible();
+  expect(
+    within(dialog).getByText(/Review the respiratory-rate trend/),
+  ).toBeVisible();
+  expect(within(dialog).getByText(/Pause playback/)).toBeVisible();
+  expect(
+    within(dialog).queryByText("Evidence", { exact: true }),
+  ).not.toBeInTheDocument();
   await userEvent.click(
     within(dialog).getByRole("button", { name: "Stop flashing" }),
   );
@@ -188,4 +197,122 @@ it("opens without flashing when reduced motion is preferred", () => {
   expect(
     screen.queryByRole("button", { name: "Stop flashing" }),
   ).not.toBeInTheDocument();
+});
+
+it("escalates from a small warning to the full anomaly alert", () => {
+  const prewarning = {
+    ...reading,
+    astronaut_id: critical.astronaut_id,
+    device_id: critical.device_id,
+    code: "respiratory_rate" as const,
+    value: 23,
+    unit: "breaths/min",
+    scenario_id: "ANOMALY" as const,
+  };
+  vi.mocked(useMission).mockReturnValue(
+    (() => {
+      const base = makeMission();
+      return makeMission({
+        observations: [prewarning],
+        operations: {
+          ...base.operations!,
+          control: {
+            ...base.operations!.control,
+            astronaut_id: prewarning.astronaut_id as "DEMO-CREW-002",
+            scenario: "ANOMALY",
+            fault: "RESPIRATORY_SURGE",
+          },
+        },
+      });
+    })(),
+  );
+  const view = render(<App />);
+  expect(screen.getByText(/Early warning · approaching/)).toBeVisible();
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  vi.mocked(useMission).mockReturnValue(
+    makeMission({
+      observations: [{ ...prewarning, value: 26 }],
+      alerts: [critical],
+    }),
+  );
+  view.rerender(<App />);
+  expect(
+    screen.queryByText(/Early warning · approaching/),
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole("alertdialog")).toHaveTextContent(
+    "Breathing rate rising",
+  );
+});
+
+it("keeps the affected vital flashing after acknowledgment until fresh recovery", async () => {
+  const active = {
+    ...reading,
+    id: 10,
+    code: "respiratory_rate" as const,
+    value: 26,
+    unit: "breaths/min",
+    scenario_id: "ANOMALY" as const,
+  };
+  const warning: Alert = {
+    ...critical,
+    id: 99,
+    astronaut_id: reading.astronaut_id,
+    device_id: reading.device_id,
+    evidence: [active],
+  };
+  const mission = makeMission({ alerts: [warning], observations: [active] });
+  vi.mocked(useMission).mockReturnValue(mission);
+  const view = render(<App />);
+  vi.mocked(post).mockImplementationOnce(async () => {
+    vi.mocked(useMission).mockReturnValue({
+      ...mission,
+      alerts: [{ ...warning, state: "ACKNOWLEDGED" }],
+    });
+    return {};
+  });
+  await userEvent.click(screen.getByRole("button", { name: "Acknowledge" }));
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  expect(
+    screen
+      .getByRole("heading", { name: "Respiratory rate" })
+      .closest("article"),
+  ).toHaveClass("is-recovering");
+  vi.mocked(useMission).mockReturnValue({
+    ...mission,
+    alerts: [{ ...warning, state: "ACKNOWLEDGED" }],
+    observations: [active, { ...active, id: 11, value: 13 }],
+  });
+  view.rerender(<App />);
+  expect(
+    screen
+      .getByRole("heading", { name: "Respiratory rate" })
+      .closest("article"),
+  ).not.toHaveClass("is-recovering");
+});
+
+it("opens pulse decrease with the falling-pulse title and evidence", () => {
+  vi.mocked(useMission).mockReturnValue(
+    makeMission({
+      alerts: [
+        {
+          ...critical,
+          priority: 2,
+          severity: "WARNING_DEMO",
+          rule_id: "pulse-decrease-fixture",
+          evidence: [
+            {
+              ...critical.evidence[0],
+              code: "heart_rate",
+              value: 45,
+              unit: "beats/min",
+            },
+          ],
+        },
+      ],
+    }),
+  );
+  render(<App />);
+  const dialog = screen.getByRole("alertdialog", { name: /Pulse falling/ });
+  expect(dialog).toHaveTextContent("45 beats/min");
+  expect(dialog).toHaveTextContent("active pulse-decrease fault setting");
 });

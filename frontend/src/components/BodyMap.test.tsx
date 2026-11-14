@@ -31,14 +31,13 @@ it("selects body regions and exposes linked synthetic measurements", async () =>
   expect(screen.getByText(/09:00:00 UTC/)).toBeVisible();
 });
 
-it("keeps region controls keyboard accessible in the 3D view", async () => {
+it("keeps image region controls keyboard accessible", async () => {
   render(<BodyMap observations={[reading]} examinations={[]} />);
-  await userEvent.click(screen.getByRole("button", { name: "3D schematic" }));
   const head = screen.getByRole("button", { name: "Head & eyes" });
   head.focus();
   await userEvent.keyboard(" ");
   expect(head).toHaveAttribute("aria-pressed", "true");
-  expect(screen.getByRole("slider", { name: "Rotate body" })).toBeVisible();
+  expect(screen.getByText(/Vision, vestibular/)).toBeVisible();
 });
 
 it("uses observation timestamps rather than array order", () => {

@@ -13,6 +13,7 @@ Fault = Literal[
     "PRESSURE",
     "BOTH",
     "PULSE_SURGE",
+    "PULSE_DECREASE",
     "RESPIRATORY_SURGE",
     "MULTI_SYSTEM",
     "DISCONNECT",
@@ -26,6 +27,8 @@ class ManualValues(StrictModel):
     respiratory_rate: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
     spo2: float | None = Field(default=None, ge=0, le=100, allow_inf_nan=False)
     suit_pressure: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
+    systolic_bp: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
+    diastolic_bp: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
 
 
 class SimulatorControl(StrictModel):

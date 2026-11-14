@@ -8,6 +8,8 @@ CREW = [
         "initials": "AM",
         "baseline": {
             "heart_rate": 68.0,
+            "systolic_bp": 118.0,
+            "diastolic_bp": 76.0,
             "respiratory_rate": 13.0,
             "spo2": 98.2,
             "suit_pressure": 30.0,
@@ -20,6 +22,8 @@ CREW = [
         "initials": "JL",
         "baseline": {
             "heart_rate": 72.0,
+            "systolic_bp": 120.0,
+            "diastolic_bp": 77.0,
             "respiratory_rate": 14.0,
             "spo2": 98.2,
             "suit_pressure": 30.0,
@@ -32,6 +36,8 @@ CREW = [
         "initials": "SR",
         "baseline": {
             "heart_rate": 64.0,
+            "systolic_bp": 122.0,
+            "diastolic_bp": 78.0,
             "respiratory_rate": 12.0,
             "spo2": 98.2,
             "suit_pressure": 30.0,
@@ -65,7 +71,7 @@ DEVICES = [
         "id": f"DEMO-SUIT-00{i + 1}",
         "model": "Virtual physiology / suit monitor",
         "astronaut_id": member["id"],
-        "capabilities": list(UNITS)[:4],
+        "capabilities": list(UNITS)[:6],
         "kind": "CONTINUOUS",
     }
     for i, member in enumerate(CREW)

@@ -174,3 +174,18 @@ motion in the operating system disables flashing automatically. All markers/prio
 
 The UI uses 18 px body text, 56 px main readings and controls at least 56 px high, with
 64 px full-screen review buttons. Smaller viewports stack panels and allow vertical scrolling.
+
+
+## Operational polling and telemetry history
+
+Operational records poll every two seconds with at most one request batch in flight.
+Refresh, crew changes and unmount cancel superseded requests. Timeouts retain the
+last records with a visible retry message; the next successful poll clears that
+message without clearing unrelated stream/snapshot failures.
+
+Playback clocks, deceased-state lookup and waveform history use the registered
+continuous device ID and its indexed sequence. Crew summaries group observations
+for that indexed device, retaining the latest value of every code after partial
+packets. These queries avoid scanning large waveform JSON payloads for crew IDs.
+Device connectivity checks read each monitor's latest indexed packet before
+selecting the most recent worker receipt. No telemetry history is deleted.

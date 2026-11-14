@@ -6,6 +6,8 @@ const FIELDS = [
   ["respiratory_rate", "Respiratory rate", "breaths/min", 1000],
   ["spo2", "Oxygen saturation", "%", 100],
   ["suit_pressure", "Suit pressure", "kPa", 1000],
+  ["systolic_bp", "Systolic pressure", "mmHg", 1000],
+  ["diastolic_bp", "Diastolic pressure", "mmHg", 1000],
 ] as const;
 export function ManualTelemetry({
   mission,
@@ -36,9 +38,11 @@ export function ManualTelemetry({
       <p className="caption">
         Override published readings for the selected crew. Blank fields follow
         the model. Overrides hold until cleared, restarted, or the target crew
-        changes. ECG and physiology continue independently. Alert test markers
-        are evaluated only in the ANOMALY scenario. Bounds are data
-        representation limits, not clinical ranges.
+        changes. A valid zero vital triggers the terminal fixture; physiological
+        overrides cannot revive it. Restart playback to reset. Other overrides
+        leave ECG and physiology independent. Alert test markers are evaluated
+        only in the ANOMALY scenario. Bounds are data representation limits, not
+        clinical ranges.
       </p>
       <form
         onSubmit={(event) => {

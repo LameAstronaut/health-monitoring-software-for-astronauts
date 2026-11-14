@@ -52,6 +52,7 @@ class Measurement(StrictModel):
 
 
 class PhysiologyState(StrictModel):
+    deceased: bool = False
     seed: int = Field(ge=0, le=9_007_199_254_740_991)
     crew_index: int = Field(ge=0, le=2)
     ticks: int = Field(ge=0, le=9_007_199_254_740_991)
@@ -59,6 +60,8 @@ class PhysiologyState(StrictModel):
     respiratory_rate: float = Field(ge=0, le=1000, allow_inf_nan=False)
     spo2: float = Field(ge=0, le=100, allow_inf_nan=False)
     suit_pressure: float = Field(ge=0, le=1000, allow_inf_nan=False)
+    systolic_bp: float = Field(default=118, ge=0, le=1000, allow_inf_nan=False)
+    diastolic_bp: float = Field(default=76, ge=0, le=1000, allow_inf_nan=False)
     ecg_phase: float = Field(ge=0, le=1, allow_inf_nan=False)
     activity: Literal["REST", "EXERCISE", "RECOVERY", "ANOMALY"]
 
@@ -139,6 +142,7 @@ class CrewMember(StrictModel):
 
 
 class Observation(Measurement):
+    deceased: bool = False
     id: int
     event_id: str
     sequence: int

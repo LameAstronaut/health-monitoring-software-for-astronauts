@@ -33,7 +33,13 @@ it("renders a readable demo workspace with honest missing measurement states", (
   ).toBeVisible();
   expect(screen.getByText("API CONNECTED")).toBeVisible();
   expect(screen.getAllByText("DEMO / SIMULATED").length).toBeGreaterThan(0);
-  expect(screen.getAllByText(/^Awaiting first observation/).length).toBe(3);
+  expect(screen.getAllByText(/^Awaiting first observation/).length).toBe(5);
+  expect(
+    screen.getByRole("heading", { name: "Systolic pressure" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "Diastolic pressure" }),
+  ).toBeVisible();
   expect(screen.getByText(/does not indicate crew health/)).toBeVisible();
 });
 
@@ -69,7 +75,7 @@ it("retains stale provenance even while the API is connected", () => {
     }),
   );
   render(<App />);
-  expect(screen.getByText("STALE")).toBeVisible();
+  expect(screen.getAllByText("STALE")).toHaveLength(2);
   expect(screen.getByText("Last known value · NO LIVE DATA")).toBeVisible();
   expect(screen.getByText("API CONNECTED")).toBeVisible();
 });
@@ -163,4 +169,52 @@ it("pauses playback with a revision guard and displays failed mutations", async 
   expect(screen.getByRole("alert")).toHaveTextContent(
     "Simulator settings changed",
   );
+});
+
+it("shows deceased for the affected crew without an end screen and keeps controls usable", async () => {
+  const mission = makeMission({
+    observations: [{ ...reading, value: 0 }],
+    summaries: [
+      {
+        crew: makeMission().crew[1],
+        readings: [
+          {
+            ...reading,
+            id: 2,
+            astronaut_id: "DEMO-CREW-002",
+            device_id: "DEMO-SUIT-002",
+            value: 72,
+          },
+        ],
+      },
+    ],
+  });
+  vi.mocked(useMission).mockReturnValue(mission);
+  const view = render(<App />);
+  expect(screen.getByRole("button", { name: /Alex Morgan/ })).toHaveTextContent(
+    "DECEASED",
+  );
+  expect(screen.getByRole("button", { name: /Jordan Lee/ })).toHaveTextContent(
+    "LIVE",
+  );
+  expect(screen.queryByText("The End")).not.toBeInTheDocument();
+  expect(view.container.querySelector(".app-shell")).not.toHaveAttribute(
+    "inert",
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Simulator controls" }),
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Mission dashboard" }),
+  );
+  expect(screen.getByRole("button", { name: /Alex Morgan/ })).toHaveTextContent(
+    "DECEASED",
+  );
+  const restarted = makeMission();
+  restarted.operations!.control.run_id = "restarted-run";
+  vi.mocked(useMission).mockReturnValue(restarted);
+  view.rerender(<App />);
+  expect(
+    screen.getByRole("button", { name: /Alex Morgan/ }),
+  ).not.toHaveTextContent("DECEASED");
 });

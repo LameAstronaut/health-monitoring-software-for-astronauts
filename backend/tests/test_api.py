@@ -221,3 +221,20 @@ def test_websocket_rejects_untrusted_origin(client):
     with pytest.raises(WebSocketDisconnect):
         with client.websocket_connect("/api/v1/stream", headers={"origin": "https://evil.example"}):
             pass
+
+
+def test_continuous_blood_pressure_ingestion(client):
+    measurements = [
+        {"code": "systolic_bp", "value": 118, "unit": "mmHg", "quality": "VALID"},
+        {"code": "diastolic_bp", "value": 76, "unit": "mmHg", "quality": "VALID"},
+    ]
+    response = client.post(
+        "/api/v1/telemetry", json=packet(measurements=measurements), headers=TOKEN
+    )
+    assert response.status_code == 200
+    readings = response.json()["observations"]
+    assert [(r["code"], r["value"], r["unit"]) for r in readings] == [
+        ("systolic_bp", 118, "mmHg"),
+        ("diastolic_bp", 76, "mmHg"),
+    ]
+    assert all(r["examination_id"] is None for r in readings)

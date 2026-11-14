@@ -2071,18 +2071,38 @@ summary {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* Localized two-cycle-per-second indicator; the reading surface stays steady. */
-.alert-takeover.is-flashing .alert-symbol {
+/* Two complete red/cyan cycles per second; reduced motion disables the effect. */
+.alert-takeover.is-flashing {
   animation: alert-attention 500ms step-end infinite;
 }
 @keyframes alert-attention {
   0%,
   100% {
-    opacity: 1;
+    background: #b00020;
+    color: white;
   }
   50% {
-    opacity: 0.35;
+    background: #4fffdf;
+    color: #172332;
   }
+}
+.alert-response {
+  padding: 20px 28px;
+  border: 2px solid #650b19;
+  border-radius: 12px;
+  background: white;
+  color: #650b19;
+}
+.alert-response h2 {
+  color: #650b19;
+  margin-bottom: 12px;
+}
+.alert-response ol {
+  padding-left: 24px;
+  display: grid;
+  gap: 12px;
+  font-size: 18px;
+  line-height: 1.5;
 }
 body:has(.alert-takeover[open]) {
   overflow: hidden;
@@ -2122,7 +2142,7 @@ body:has(.alert-takeover[open]) {
 }
 .alert-takeover-heading h1 {
   font-size: clamp(36px, 4vw, 56px);
-  color: white;
+  color: inherit;
   margin-top: 6px;
 }
 #takeover-crew {
@@ -2170,7 +2190,7 @@ body:has(.alert-takeover[open]) {
   position: fixed;
   inset: auto 12px 12px;
   z-index: 1;
-  background: #650b19;
+  background: inherit;
   display: flex;
   justify-content: center;
   border-top: 1px solid #cc7a8a;
@@ -2183,7 +2203,7 @@ body:has(.alert-takeover[open]) {
   border-top: 1px solid #cc7a8a;
 }
 .alert-details summary {
-  color: #fff0f3;
+  color: inherit;
   font-size: 18px;
   min-height: 64px;
   padding: 18px 4px;
@@ -2278,12 +2298,6 @@ body:has(.alert-takeover[open]) {
   }
   body {
     background: white;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .alert-takeover.is-flashing .alert-symbol {
-    animation: none;
   }
 }
 
@@ -2393,4 +2407,63 @@ button[aria-pressed="true"] {
 }
 .dataset-digest {
   overflow-wrap: anywhere;
+}
+
+.early-warning {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border: 1px solid #d89d35;
+  border-left: 5px solid #b66b00;
+  border-radius: 12px;
+  background: #fff7df;
+  color: #714400;
+}
+.early-warning > div {
+  flex: 1 1 280px;
+}
+.early-warning ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.early-warning p {
+  font-size: 14px;
+}
+.early-warning button {
+  border-color: #b66b00;
+  color: #714400;
+}
+
+.alert-takeover-content {
+  background: inherit;
+}
+.metric-card.is-recovering {
+  border: 2px solid #b00020;
+  background: #b00020;
+  color: white;
+  animation: alert-attention 500ms step-end infinite;
+}
+.metric-card.is-recovering .metric-heading h3,
+.metric-card.is-recovering .metric-value,
+.metric-card.is-recovering .metric-value > span,
+.metric-card.is-recovering > p {
+  color: inherit;
+}
+.metric-card > p.recovery-note {
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .metric-card.is-recovering {
+    animation: none;
+  }
+}
+
+.status-deceased {
+  color: #fff;
+  background: #343a40;
+  border-color: #343a40;
 }

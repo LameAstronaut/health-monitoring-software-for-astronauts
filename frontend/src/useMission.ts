@@ -36,6 +36,7 @@ export function useMission(astronautId = "DEMO-CREW-001") {
   const [data, setData] = useState<MissionData>(empty);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
+  const [pollingError, setPollingError] = useState("");
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
   const [offset, setOffset] = useState(0);
@@ -48,6 +49,7 @@ export function useMission(astronautId = "DEMO-CREW-001") {
     let generation = 0;
     let pending: StreamEvent[] = [];
     let controller: AbortController | undefined;
+    let pollingController: AbortController | undefined;
     const apply = (events: StreamEvent[]) => {
       if (disposed || events.length === 0) return;
       const system = events
@@ -102,6 +104,7 @@ export function useMission(astronautId = "DEMO-CREW-001") {
     };
     const resnapshot = async () => {
       controller?.abort();
+      pollingController?.abort();
       const current = new AbortController();
       controller = current;
       const version = ++generation;
@@ -113,6 +116,7 @@ export function useMission(astronautId = "DEMO-CREW-001") {
         setData(result);
         setOffset(Date.parse(result.health.server_time) - Date.now());
         setError("");
+        setPollingError("");
         apply(pending);
       } catch (cause) {
         if (!disposed && !current.signal.aborted) setError(String(cause));
@@ -152,24 +156,47 @@ export function useMission(astronautId = "DEMO-CREW-001") {
       }
     }, 250);
     const polling = setInterval(() => {
+      if (buffering || pollingController) return;
+      const current = new AbortController();
+      pollingController = current;
       const pollingGeneration = generation;
       void Promise.all([
-        get<Operations>("operations"),
-        get<CrewSummary[]>("crew/summaries"),
-        get<Alert[]>("alerts"),
+        get<Operations>("operations", current.signal),
+        get<CrewSummary[]>("crew/summaries", current.signal),
+        get<Alert[]>("alerts", current.signal),
       ])
         .then(([operations, summaries, alerts]) => {
-          if (!disposed && generation === pollingGeneration)
+          if (
+            !disposed &&
+            !current.signal.aborted &&
+            generation === pollingGeneration
+          ) {
             setData((old) => ({ ...old, operations, summaries, alerts }));
+            setPollingError("");
+          }
         })
         .catch((cause) => {
-          if (!disposed)
-            setError(`Operational records unavailable: ${String(cause)}`);
+          if (
+            !disposed &&
+            !current.signal.aborted &&
+            generation === pollingGeneration
+          )
+            setPollingError(
+              (cause instanceof Error || cause instanceof DOMException) &&
+                cause.name === "TimeoutError"
+                ? "Operational records timed out. Retrying automatically."
+                : `Operational records unavailable: ${String(cause)}. Retrying automatically.`,
+            );
+        })
+        .finally(() => {
+          current.abort();
+          if (pollingController === current) pollingController = undefined;
         });
     }, 2000);
     return () => {
       disposed = true;
       controller?.abort();
+      pollingController?.abort();
       stop();
       clearInterval(render);
       clearInterval(polling);
@@ -179,7 +206,7 @@ export function useMission(astronautId = "DEMO-CREW-001") {
   return {
     ...data,
     connected,
-    error,
+    error: error || pollingError,
     loading,
     now,
     serverNow: now + offset,

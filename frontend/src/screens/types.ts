@@ -17,6 +17,7 @@ export const PAGES = [
 export type Page = (typeof PAGES)[number];
 export type Mission = ReturnType<typeof useMission>;
 export type ScreenProps = {
+  deceasedCrewIds?: ReadonlySet<string>;
   mission: Mission;
   crewId: string;
   selectCrew: (id: string) => void;

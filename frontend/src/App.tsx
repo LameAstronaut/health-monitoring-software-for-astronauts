@@ -3,6 +3,9 @@ import { useState } from "react";
 import { post } from "./services/api";
 import { useMission } from "./useMission";
 import { Status } from "./components/medical";
+import { TelemetryWarnings } from "./components/TelemetryWarnings";
+import { EarlyWarning } from "./components/EarlyWarning";
+import { useDeceasedCrew } from "./useDeceasedCrew";
 import { AlertReview } from "./components/AlertReview";
 import { PAGES } from "./screens/types";
 import type { Page, ScreenProps } from "./screens/types";
@@ -77,6 +80,7 @@ export default function App() {
   );
   const [reviewId, setReviewId] = useState<number | null>(null);
   const mission = useMission(crewId);
+  const deceasedCrewIds = useDeceasedCrew(mission);
   const selectCrew = (id: string) => {
     setCrewId(id);
     setNotice("");
@@ -122,7 +126,15 @@ export default function App() {
       ? requestedReview
       : (automaticCritical ?? requestedReview ?? automaticReview);
   const Screen = SCREENS[page];
-  const props = { mission, crewId, selectCrew, navigate, busy, action };
+  const props = {
+    mission,
+    crewId,
+    selectCrew,
+    navigate,
+    busy,
+    action,
+    deceasedCrewIds,
+  };
   return (
     <div className="app-shell">
       {review && (
@@ -258,6 +270,8 @@ export default function App() {
               <span>DEMO / SIMULATED</span>
             </div>
           </div>
+          <TelemetryWarnings {...props} />
+          <EarlyWarning {...props} />
           {pending > 0 && (
             <div
               className={`alert-banner ${critical.length ? "has-critical" : ""}`}

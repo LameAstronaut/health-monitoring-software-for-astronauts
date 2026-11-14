@@ -1,7 +1,7 @@
 use std::{error::Error, time::Duration};
 
 use astra_simulator::Scenario;
-use astra_simulator::physiology::{Activity, CREW_IDS, ECG_HZ, Physiology};
+use astra_simulator::physiology::{CREW_IDS, ECG_HZ, Physiology};
 use astra_simulator::runtime::{self, Control};
 use clap::Parser;
 use reqwest::{Client, StatusCode};
@@ -132,17 +132,8 @@ async fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 .take(if config.controlled { 3 } else { 1 })
         {
             let selected = control.astronaut_id == CREW_IDS[index];
-            let state = if selected {
-                control.scenario
-            } else {
-                Activity::Rest
-            };
             let start = model.elapsed();
-            let wave = model.advance(
-                samples,
-                state,
-                if selected { &control.fault } else { "NONE" },
-            );
+            let wave = runtime::advance_controlled(model, samples, &control);
             let disconnected = selected && control.fault == "DISCONNECT"
                 || config.scenario == Scenario::SensorDisconnect && tick >= 5;
             if disconnected {
@@ -174,6 +165,9 @@ async fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 .iter()
                 .position(|id| *id == command.astronaut_id)
                 .ok_or("Unknown crew in acquisition command")?;
+            if models[index].deceased {
+                continue;
+            }
             let sequence = *sequences.get(&command.device_id).unwrap_or(&0);
             let data =
                 runtime::exam_packet(&command, &models[index], sequence, &run, &control.run_id);
