@@ -31,3 +31,14 @@ Unknown rules receive only the sourced medical-assessment fallback.
 Product instructions for clearing simulator faults and entering Recovery remain
 in the separately titled “What to do · simulation” section. Those controls are
 Memento Mori behavior, not medical advice or NASA recommendations. Source links are available in this document rather than the alert interface.
+
+## Hosting references (not NASA medical sources)
+
+Caddy HTTPS quick-start
+https://caddyserver.com/docs/quick-starts/https
+
+Caddy automatic HTTPS
+https://caddyserver.com/docs/automatic-https
+
+Let's Encrypt IP address certificates
+https://letsencrypt.org/2026/01/15/6day-and-ip-general-availability
