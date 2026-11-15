@@ -243,6 +243,7 @@ def test_crew_summary_includes_all_vitals_and_preserves_partial_packet_readings(
             ("systolic_bp", 118, "mmHg"),
             ("diastolic_bp", 76, "mmHg"),
             ("sleep_duration", 7.5, "h"),
+            ("weight", 64, "kg"),
         ]
     ]
     assert (
@@ -258,13 +259,13 @@ def test_crew_summary_includes_all_vitals_and_preserves_partial_packet_readings(
     assert (
         client.post(
             "/api/v1/telemetry",
-            json=packet(sequence=2, measurements=[measurements[-2] | {"value": 80}]),
+            json=packet(sequence=2, measurements=[measurements[-3] | {"value": 80}]),
             headers=TOKEN,
         ).status_code
         == 200
     )
     readings = client.get("/api/v1/crew/summaries").json()[0]["readings"]
-    assert len(readings) == 7
+    assert len(readings) == 8
     assert next(r["value"] for r in readings if r["code"] == "heart_rate") == 68
     assert next(r["value"] for r in readings if r["code"] == "diastolic_bp") == 80
     assert client.get("/api/v1/crew/summaries").json()[1]["readings"] == []

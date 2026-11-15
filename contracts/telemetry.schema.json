@@ -12,6 +12,7 @@
             "systolic_bp",
             "diastolic_bp",
             "sleep_duration",
+            "weight",
             "wbc",
             "hemoglobin",
             "bone_density",
@@ -115,6 +116,13 @@
           "maximum": 24,
           "minimum": 0,
           "title": "Sleep Duration",
+          "type": "number"
+        },
+        "weight": {
+          "default": 70.0,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Weight",
           "type": "number"
         },
         "ecg_phase": {

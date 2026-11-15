@@ -1,3 +1,4 @@
+import { AlertGuidance } from "./AlertGuidance";
 import { useEffect, useRef, useState } from "react";
 import type { Alert } from "../services/api";
 import { NAMES, stamp } from "./medical";
@@ -77,7 +78,7 @@ export function AlertReview({
       onKeyDown={(event) => {
         if (event.key !== "Tab") return;
         const controls = event.currentTarget.querySelectorAll<HTMLElement>(
-          "button:not(:disabled), summary",
+          "button:not(:disabled), a[href], summary",
         );
         const first = controls[0];
         const last = controls[controls.length - 1];
@@ -132,6 +133,7 @@ export function AlertReview({
         <p id="takeover-description">
           At trigger · {stamp(alert.occurred_at)} · {pendingCount} pending
         </p>
+        <AlertGuidance ruleId={alert.rule_id} />
         <section
           className="alert-response"
           aria-labelledby="takeover-response-title"

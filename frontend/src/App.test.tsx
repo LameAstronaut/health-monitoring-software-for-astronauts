@@ -33,7 +33,7 @@ it("renders a readable demo workspace with honest missing measurement states", (
   ).toBeVisible();
   expect(screen.getByText("API CONNECTED")).toBeVisible();
   expect(screen.getAllByText("DEMO / SIMULATED").length).toBeGreaterThan(0);
-  expect(screen.getAllByText(/^Awaiting first observation/).length).toBe(6);
+  expect(screen.getAllByText(/^Awaiting first observation/).length).toBe(7);
   expect(
     screen.getByRole("heading", { name: "Systolic pressure" }),
   ).toBeVisible();
@@ -128,7 +128,7 @@ it("acquires with the selected crew/device and explicitly reviews and saves a re
   });
 });
 
-it("logs an actual inventory item and exposes all eleven risk categories honestly", async () => {
+it("logs an actual inventory item and exposes the nine risk categories", async () => {
   const user = userEvent.setup();
   render(<App />);
   await user.click(screen.getByRole("button", { name: "Nutrition" }));
@@ -142,13 +142,36 @@ it("logs an actual inventory item and exposes all eleven risk categories honestl
   const categories = screen.getByRole("navigation", {
     name: "Health risk categories",
   });
-  expect(within(categories).getAllByRole("button")).toHaveLength(11);
+  expect(within(categories).getAllByRole("button")).toHaveLength(9);
+  expect(
+    within(categories).queryByRole("button", {
+      name: /VisionTrack|MicrobiomeAI/,
+    }),
+  ).not.toBeInTheDocument();
   await user.click(
-    within(categories).getByRole("button", { name: /VisionTrack/ }),
+    within(categories).getByRole("button", { name: /BoneGuard/ }),
   );
   expect(
-    screen.getByText(/No OCT, tonometry or vision-test adapter is configured/),
+    screen.getByText(
+      /Structural imaging, bone-turnover markers and mineral panels are unavailable/,
+    ),
   ).toBeVisible();
+  const vehicleSensors = screen.getByRole("table", {
+    name: "Vehicle radiation sensors",
+  });
+  expect(within(vehicleSensors).getAllByRole("row")).toHaveLength(4);
+  expect(
+    within(vehicleSensors).getAllByText("No reading received"),
+  ).toHaveLength(3);
+  const sharedReadings = vehicleSensors.textContent;
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Selected crew" }),
+    "DEMO-CREW-002",
+  );
+  expect(vehicleSensors.textContent).toBe(sharedReadings);
+  expect(vehicleSensors).not.toHaveTextContent(
+    /Alex Morgan|Jordan Lee|DEMO-CREW/,
+  );
 });
 
 it("pauses playback with a revision guard and displays failed mutations", async () => {

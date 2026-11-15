@@ -123,7 +123,7 @@ def main() -> int:
         wait_ready(f"{ui_url}/api/v1/health", ui)
         if not args.no_simulator:
             simulator = launch([str(binary), "--controlled", "--api-url", api_url], ROOT)
-        print(f"ASTRA HEALTH ready: {ui_url} — DEMO / SIMULATED", flush=True)
+        print(f"MEMENTO MORI ready: {ui_url} — DEMO / SIMULATED", flush=True)
         if args.check:
             return 0
         while True:
@@ -139,7 +139,7 @@ def main() -> int:
                 simulator = None
             time.sleep(0.25)
     except KeyboardInterrupt:
-        print("\nStopping ASTRA HEALTH…", flush=True)
+        print("\nStopping MEMENTO MORI…", flush=True)
         return 0
     except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
         print(f"Startup failed: {exc}", file=sys.stderr)

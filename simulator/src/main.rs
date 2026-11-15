@@ -9,7 +9,7 @@ use serde_json::{Value, json};
 use uuid::Uuid;
 
 #[derive(Parser, Debug)]
-#[command(about = "ASTRA HEALTH — synthetic telemetry only; no hardware control")]
+#[command(about = "MEMENTO MORI — synthetic telemetry only; no hardware control")]
 struct Config {
     #[arg(long, value_enum, default_value = "normal")]
     scenario: Scenario,

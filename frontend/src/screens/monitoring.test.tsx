@@ -180,7 +180,11 @@ it("places recorded sleep after diastolic pressure and preserves it for deceased
   const headings = screen
     .getAllByRole("heading", { level: 3 })
     .map((item) => item.textContent);
-  expect(headings.slice(-2)).toEqual(["Diastolic pressure", "Sleep duration"]);
+  expect(headings.slice(-3)).toEqual([
+    "Diastolic pressure",
+    "Sleep duration",
+    "Weight",
+  ]);
   const card = screen
     .getByRole("heading", { name: "Sleep duration" })
     .closest("article")!;
@@ -194,6 +198,35 @@ it("places recorded sleep after diastolic pressure and preserves it for deceased
       deceasedCrewIds={new Set([reading.astronaut_id])}
     />,
   );
+  expect(card).toHaveTextContent("RECORDED");
+  expect(card).not.toHaveTextContent("DECEASED");
+});
+
+it("places recorded weight after sleep and preserves it for deceased crew", () => {
+  const weight = {
+    ...reading,
+    id: 2,
+    code: "weight" as const,
+    value: 64.5,
+    unit: "kg",
+  };
+  const mission = makeMission({ observations: [weight] });
+  render(
+    <MetricGrid
+      mission={mission}
+      crewId={reading.astronaut_id}
+      deceasedCrewIds={new Set([reading.astronaut_id])}
+    />,
+  );
+  const headings = screen
+    .getAllByRole("heading", { level: 3 })
+    .map((item) => item.textContent);
+  expect(headings.slice(-2)).toEqual(["Sleep duration", "Weight"]);
+  const card = screen
+    .getByRole("heading", { name: "Weight" })
+    .closest("article")!;
+  expect(card).toHaveTextContent("64.5");
+  expect(card).toHaveTextContent("kg");
   expect(card).toHaveTextContent("RECORDED");
   expect(card).not.toHaveTextContent("DECEASED");
 });

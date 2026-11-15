@@ -47,7 +47,7 @@ test('prescheduled examinations sync with tasks and due reminders and cannot be 
   }
 });
 
-test('crew body images match the selected crew', async ({ page }) => {
+test('crew body images match the selected crew', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Risk monitoring', exact: true }).click();
   for (const [crewId, image] of [
@@ -60,5 +60,6 @@ test('crew body images match the selected crew', async ({ page }) => {
     await expect(body).toHaveAttribute('src', image);
     await expect(body).toBeVisible();
     await expect.poll(() => body.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    await page.locator(".body-figure").screenshot({ path: testInfo.outputPath(`${crewId}-body.png`) });
   }
 });

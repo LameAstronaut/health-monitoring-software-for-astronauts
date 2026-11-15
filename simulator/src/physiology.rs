@@ -30,10 +30,17 @@ pub struct Physiology {
     /// Latest completed synthetic sleep period in hours; not a live accumulator.
     #[serde(default = "default_sleep_duration")]
     pub sleep_duration: f64,
+    /// Latest synthetic body mass in kilograms; stable between recordings.
+    #[serde(default = "default_weight")]
+    pub weight: f64,
     pub ecg_phase: f64,
     pub activity: Activity,
     #[serde(default)]
     pub deceased: bool,
+}
+
+fn default_weight() -> f64 {
+    70.0
 }
 
 fn default_sleep_duration() -> f64 {
@@ -84,6 +91,7 @@ impl Physiology {
             systolic_bp: 118.0 + crew_index as f64 * 2.0,
             diastolic_bp: 76.0 + crew_index as f64,
             sleep_duration: [7.5, 7.0, 8.0][crew_index],
+            weight: [64.0, 78.0, 82.0][crew_index],
             ecg_phase: 0.0,
             activity: Activity::Rest,
             deceased: false,
@@ -316,8 +324,8 @@ mod tests {
         for seed in [0, 42, 73] {
             for crew in 0..3 {
                 let mut model = Physiology::new(seed, crew);
-                let mut lows = [f64::INFINITY; 7];
-                let mut highs = [f64::NEG_INFINITY; 7];
+                let mut lows = [f64::INFINITY; 8];
+                let mut highs = [f64::NEG_INFINITY; 8];
                 let mut previous = crate::runtime::summaries(&model, false);
                 for _ in 0..90 {
                     model.advance(125, Activity::Rest, "NONE");
@@ -325,13 +333,14 @@ mod tests {
                     for (i, reading) in readings.iter().enumerate() {
                         lows[i] = lows[i].min(reading.value);
                         highs[i] = highs[i].max(reading.value);
-                        let bound = [1.9, 0.7, 0.3, 0.3, 1.9, 0.9, 0.0][i];
+                        let bound = [1.9, 0.7, 0.3, 0.3, 1.9, 0.9, 0.0, 0.0][i];
                         assert!((reading.value - previous[i].value).abs() <= bound + 1e-9);
                     }
                     assert!(model.systolic_bp > model.diastolic_bp);
                     previous = readings;
                 }
-                for (i, minimum_span) in [4.0, 1.0, 0.5, 0.2, 3.0, 1.5, 0.0].iter().enumerate() {
+                for (i, minimum_span) in [4.0, 1.0, 0.5, 0.2, 3.0, 1.5, 0.0, 0.0].iter().enumerate()
+                {
                     assert!(
                         highs[i] - lows[i] >= *minimum_span - 1e-9,
                         "metric {i} barely changed for seed {seed}, crew {crew}"

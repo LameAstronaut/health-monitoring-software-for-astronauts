@@ -116,3 +116,40 @@ Examinations and clears after that minute, on dismissal, during acquisition/revi
 or after completion or plan cancellation. Switching crew switches reminders. Disconnected views label the
 schedule as last received. Notifications operate while the application is open;
 no browser push permission or background delivery is configured.
+
+## NeuroAdapt reaction practice
+
+Risk monitoring → NeuroAdapt includes a 30-second spacebar reaction test. The
+Head & eyes region in Crew body view also offers Open reaction test, which selects
+NeuroAdapt and scrolls to and focuses the same test. Start
+focuses the test area. Wait for the text and color cue, then press and release
+Space. Random 1–3 second waits separate cues. Early presses count as false starts;
+key repeats and held keys do not generate repeated responses. Unanswered cues time
+out after two seconds. Timing uses the browser's monotonic performance clock and
+animation frames, independently of mission playback speed or server timestamps.
+
+After 30 seconds, the summary shows response count, average, median and fastest
+reaction time, false starts and missed cues. Stop, leaving the test, switching
+crew, hiding the tab, or losing focus ends the attempt without a completed score.
+The latest completed result, including completion time, is displayed directly in
+the Head & eyes region of Crew body view. Results are kept separately per crew in
+this browser and survive navigation and reloads. Starting or interrupting another
+attempt does not replace the latest completed result. Browser practice results are
+not clinical findings or saved medical reports.
+
+
+## Recorded weight
+
+Weight appears as the eighth dashboard metric, directly below suit pressure and
+to the right of sleep duration on the four-column layout. It uses canonical kg,
+shows RECORDED while telemetry is fresh, and keeps its own timestamp and quality.
+The same code is included in live monitoring, measurement history and export,
+crew baselines, manual telemetry controls, the abdomen body region, AstroNutrition,
+and AstroFit. Initial synthetic weights are 64 / 78 / 82 kg for Alex / Jordan / Sam.
+
+Weight remains stable across simulation activities. Overrides affect published
+values until cleared; they do not change baseline body mass. A zero weight is a
+representable demo value and never triggers the terminal fixture. No weight-based
+clinical thresholds or alerts are introduced. Previous simulator checkpoints that
+lack weight load a 70 kg compatibility default; newly initialized models use the
+per-crew baselines. Simulator state includes weight across worker/API restarts.

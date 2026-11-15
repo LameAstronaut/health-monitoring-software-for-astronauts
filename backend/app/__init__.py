@@ -1,1 +1,1 @@
-"""ASTRA HEALTH: synthetic data only."""
+"""MEMENTO MORI: synthetic data only."""

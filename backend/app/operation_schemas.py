@@ -30,6 +30,7 @@ class ManualValues(StrictModel):
     systolic_bp: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
     diastolic_bp: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
     sleep_duration: float | None = Field(default=None, ge=0, le=24, allow_inf_nan=False)
+    weight: float | None = Field(default=None, ge=0, le=1000, allow_inf_nan=False)
 
 
 class SimulatorControl(StrictModel):

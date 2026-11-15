@@ -54,6 +54,7 @@ export function makeMission(overrides: Partial<Mission> = {}): Mission {
         spo2: 98.2,
         suit_pressure: 30,
         sleep_duration: 7.5,
+        weight: 64,
       },
     },
     {
@@ -69,6 +70,7 @@ export function makeMission(overrides: Partial<Mission> = {}): Mission {
         spo2: 98.2,
         suit_pressure: 30,
         sleep_duration: 7,
+        weight: 78,
       },
     },
   ];

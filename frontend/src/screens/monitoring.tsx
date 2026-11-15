@@ -1,3 +1,4 @@
+import { CrewAvatar } from "../components/CrewAvatar";
 import { upcomingTasks } from "../examinationSchedule";
 import { ExaminationCalendar } from "../components/ExaminationCalendar";
 import { useVitalRecovery } from "../useVitalRecovery";
@@ -94,7 +95,7 @@ export function CrewStrip({
             onClick={() => selectCrew(crew.id)}
             aria-pressed={crewId === crew.id}
           >
-            <span className="avatar">{crew.initials}</span>
+            <CrewAvatar crew={crew} />
             <span className="crew-summary-name">
               <strong>{crew.display_name}</strong>
               <span>{crew.role}</span>
@@ -370,7 +371,7 @@ export function CrewProfiles(props: ScreenProps) {
           {crew ? (
             <>
               <div className="profile-heading">
-                <span className="avatar large">{crew.initials}</span>
+                <CrewAvatar crew={crew} large />
                 <div>
                   <h2>{crew.display_name}</h2>
                   <p>{crew.role}</p>

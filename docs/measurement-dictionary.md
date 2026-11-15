@@ -12,6 +12,7 @@ manual or derived ingestion paths. Codes and units are enforced by Pydantic.
 | systolic_bp | mmHg | 0–1000 | Continuous modeled pressure plus explicit BP acquisition |
 | diastolic_bp | mmHg | 0–1000 | Continuous modeled pressure plus explicit BP acquisition |
 | sleep_duration | h | 0–24 | Latest completed synthetic sleep period: 7.5 / 7 / 8 h per crew |
+| weight | kg | 0–1000 | Latest recorded synthetic body mass: 64 / 78 / 82 kg per crew; stable between recordings |
 | wbc | 10^9/L | 0–1000 | Explicit lab-panel acquisition only |
 | hemoglobin | g/dL | 0–1000 | Explicit lab-panel acquisition only |
 | bone_density | g/cm2 | 0–1000 | Explicit bone-density report acquisition only |

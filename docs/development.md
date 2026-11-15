@@ -1,4 +1,4 @@
-# Run ASTRA HEALTH locally
+# Run MEMENTO MORI locally
 
 Requirements: Python 3.11+, Node 24 LTS or newer, stable Rust (tested with 1.99.1),
 npm and Git. Internet is needed only for dependency/browser installation.

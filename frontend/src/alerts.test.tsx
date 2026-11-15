@@ -316,3 +316,34 @@ it("opens pulse decrease with the falling-pulse title and evidence", () => {
   expect(dialog).toHaveTextContent("45 beats/min");
   expect(dialog).toHaveTextContent("active pulse-decrease fault setting");
 });
+
+it("flashes the dashboard for current anomaly values even without pending alerts and stops on recovery", async () => {
+  const active = { ...reading, value: 125 };
+  const mission = makeMission({ observations: [active] });
+  vi.mocked(useMission).mockReturnValue(mission);
+  const view = render(<App />);
+  const dashboard = screen.getByRole("button", { name: "Mission dashboard" });
+  expect(dashboard).not.toHaveClass("nav-anomaly-attention");
+  await userEvent.click(screen.getByRole("button", { name: "Equipment" }));
+  expect(dashboard).toHaveClass("nav-anomaly-attention");
+  expect(dashboard).toHaveAttribute(
+    "aria-description",
+    "1 vital readings in demo anomaly ranges",
+  );
+  vi.mocked(useMission).mockReturnValue({
+    ...mission,
+    alerts: [{ ...critical, state: "ACKNOWLEDGED" }],
+  });
+  view.rerender(<App />);
+  expect(dashboard).toHaveClass("nav-anomaly-attention");
+  await userEvent.click(dashboard);
+  expect(dashboard).not.toHaveClass("nav-anomaly-attention");
+  await userEvent.click(screen.getByRole("button", { name: "Equipment" }));
+  expect(dashboard).toHaveClass("nav-anomaly-attention");
+  vi.mocked(useMission).mockReturnValue({
+    ...mission,
+    observations: [active, { ...reading, id: 2 }],
+  });
+  view.rerender(<App />);
+  expect(dashboard).not.toHaveClass("nav-anomaly-attention");
+});

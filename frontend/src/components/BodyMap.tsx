@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { Observation, Examination, CrewMember } from "../services/api";
+import type { CompletedReactionTest } from "../reactionResults";
+import { ReactionResultSummary } from "./ReactionResultSummary";
 import { NAMES, stamp, Status } from "./medical";
 
 type BodyPart = {
@@ -16,7 +18,7 @@ const PARTS: BodyPart[] = [
     label: "Head & eyes",
     short: "HEAD",
     codes: ["sleep_duration"],
-    hint: "Completed sleep duration is synthetic context. Vision, vestibular and neurological examinations are not configured.",
+    hint: "Completed sleep duration is synthetic context. Spacebar reaction practice is available in NeuroAdapt. Vision, vestibular and neurological examinations are not configured.",
   },
   {
     id: "chest",
@@ -36,14 +38,14 @@ const PARTS: BodyPart[] = [
     label: "Arms & movement",
     short: "ARMS",
     codes: ["body_temperature"],
-    hint: "Body temperature is an event-based synthetic examination. Strength, grip, range-of-motion and reaction testing are not configured.",
+    hint: "Body temperature is an event-based synthetic examination. Strength, grip and range-of-motion testing are not configured.",
   },
   {
     id: "abdomen",
     label: "Nutrition & labs",
     short: "ABDOMEN",
-    codes: ["wbc", "hemoglobin"],
-    hint: "Available laboratory values are event-based synthetic reports.",
+    codes: ["weight", "wbc", "hemoglobin"],
+    hint: "Weight is the latest recorded synthetic body mass in kilograms. Laboratory values are event-based synthetic reports.",
   },
   {
     id: "legs",
@@ -83,10 +85,14 @@ export function BodyMap({
   observations,
   examinations,
   bodyVariant,
+  onOpenReactionTest,
+  latestReactionResult,
 }: {
   observations: Observation[];
   examinations: Examination[];
   bodyVariant?: CrewMember["body_variant"];
+  onOpenReactionTest?: () => void;
+  latestReactionResult?: CompletedReactionTest | null;
 }) {
   const [selected, setSelected] = useState("chest");
   const part = PARTS.find((item) => item.id === selected) ?? PARTS[1];
@@ -179,6 +185,40 @@ export function BodyMap({
           <p className="eyebrow">SELECTED REGION</p>
           <h3 aria-live="polite">{part.label}</h3>
           <p className="body-map-hint">{part.hint}</p>
+          {selected === "head" && (
+            <section
+              className="subsection"
+              aria-label="Latest reaction test result"
+            >
+              <h4>Latest reaction test</h4>
+              {latestReactionResult ? (
+                <>
+                  <p>
+                    Completed{" "}
+                    <time dateTime={latestReactionResult.completedAt}>
+                      {stamp(latestReactionResult.completedAt, true)}
+                    </time>{" "}
+                    · 30 seconds
+                  </p>
+                  <ReactionResultSummary result={latestReactionResult} />
+                  <p className="caption">
+                    Browser practice result · Stored on this device.
+                  </p>
+                </>
+              ) : (
+                <p>No completed reaction test for this crew member yet.</p>
+              )}
+            </section>
+          )}
+          {selected === "head" && onOpenReactionTest && (
+            <div className="subsection">
+              <h4>NeuroAdapt · Reaction time</h4>
+              <p>30-second test · Press the spacebar when the cue appears.</p>
+              <button className="primary-button" onClick={onOpenReactionTest}>
+                Open reaction test
+              </button>
+            </div>
+          )}
           {!part.codes.length ? (
             <div className="body-map-empty">
               <Status value="NOT_AVAILABLE" />

@@ -46,7 +46,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         yield
         engine.dispose()
 
-    app = FastAPI(title="ASTRA HEALTH — SIMULATED", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="MEMENTO MORI — SIMULATED", version="0.1.0", lifespan=lifespan)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_request, exc: RequestValidationError):

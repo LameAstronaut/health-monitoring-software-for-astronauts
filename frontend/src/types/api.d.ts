@@ -1137,6 +1137,8 @@ export interface components {
             diastolic_bp?: number | null;
             /** Sleep Duration */
             sleep_duration?: number | null;
+            /** Weight */
+            weight?: number | null;
         };
         /** Meal */
         Meal: {
@@ -1193,7 +1195,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "sleep_duration" | "wbc" | "hemoglobin" | "bone_density" | "body_temperature";
+            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "sleep_duration" | "weight" | "wbc" | "hemoglobin" | "bone_density" | "body_temperature";
             /** Value */
             value: number;
             /** Unit */
@@ -1243,7 +1245,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "sleep_duration" | "wbc" | "hemoglobin" | "bone_density" | "body_temperature";
+            code: "heart_rate" | "respiratory_rate" | "spo2" | "suit_pressure" | "systolic_bp" | "diastolic_bp" | "sleep_duration" | "weight" | "wbc" | "hemoglobin" | "bone_density" | "body_temperature";
             /** Value */
             value: number;
             /** Unit */
@@ -1365,6 +1367,11 @@ export interface components {
              * @default 7.5
              */
             sleep_duration: number;
+            /**
+             * Weight
+             * @default 70
+             */
+            weight: number;
             /** Ecg Phase */
             ecg_phase: number;
             /**

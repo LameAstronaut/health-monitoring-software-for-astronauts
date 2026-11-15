@@ -1,3 +1,4 @@
+import { AlertGuidance } from "../components/AlertGuidance";
 import { useState } from "react";
 import { Empty, NAMES, Panel, stamp, Status } from "../components/medical";
 import type { ScreenProps } from "./types";
@@ -72,6 +73,10 @@ export function Alerts({ mission, crewId, action, busy }: ScreenProps) {
                   ))}
                 </tbody>
               </table>
+              <details>
+                <summary>Response guidance</summary>
+                <AlertGuidance ruleId={alert.rule_id} />
+              </details>
               <details>
                 <summary>Rule & provenance</summary>
                 <p className="monospace">

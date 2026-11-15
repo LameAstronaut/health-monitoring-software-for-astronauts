@@ -9,6 +9,7 @@ const FIELDS = [
   ["systolic_bp", "Systolic pressure", "mmHg", 1000],
   ["diastolic_bp", "Diastolic pressure", "mmHg", 1000],
   ["sleep_duration", "Sleep duration", "h", 24],
+  ["weight", "Weight", "kg", 1000],
 ] as const;
 export function ManualTelemetry({
   mission,
@@ -44,7 +45,8 @@ export function ManualTelemetry({
         leave ECG and physiology independent. Alert test markers are evaluated
         only in the ANOMALY scenario. Bounds are data representation limits, not
         clinical ranges. Sleep duration is the latest completed sleep period;
-        zero sleep does not trigger the terminal fixture.
+        weight is the latest recorded body mass in kilograms. Zero sleep or
+        weight does not trigger the terminal fixture.
       </p>
       <form
         onSubmit={(event) => {

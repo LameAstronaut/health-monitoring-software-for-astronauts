@@ -15,6 +15,7 @@ CREW = [
             "spo2": 98.2,
             "suit_pressure": 30.0,
             "sleep_duration": 7.5,
+            "weight": 64.0,
         },
     },
     {
@@ -31,6 +32,7 @@ CREW = [
             "spo2": 98.2,
             "suit_pressure": 30.0,
             "sleep_duration": 7.0,
+            "weight": 78.0,
         },
     },
     {
@@ -47,6 +49,7 @@ CREW = [
             "spo2": 98.2,
             "suit_pressure": 30.0,
             "sleep_duration": 8.0,
+            "weight": 82.0,
         },
     },
 ]
@@ -59,6 +62,7 @@ UNITS = {
     "systolic_bp": "mmHg",
     "diastolic_bp": "mmHg",
     "sleep_duration": "h",
+    "weight": "kg",
     "wbc": "10^9/L",
     "hemoglobin": "g/dL",
     "bone_density": "g/cm2",
@@ -84,6 +88,7 @@ CONTINUOUS_CODES = [
     "systolic_bp",
     "diastolic_bp",
     "sleep_duration",
+    "weight",
 ]
 
 DEVICES = [

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -103,4 +103,55 @@ it("switches the crew body image while keeping the selected region interactive",
     "aria-pressed",
     "true",
   );
+});
+
+it("opens NeuroAdapt reaction practice from the head region only", async () => {
+  const onOpenReactionTest = vi.fn();
+  render(
+    <BodyMap
+      observations={[]}
+      examinations={[]}
+      onOpenReactionTest={onOpenReactionTest}
+    />,
+  );
+  expect(
+    screen.queryByRole("button", { name: "Open reaction test" }),
+  ).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Head & eyes" }));
+  await userEvent.click(
+    screen.getByRole("button", { name: "Open reaction test" }),
+  );
+  expect(onOpenReactionTest).toHaveBeenCalledOnce();
+  await userEvent.click(
+    screen.getByRole("button", { name: "Arms & movement" }),
+  );
+  expect(
+    screen.queryByRole("button", { name: "Open reaction test" }),
+  ).not.toBeInTheDocument();
+});
+
+it("shows the latest completed reaction results in the head section", async () => {
+  render(
+    <BodyMap
+      observations={[]}
+      examinations={[]}
+      latestReactionResult={{
+        responses: [200, 300, 400],
+        early: 2,
+        missed: 1,
+        completedAt: "2026-11-14T09:00:00Z",
+      }}
+    />,
+  );
+  expect(
+    screen.queryByLabelText("Latest reaction test result"),
+  ).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Head & eyes" }));
+  const result = screen.getByLabelText("Latest reaction test result");
+  expect(result).toHaveTextContent("Average reaction time300 ms");
+  expect(result).toHaveTextContent("Median reaction time300 ms");
+  expect(result).toHaveTextContent("Fastest response200 ms");
+  expect(result).toHaveTextContent("False starts2");
+  expect(result).toHaveTextContent("Missed cues1");
+  expect(result).toHaveTextContent("09:00:00 UTC");
 });

@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "ASTRA HEALTH \u2014 SIMULATED",
+    "title": "MEMENTO MORI \u2014 SIMULATED",
     "version": "0.1.0"
   },
   "paths": {
@@ -2761,6 +2761,19 @@
               }
             ],
             "title": "Sleep Duration"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
           }
         },
         "additionalProperties": false,
@@ -2886,6 +2899,7 @@
               "systolic_bp",
               "diastolic_bp",
               "sleep_duration",
+              "weight",
               "wbc",
               "hemoglobin",
               "bone_density",
@@ -3001,6 +3015,7 @@
               "systolic_bp",
               "diastolic_bp",
               "sleep_duration",
+              "weight",
               "wbc",
               "hemoglobin",
               "bone_density",
@@ -3283,6 +3298,13 @@
             "minimum": 0.0,
             "title": "Sleep Duration",
             "default": 7.5
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "default": 70.0
           },
           "ecg_phase": {
             "type": "number",

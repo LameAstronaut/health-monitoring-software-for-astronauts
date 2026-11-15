@@ -47,9 +47,11 @@ test('crew selection, individual baselines and every navigation destination work
       await page.screenshot({path:`../artifacts/screenshots/${name === 'Equipment' ? 'equipment' : 'live-monitoring'}-laptop.png`,fullPage:true});
     }
   }
-  await expect(page.getByRole('navigation',{name:'Health risk categories'}).getByRole('button')).toHaveCount(11);
-  await page.getByRole('button',{name:/VisionTrack/}).click();
-  await expect(page.getByText(/No OCT, tonometry or vision-test adapter is configured/).first()).toBeVisible();
+  const categories = page.getByRole('navigation',{name:'Health risk categories'});
+  await expect(categories.getByRole('button')).toHaveCount(9);
+  await expect(categories.getByRole('button',{name:/VisionTrack|MicrobiomeAI/})).toHaveCount(0);
+  await categories.getByRole('button',{name:/BoneGuard/}).click();
+  await expect(page.getByText(/Structural imaging, bone-turnover markers and mineral panels are unavailable/).first()).toBeVisible();
 });
 
 test('pause freezes model time, resume continues, and exercise/recovery change smoothly', async ({page,request}) => {

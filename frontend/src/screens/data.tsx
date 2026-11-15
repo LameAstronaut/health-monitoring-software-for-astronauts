@@ -179,7 +179,7 @@ export function DataWorkspace() {
               const url = URL.createObjectURL(blob);
               const link = document.createElement("a");
               link.href = url;
-              link.download = "astra-reference.json";
+              link.download = "memento-mori-reference.json";
               link.click();
               setTimeout(() => URL.revokeObjectURL(url), 1000);
             }}

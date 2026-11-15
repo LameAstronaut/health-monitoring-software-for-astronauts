@@ -1,3 +1,4 @@
+import { anomalousVitals } from "./vitalAnomalies";
 import { ExaminationNotifications } from "./components/ExaminationNotifications";
 import { MoodCheckIn } from "./components/MoodCheckIn";
 import { DataWorkspace } from "./screens/data";
@@ -33,7 +34,7 @@ const DESCRIPTIONS: Record<Page, string> = {
   Equipment:
     "Virtual instrument connectivity, acquisition capabilities, and calibration metadata.",
   "Risk monitoring":
-    "Eleven observation views with explicit data availability and model limitations.",
+    "Shared vehicle radiation sensors and crew observation views with explicit data availability.",
   Nutrition:
     "Synthetic food inventory, recorded meals, and transparent nutrient totals.",
   Fitness:
@@ -119,6 +120,7 @@ export default function App() {
     .filter((a) => a.state === "PENDING_REVIEW")
     .sort((a, b) => a.priority - b.priority || a.id - b.id);
   const pending = pendingAlerts.length;
+  const activeVitalAnomalies = anomalousVitals(mission);
   const critical = pendingAlerts.filter((a) => a.priority === 1);
   const requestedReview = pendingAlerts.find((a) => a.id === reviewId);
   const automaticCritical = critical.find((a) => !minimizedAlerts.has(a.id));
@@ -169,12 +171,15 @@ export default function App() {
       <aside className="sidebar">
         <a
           className="brand"
+          aria-label="Memento Mori health systems"
           href="#main-content"
           onClick={() => navigate("Mission dashboard")}
         >
-          <span className="brand-mark">✳</span>
-          <span>
-            ASTRA<span>HEALTH SYSTEMS</span>
+          <span className="brand-name">
+            <span className="brand-wordmark">
+              Memento <em>Mori</em>
+            </span>
+            <span className="brand-tagline">HEALTH SYSTEMS</span>
           </span>
         </a>
         <div className="mission-label">
@@ -186,10 +191,19 @@ export default function App() {
             <button
               key={name}
               aria-label={name}
-              aria-description={
-                name === "Alerts" && pending > 0
-                  ? `${pending} pending demo alerts`
+              className={
+                name === "Mission dashboard" &&
+                page !== name &&
+                activeVitalAnomalies.length > 0
+                  ? "nav-anomaly-attention"
                   : undefined
+              }
+              aria-description={
+                name === "Mission dashboard" && activeVitalAnomalies.length > 0
+                  ? `${activeVitalAnomalies.length} vital readings in demo anomaly ranges`
+                  : name === "Alerts" && pending > 0
+                    ? `${pending} pending demo alerts`
+                    : undefined
               }
               aria-current={page === name ? "page" : undefined}
               onClick={() => navigate(name)}
@@ -353,7 +367,9 @@ export default function App() {
           )}
           <Screen key={`${page}-${crewId}`} {...props} />
           <footer>
-            <strong>ASTRA HEALTH</strong>
+            <strong className="brand-footer">
+              Memento <em>Mori</em>
+            </strong>
             <span>
               SIMULATED · Local records · Ground synchronization not configured
             </span>

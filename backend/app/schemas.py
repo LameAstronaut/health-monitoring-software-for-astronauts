@@ -25,6 +25,7 @@ MeasurementCode = Literal[
     "systolic_bp",
     "diastolic_bp",
     "sleep_duration",
+    "weight",
     "wbc",
     "hemoglobin",
     "bone_density",
@@ -65,6 +66,7 @@ class PhysiologyState(StrictModel):
     systolic_bp: float = Field(default=118, ge=0, le=1000, allow_inf_nan=False)
     diastolic_bp: float = Field(default=76, ge=0, le=1000, allow_inf_nan=False)
     sleep_duration: float = Field(default=7.5, ge=0, le=24, allow_inf_nan=False)
+    weight: float = Field(default=70.0, ge=0, le=1000, allow_inf_nan=False)
     ecg_phase: float = Field(ge=0, le=1, allow_inf_nan=False)
     activity: Literal["REST", "EXERCISE", "RECOVERY", "ANOMALY"]
 

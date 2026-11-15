@@ -57,6 +57,7 @@ pub fn summaries(model: &Physiology, invalid: bool) -> Vec<Measurement> {
         ("systolic_bp", model.systolic_bp, "mmHg"),
         ("diastolic_bp", model.diastolic_bp, "mmHg"),
         ("sleep_duration", model.sleep_duration, "h"),
+        ("weight", model.weight, "kg"),
     ]
     .into_iter()
     .map(|(code, value, unit)| Measurement {
@@ -80,7 +81,7 @@ pub fn advance_controlled(model: &mut Physiology, samples: usize, control: &Cont
         && !matches!(control.fault.as_str(), "SENSOR_ERROR" | "DISCONNECT")
     {
         let trigger = summaries(model, false).into_iter().find(|reading| {
-            reading.code != "sleep_duration"
+            !matches!(reading.code, "sleep_duration" | "weight")
                 && control
                     .manual_values
                     .get(reading.code)
@@ -127,7 +128,12 @@ pub fn continuous_packet(
     );
     if control.astronaut_id == crew {
         for measurement in &mut measurements {
-            if model.deceased && !matches!(measurement.code, "suit_pressure" | "sleep_duration") {
+            if model.deceased
+                && !matches!(
+                    measurement.code,
+                    "suit_pressure" | "sleep_duration" | "weight"
+                )
+            {
                 continue;
             }
             if let Some(Some(value)) = control.manual_values.get(measurement.code) {
@@ -350,6 +356,58 @@ mod tests {
             .unwrap();
         assert_eq!(sleep["value"], 0.0);
         assert_eq!(model.sleep_duration, 7.5);
+    }
+
+    #[test]
+    fn recorded_weight_is_stable_editable_and_never_a_terminal_trigger() {
+        for crew in 0..3 {
+            let mut model = Physiology::new(42, crew);
+            let weight = model.weight;
+            for activity in [
+                Activity::Rest,
+                Activity::Exercise,
+                Activity::Recovery,
+                Activity::Anomaly,
+            ] {
+                model.advance(125 * 60, activity, "MULTI_SYSTEM");
+                assert_eq!(model.weight, weight);
+            }
+            let mut legacy = serde_json::to_value(&model).unwrap();
+            legacy.as_object_mut().unwrap().remove("weight");
+            assert_eq!(
+                serde_json::from_value::<Physiology>(legacy).unwrap().weight,
+                70.0
+            );
+            let resumed: Physiology =
+                serde_json::from_value(serde_json::to_value(&model).unwrap()).unwrap();
+            assert_eq!(resumed.weight, weight);
+        }
+        let mut model = Physiology::new(42, 0);
+        let mut control = control();
+        control.manual_values.insert("weight".into(), Some(0.0));
+        let wave = advance_controlled(&mut model, 125, &control);
+        assert!(!model.deceased);
+        assert!(wave.iter().any(|sample| *sample > 0.5));
+        let packet = continuous_packet(&model, wave, 0.0, 1, "test", &control);
+        let weight = packet["measurements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|item| item["code"] == "weight")
+            .unwrap();
+        assert_eq!(weight["value"], 0.0);
+        assert_eq!(weight["unit"], "kg");
+        model.deceased = true;
+        let wave = advance_controlled(&mut model, 125, &control);
+        let packet = continuous_packet(&model, wave, 1.0, 2, "test", &control);
+        let weight = packet["measurements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|item| item["code"] == "weight")
+            .unwrap();
+        assert_eq!(weight["value"], 0.0);
+        assert_eq!(model.weight, 64.0);
     }
 
     #[test]

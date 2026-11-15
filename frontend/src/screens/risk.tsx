@@ -1,4 +1,9 @@
-import { useState } from "react";
+import {
+  readReactionResult,
+  saveReactionResult,
+  type CompletedReactionTest,
+} from "../reactionResults";
+import { useMemo, useRef, useState } from "react";
 import {
   Empty,
   NAMES,
@@ -8,7 +13,9 @@ import {
   TrendChart,
 } from "../components/medical";
 import type { ScreenProps } from "./types";
+import { ReactionTest } from "../components/ReactionTest";
 import { BodyMap } from "../components/BodyMap";
+import { VehicleRadiation } from "../components/VehicleRadiation";
 
 export const RISK_MODULES = [
   {
@@ -31,7 +38,7 @@ export const RISK_MODULES = [
     explanation:
       "Completed sleep duration supplies simulation context; sensorimotor adaptation still requires dedicated examinations and contextual interpretation.",
     unavailable:
-      "No reaction-time, vestibular or movement-test adapter is configured.",
+      "A 30-second spacebar reaction practice test is available below. Vestibular and movement-test adapters are not configured.",
   },
   {
     name: "CardioPredict",
@@ -60,17 +67,6 @@ export const RISK_MODULES = [
       "Gas partial pressures, Doppler findings and approved procedural inputs are unavailable.",
   },
   {
-    name: "MicrobiomeAI",
-    category: "Host–microorganism interactions",
-    codes: [],
-    candidates:
-      "Environmental sampling, cultures, sequencing, diversity and PCR reports.",
-    explanation:
-      "Sample collection time, location and laboratory provenance are required before meaningful comparison.",
-    unavailable:
-      "No microbiome or environmental laboratory reports are imported. No AI analysis is implemented.",
-  },
-  {
     name: "OxygenGuard",
     category: "Hypoxia-related observations",
     codes: [
@@ -90,9 +86,9 @@ export const RISK_MODULES = [
   {
     name: "AstroNutrition",
     category: "Nutrition",
-    codes: [],
+    codes: ["weight"],
     candidates:
-      "Recorded energy, macronutrients, intake history and inventory.",
+      "Recorded weight, energy, macronutrients, intake history and inventory.",
     explanation:
       "Synthetic meal logs provide recorded totals without imposing recommended intake targets.",
     unavailable:
@@ -114,7 +110,7 @@ export const RISK_MODULES = [
   {
     name: "AstroFit",
     category: "Reduced fitness",
-    codes: ["heart_rate", "respiratory_rate"],
+    codes: ["heart_rate", "respiratory_rate", "weight"],
     candidates:
       "Exercise response, session duration, strength and metabolic measurements.",
     explanation:
@@ -122,16 +118,6 @@ export const RISK_MODULES = [
     unavailable:
       "VO₂max, muscle structure and strength measurements are unavailable.",
     destination: "Fitness" as const,
-  },
-  {
-    name: "VisionTrack",
-    category: "Spaceflight-associated neuro-ocular changes",
-    codes: [],
-    candidates:
-      "Visual acuity, fundus/OCT reports, intraocular pressure and refraction.",
-    explanation:
-      "Vision monitoring requires reviewed ophthalmic examinations and imaging reports.",
-    unavailable: "No OCT, tonometry or vision-test adapter is configured.",
   },
   {
     name: "BoneGuard",
@@ -148,6 +134,21 @@ export const RISK_MODULES = [
 
 export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
   const [selected, setSelected] = useState(2);
+  const [reactionResults, setReactionResults] = useState<
+    Record<string, CompletedReactionTest>
+  >({});
+  const latestReactionResult = useMemo(
+    () => reactionResults[crewId] ?? readReactionResult(crewId),
+    [reactionResults, crewId],
+  );
+  const focusReactionTest = useRef(false);
+  const reactionContainer = useRef<HTMLDivElement | null>(null);
+  const revealReactionTest = (element: HTMLDivElement) => {
+    element.scrollIntoView({ block: "center", behavior: "instant" });
+    element
+      .querySelector<HTMLButtonElement>("button")
+      ?.focus({ preventScroll: true });
+  };
   const module = RISK_MODULES[selected];
   const saved =
     mission.operations?.examinations.filter(
@@ -166,14 +167,24 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
   ).length;
   return (
     <div className="screen-stack">
+      <VehicleRadiation />
       <div className="info-banner">
-        Eleven shared-record views, based on the project specification.
-        Availability is shown explicitly; no clinical risk scores or AI
-        conclusions are generated.
+        {RISK_MODULES.length} shared-record views, based on the project
+        specification. Availability is shown explicitly; no clinical risk scores
+        or AI conclusions are generated.
       </div>
       <BodyMap
+        latestReactionResult={latestReactionResult}
         observations={observations}
         examinations={saved}
+        onOpenReactionTest={() => {
+          if (selected === 1 && reactionContainer.current) {
+            revealReactionTest(reactionContainer.current);
+          } else {
+            focusReactionTest.current = true;
+            setSelected(1);
+          }
+        }}
         bodyVariant={
           mission.crew.find((crew) => crew.id === crewId)?.body_variant
         }
@@ -283,6 +294,28 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
               </button>
             )}
           </Panel>
+          {module.name === "NeuroAdapt" && (
+            <div
+              ref={(element) => {
+                reactionContainer.current = element;
+                if (element && focusReactionTest.current) {
+                  focusReactionTest.current = false;
+                  revealReactionTest(element);
+                }
+              }}
+            >
+              <ReactionTest
+                key={crewId}
+                onComplete={(result) => {
+                  saveReactionResult(crewId, result);
+                  setReactionResults((previous) => ({
+                    ...previous,
+                    [crewId]: result,
+                  }));
+                }}
+              />
+            </div>
+          )}
           {module.codes[0] && (
             <Panel title={`${NAMES[module.codes[0]]} · recorded trend`}>
               <TrendChart

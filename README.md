@@ -1,6 +1,6 @@
 > Recent additions: [Data workspace, manual telemetry, interactive body view, and alert behavior](docs/data-workspace.md).
 
-# ASTRA HEALTH
+# MEMENTO MORI
 
 **Integrated Astronaut Health Monitoring & Medical Operations Platform**  
 **Project:** NASA Space Apps Challenge — research and engineering prototype  
@@ -51,7 +51,7 @@ Astronaut medical data comes from many instruments, examinations, exercise syste
 
 ### Proposed solution
 
-**ASTRA HEALTH** is one operational-style interface with:
+**MEMENTO MORI** is one operational-style interface with:
 
 - A **crew dashboard** with time-sensitive tasks, data freshness, and reviewed alerts.
 - **Longitudinal astronaut health records** with measurable provenance.
@@ -803,7 +803,7 @@ Do **not** call the laptop simulation NASA-approved, NASA-compliant, high-fideli
 
 ### Recommended first Codex prompt
 
-> Read `README.md`, especially §§2–5, §§8–13 and M0 of §15. Implement **only M0**: initialize the Rust simulator, Python/FastAPI backend and React/TypeScript Vite UI; create a basic responsive ASTRA HEALTH application shell; add `GET /api/v1/health`; display the API connection state in the UI; document the JSON telemetry contract without implementing unsafe/unsupported features; add basic tests, lint/build scripts, `.gitignore`, `.env.example`, and run instructions. Use synthetic demo data only. Verify that all projects build and report what was tested and what remains unfinished.
+> Read `README.md`, especially §§2–5, §§8–13 and M0 of §15. Implement **only M0**: initialize the Rust simulator, Python/FastAPI backend and React/TypeScript Vite UI; create a basic responsive MEMENTO MORI application shell; add `GET /api/v1/health`; display the API connection state in the UI; document the JSON telemetry contract without implementing unsafe/unsupported features; add basic tests, lint/build scripts, `.gitignore`, `.env.example`, and run instructions. Use synthetic demo data only. Verify that all projects build and report what was tested and what remains unfinished.
 
 ### Coding style and pull requests
 

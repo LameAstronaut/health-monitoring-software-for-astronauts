@@ -52,6 +52,13 @@ export const METRICS = [
     range: [0, 24],
     color: "#6653a3",
   },
+  {
+    code: "weight",
+    label: "Weight",
+    unit: "kg",
+    range: [0, 150],
+    color: "#397482",
+  },
 ] as const;
 export const NAMES: Record<string, string> = {
   heart_rate: "Heart rate",
@@ -61,6 +68,7 @@ export const NAMES: Record<string, string> = {
   systolic_bp: "Systolic pressure",
   diastolic_bp: "Diastolic pressure",
   sleep_duration: "Sleep duration",
+  weight: "Weight",
   wbc: "White blood cell count",
   hemoglobin: "Hemoglobin",
   bone_density: "Bone mineral density",
@@ -173,9 +181,13 @@ export function MetricCard({
   const live = status === "LIVE";
   const noOxygenSignal = deceased && code === "spo2";
   const terminalVital =
-    deceased && code !== "suit_pressure" && code !== "sleep_duration";
+    deceased &&
+    code !== "suit_pressure" &&
+    code !== "sleep_duration" &&
+    code !== "weight";
   if (live && terminalVital) status = "DECEASED";
-  if (live && code === "sleep_duration") status = "RECORDED";
+  if (live && (code === "sleep_duration" || code === "weight"))
+    status = "RECORDED";
   if (noOxygenSignal && status === "INVALID") status = "NO_SIGNAL";
   return (
     <article
@@ -212,6 +224,8 @@ export function MetricCard({
         <p className="baseline-note">
           Latest completed sleep period · SIMULATED
         </p>
+      ) : code === "weight" ? (
+        <p className="baseline-note">Latest recorded body weight · SIMULATED</p>
       ) : terminalVital ? (
         <p className="baseline-note">
           Terminal fixture · restart playback to reset
