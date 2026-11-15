@@ -4,6 +4,8 @@ export type Observation = components["schemas"]["Observation"];
 export type Alert = components["schemas"]["Alert"];
 export type Device = components["schemas"]["Device"];
 export type Health = components["schemas"]["Health"];
+export type VehicleRadiationSnapshot =
+  components["schemas"]["VehicleRadiationSnapshot"];
 export type CrewMember = components["schemas"]["CrewMember"];
 export type ExaminationPlan = components["schemas"]["ExaminationPlan"];
 export type Examination = components["schemas"]["Examination"];
@@ -70,6 +72,7 @@ export async function snapshot(
     operations,
     summaries,
     waveforms,
+    vehicleRadiation,
   ] = await Promise.all([
     get<Health>("health", signal),
     get<CrewMember[]>("crew", signal),
@@ -79,6 +82,7 @@ export async function snapshot(
     get<Operations>("operations", signal),
     get<CrewSummary[]>("crew/summaries", signal),
     get<WaveformReading[]>(`waveforms?astronaut_id=${astronautId}`, signal),
+    get<VehicleRadiationSnapshot>("vehicle/radiation", signal),
   ]);
   return {
     health,
@@ -89,6 +93,7 @@ export async function snapshot(
     operations,
     summaries,
     waveforms,
+    vehicleRadiation,
   };
 }
 

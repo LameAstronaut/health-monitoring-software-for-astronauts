@@ -35,6 +35,7 @@ from .operation_schemas import (
     Task,
     WorkerHeartbeat,
 )
+from .radiation import snapshot as radiation_snapshot
 from .registry import CREW, DEVICES
 from .schemas import Alert, CrewMember
 
@@ -137,6 +138,7 @@ def build_operations_router(sessions, service, config):
                 ):
                     checkpoints[latest.raw["astronaut_id"]] = latest.raw["model_state"]
             return RuntimeState(
+                vehicle_simulated_at=radiation_snapshot(db, config).simulated_at,
                 control=control,
                 crew=[CrewMember(**crew) for crew in CREW],
                 checkpoints=checkpoints,

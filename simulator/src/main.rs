@@ -93,7 +93,7 @@ async fn run(config: Config) -> Result<(), Box<dyn Error>> {
         if config.count != 0 && tick >= config.count {
             return Ok(());
         }
-        let commands = if config.controlled {
+        let (commands, vehicle_elapsed) = if config.controlled {
             let current = runtime::load(&client, base, &config.demo_token).await?;
             if current.control.run_id != control.run_id {
                 models = (0..3)
@@ -114,9 +114,9 @@ async fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 continue; // operator changed revision while the worker was polling
             }
             response.error_for_status()?;
-            current.pending_examinations
+            (current.pending_examinations, current.vehicle_simulated_at)
         } else {
-            Vec::new()
+            (Vec::new(), 0.0)
         };
         if !control.running {
             tokio::time::sleep(Duration::from_secs_f64(1.0 / config.rate_hz)).await;
@@ -125,6 +125,20 @@ async fn run(config: Config) -> Result<(), Box<dyn Error>> {
         let desired = ECG_HZ as f64 * control.speed / config.rate_hz + remainder;
         let samples = desired.floor() as usize;
         remainder = desired.fract();
+        if config.controlled {
+            let elapsed = vehicle_elapsed + samples as f64 / ECG_HZ as f64;
+            let data = runtime::radiation_packet(elapsed, &control);
+            let response = client
+                .post(format!("{base}/api/v1/vehicle/radiation"))
+                .header("X-Demo-Token", &config.demo_token)
+                .json(&data)
+                .send()
+                .await?;
+            if response.status() == StatusCode::CONFLICT {
+                continue;
+            }
+            response.error_for_status()?;
+        }
         for (index, model) in
             models
                 .iter_mut()

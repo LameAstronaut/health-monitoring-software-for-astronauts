@@ -10,6 +10,7 @@ import type {
   Operations,
   StreamEvent,
   WaveformReading,
+  VehicleRadiationSnapshot,
 } from "./services/api";
 import { mergeObservations } from "./telemetry";
 
@@ -22,6 +23,7 @@ type MissionData = {
   operations?: Operations;
   summaries: CrewSummary[];
   waveforms: WaveformReading[];
+  vehicleRadiation?: VehicleRadiationSnapshot;
 };
 const empty: MissionData = {
   observations: [],
@@ -164,14 +166,21 @@ export function useMission(astronautId = "DEMO-CREW-001") {
         get<Operations>("operations", current.signal),
         get<CrewSummary[]>("crew/summaries", current.signal),
         get<Alert[]>("alerts", current.signal),
+        get<VehicleRadiationSnapshot>("vehicle/radiation", current.signal),
       ])
-        .then(([operations, summaries, alerts]) => {
+        .then(([operations, summaries, alerts, vehicleRadiation]) => {
           if (
             !disposed &&
             !current.signal.aborted &&
             generation === pollingGeneration
           ) {
-            setData((old) => ({ ...old, operations, summaries, alerts }));
+            setData((old) => ({
+              ...old,
+              operations,
+              summaries,
+              alerts,
+              vehicleRadiation,
+            }));
             setPollingError("");
           }
         })

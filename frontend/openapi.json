@@ -851,6 +851,78 @@
         }
       }
     },
+    "/api/v1/vehicle/radiation": {
+      "get": {
+        "summary": "Readings",
+        "operationId": "readings_api_v1_vehicle_radiation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRadiationSnapshot"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Ingest",
+        "operationId": "ingest_api_v1_vehicle_radiation_post",
+        "parameters": [
+          {
+            "name": "x-demo-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Demo-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleRadiationPacket"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRadiationSnapshot"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "summary": "Health",
@@ -3338,8 +3410,116 @@
         ],
         "title": "PhysiologyState"
       },
+      "RadiationMeasurement": {
+        "properties": {
+          "sensor_id": {
+            "type": "string",
+            "enum": [
+              "VEH-RAD-001",
+              "VEH-RAD-002",
+              "VEH-RAD-003"
+            ],
+            "title": "Sensor Id"
+          },
+          "dose_rate_ugy_h": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Dose Rate Ugy H"
+          },
+          "accumulated_dose_mgy": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Accumulated Dose Mgy"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sensor_id",
+          "dose_rate_ugy_h",
+          "accumulated_dose_mgy"
+        ],
+        "title": "RadiationMeasurement"
+      },
+      "RadiationReading": {
+        "properties": {
+          "sensor_id": {
+            "type": "string",
+            "enum": [
+              "VEH-RAD-001",
+              "VEH-RAD-002",
+              "VEH-RAD-003"
+            ],
+            "title": "Sensor Id"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "dose_rate_ugy_h": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Rate Ugy H"
+          },
+          "accumulated_dose_mgy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accumulated Dose Mgy"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "LIVE",
+              "STALE",
+              "DISCONNECTED",
+              "NOT_AVAILABLE",
+              "HISTORICAL",
+              "IDLE",
+              "ERROR"
+            ],
+            "title": "Freshness",
+            "default": "NOT_AVAILABLE"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sensor_id",
+          "location"
+        ],
+        "title": "RadiationReading"
+      },
       "RuntimeState": {
         "properties": {
+          "vehicle_simulated_at": {
+            "type": "number",
+            "title": "Vehicle Simulated At",
+            "default": 0
+          },
           "control": {
             "$ref": "#/components/schemas/SimulatorControl"
           },
@@ -3725,6 +3905,107 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VehicleRadiationPacket": {
+        "properties": {
+          "vehicle_id": {
+            "type": "string",
+            "const": "DEMO-VEHICLE-001",
+            "title": "Vehicle Id",
+            "default": "DEMO-VEHICLE-001"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Run Id"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "simulated_at": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Simulated At"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "measurements": {
+            "items": {
+              "$ref": "#/components/schemas/RadiationMeasurement"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Measurements"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "revision",
+          "simulated_at",
+          "observed_at",
+          "measurements"
+        ],
+        "title": "VehicleRadiationPacket"
+      },
+      "VehicleRadiationSnapshot": {
+        "properties": {
+          "vehicle_id": {
+            "type": "string",
+            "const": "DEMO-VEHICLE-001",
+            "title": "Vehicle Id",
+            "default": "DEMO-VEHICLE-001"
+          },
+          "source_type": {
+            "type": "string",
+            "const": "SIMULATED",
+            "title": "Source Type",
+            "default": "SIMULATED"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "integration_start_simulated_at": {
+            "type": "integer",
+            "const": 0,
+            "title": "Integration Start Simulated At",
+            "default": 0
+          },
+          "simulated_at": {
+            "type": "number",
+            "title": "Simulated At",
+            "default": 0
+          },
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/RadiationReading"
+            },
+            "type": "array",
+            "title": "Readings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "readings"
+        ],
+        "title": "VehicleRadiationSnapshot"
       },
       "Waveform": {
         "properties": {

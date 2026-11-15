@@ -15,6 +15,7 @@ from .config import Settings
 from .database import AlertRow, ObservationRow, PacketRow, connect
 from .operations import initialize
 from .operations_api import build_operations_router
+from .radiation import build_radiation_router
 from .registry import CREW, CREW_IDS, DEVICES
 from .schemas import (
     Alert,
@@ -68,6 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["Content-Type", "X-Demo-Token"],
     )
     app.include_router(build_operations_router(sessions, service, config))
+    app.include_router(build_radiation_router(sessions, config))
 
     @app.get("/api/v1/health", response_model=Health)
     async def health():

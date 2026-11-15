@@ -30,10 +30,31 @@ pub struct ExamCommand {
 
 #[derive(Debug, Deserialize)]
 pub struct Runtime {
+    #[serde(default)]
+    pub vehicle_simulated_at: f64,
     pub control: Control,
     pub checkpoints: HashMap<String, Physiology>,
     pub next_sequences: HashMap<String, u64>,
     pub pending_examinations: Vec<ExamCommand>,
+}
+
+/// Arbitrary environmental fixtures, independent of crew state and personal dose.
+/// Integrate the rate analytically from simulation time zero (µGy -> mGy).
+pub fn radiation_packet(elapsed: f64, control: &Control) -> Value {
+    let measurements: Vec<Value> = [("VEH-RAD-001", 14.0), ("VEH-RAD-002", 22.0), ("VEH-RAD-003", 5.0)]
+        .into_iter()
+        .map(|(sensor, baseline)| json!({
+            "sensor_id": sensor,
+            "dose_rate_ugy_h": baseline * (1.0 + 0.1 * (elapsed / 60.0).sin()),
+            "accumulated_dose_mgy": baseline * (elapsed + 6.0 * (1.0 - (elapsed / 60.0).cos())) / 3_600_000.0,
+        }))
+        .collect();
+    json!({
+        "vehicle_id": "DEMO-VEHICLE-001", "source_type": "SIMULATED",
+        "run_id": control.run_id, "revision": control.revision,
+        "simulated_at": elapsed, "observed_at": Utc::now(),
+        "measurements": measurements,
+    })
 }
 
 pub async fn load(client: &Client, base: &str, token: &str) -> Result<Runtime, Box<dyn Error>> {
@@ -201,6 +222,36 @@ pub fn activity_for(scenario: Scenario) -> (Activity, &'static str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn radiation_is_integrated_in_vehicle_time_and_independent_of_crew() {
+        let mut settings = control();
+        let initial = radiation_packet(0.0, &settings);
+        assert_eq!(initial["measurements"][0]["accumulated_dose_mgy"], 0.0);
+        let elapsed = 3600.0;
+        let packet = radiation_packet(elapsed, &settings);
+        let dose = packet["measurements"][0]["accumulated_dose_mgy"]
+            .as_f64()
+            .unwrap();
+        assert!(dose > 0.014 && dose < 0.0141);
+        settings.astronaut_id = CREW_IDS[1].into();
+        settings.fault = "DISCONNECT".into();
+        settings.scenario = Activity::Anomaly;
+        assert_eq!(
+            packet["measurements"],
+            radiation_packet(elapsed, &settings)["measurements"]
+        );
+        assert!(packet.get("astronaut_id").is_none());
+        let step = 0.01;
+        let next = radiation_packet(elapsed + step, &settings);
+        let rate = packet["measurements"][0]["dose_rate_ugy_h"]
+            .as_f64()
+            .unwrap();
+        let next_dose = next["measurements"][0]["accumulated_dose_mgy"]
+            .as_f64()
+            .unwrap();
+        assert!(((next_dose - dose) / step * 3_600_000.0 - rate).abs() < 0.001);
+    }
     #[test]
     fn manual_values_are_targeted_and_keep_sensor_quality() {
         let control: Control = serde_json::from_value(json!({

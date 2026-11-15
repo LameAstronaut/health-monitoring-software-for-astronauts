@@ -25,6 +25,7 @@ const data: Record<string, unknown> = {
   operations: mission.operations,
   "crew/summaries": mission.summaries,
   alerts: mission.alerts,
+  "vehicle/radiation": mission.vehicleRadiation,
 };
 
 beforeEach(() => {
@@ -34,6 +35,14 @@ beforeEach(() => {
     ...mission,
     health: mission.health!,
     operations: mission.operations!,
+    vehicleRadiation: {
+      vehicle_id: "DEMO-VEHICLE-001",
+      source_type: "SIMULATED",
+      run_id: "test-run",
+      integration_start_simulated_at: 0,
+      simulated_at: 0,
+      readings: [],
+    },
   });
   vi.mocked(get).mockImplementation(<T,>(route: string) =>
     Promise.resolve(data[route] as T),
@@ -59,15 +68,15 @@ it("keeps one poll in flight and cancels its requests when unmounted", async () 
   const view = renderHook(() => useMission());
   await settle();
   await advance(8000);
-  expect(get).toHaveBeenCalledTimes(3);
+  expect(get).toHaveBeenCalledTimes(4);
   pending.resolve(mission.operations);
   await settle();
   await advance(2000);
-  expect(get).toHaveBeenCalledTimes(6);
+  expect(get).toHaveBeenCalledTimes(8);
   const held = deferred<unknown>();
   vi.mocked(get).mockReturnValueOnce(held.promise);
   await advance(2000);
-  const signal = vi.mocked(get).mock.calls.at(-3)![1]!;
+  const signal = vi.mocked(get).mock.calls.at(-4)![1]!;
   expect(signal.aborted).toBe(false);
   view.unmount();
   expect(signal.aborted).toBe(true);

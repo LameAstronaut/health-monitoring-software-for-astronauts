@@ -167,7 +167,12 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
   ).length;
   return (
     <div className="screen-stack">
-      <VehicleRadiation />
+      <VehicleRadiation
+        data={mission.vehicleRadiation}
+        now={mission.serverNow}
+        staleSeconds={mission.health?.stale_seconds}
+        disconnectSeconds={mission.health?.disconnect_seconds}
+      />
       <div className="info-banner">
         {RISK_MODULES.length} shared-record views, based on the project
         specification. Availability is shown explicitly; no clinical risk scores

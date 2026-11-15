@@ -243,6 +243,7 @@ class OperationsSnapshot(StrictModel):
 
 
 class RuntimeState(StrictModel):
+    vehicle_simulated_at: float = 0
     control: SimulatorControl
     crew: list[CrewMember]
     checkpoints: dict[str, PhysiologyState]

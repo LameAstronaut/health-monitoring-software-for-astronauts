@@ -331,6 +331,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/vehicle/radiation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Readings */
+        get: operations["readings_api_v1_vehicle_radiation_get"];
+        put?: never;
+        /** Ingest */
+        post: operations["ingest_api_v1_vehicle_radiation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1380,8 +1398,47 @@ export interface components {
              */
             activity: "REST" | "EXERCISE" | "RECOVERY" | "ANOMALY";
         };
+        /** RadiationMeasurement */
+        RadiationMeasurement: {
+            /**
+             * Sensor Id
+             * @enum {string}
+             */
+            sensor_id: "VEH-RAD-001" | "VEH-RAD-002" | "VEH-RAD-003";
+            /** Dose Rate Ugy H */
+            dose_rate_ugy_h: number;
+            /** Accumulated Dose Mgy */
+            accumulated_dose_mgy: number;
+        };
+        /** RadiationReading */
+        RadiationReading: {
+            /**
+             * Sensor Id
+             * @enum {string}
+             */
+            sensor_id: "VEH-RAD-001" | "VEH-RAD-002" | "VEH-RAD-003";
+            /** Location */
+            location: string;
+            /** Dose Rate Ugy H */
+            dose_rate_ugy_h?: number | null;
+            /** Accumulated Dose Mgy */
+            accumulated_dose_mgy?: number | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /**
+             * Freshness
+             * @default NOT_AVAILABLE
+             * @enum {string}
+             */
+            freshness: "LIVE" | "STALE" | "DISCONNECTED" | "NOT_AVAILABLE" | "HISTORICAL" | "IDLE" | "ERROR";
+        };
         /** RuntimeState */
         RuntimeState: {
+            /**
+             * Vehicle Simulated At
+             * @default 0
+             */
+            vehicle_simulated_at: number;
             control: components["schemas"]["SimulatorControl"];
             /** Crew */
             crew: components["schemas"]["CrewMember"][];
@@ -1562,6 +1619,64 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VehicleRadiationPacket */
+        VehicleRadiationPacket: {
+            /**
+             * Vehicle Id
+             * @default DEMO-VEHICLE-001
+             * @constant
+             */
+            vehicle_id: "DEMO-VEHICLE-001";
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+            /** Run Id */
+            run_id: string;
+            /** Revision */
+            revision: number;
+            /** Simulated At */
+            simulated_at: number;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Measurements */
+            measurements: components["schemas"]["RadiationMeasurement"][];
+        };
+        /** VehicleRadiationSnapshot */
+        VehicleRadiationSnapshot: {
+            /**
+             * Vehicle Id
+             * @default DEMO-VEHICLE-001
+             * @constant
+             */
+            vehicle_id: "DEMO-VEHICLE-001";
+            /**
+             * Source Type
+             * @default SIMULATED
+             * @constant
+             */
+            source_type: "SIMULATED";
+            /** Run Id */
+            run_id: string;
+            /**
+             * Integration Start Simulated At
+             * @default 0
+             * @constant
+             */
+            integration_start_simulated_at: 0;
+            /**
+             * Simulated At
+             * @default 0
+             */
+            simulated_at: number;
+            /** Readings */
+            readings: components["schemas"]["RadiationReading"][];
         };
         /** Waveform */
         Waveform: {
@@ -2335,6 +2450,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dataset"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    readings_api_v1_vehicle_radiation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleRadiationSnapshot"];
+                };
+            };
+        };
+    };
+    ingest_api_v1_vehicle_radiation_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-demo-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleRadiationPacket"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleRadiationSnapshot"];
                 };
             };
             /** @description Validation Error */
