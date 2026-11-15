@@ -22,35 +22,36 @@ test('Sensorimotor Adaptation runs a 30-second spacebar reaction test', async ({
   await expect(results).toBeVisible();
   await expect(results.locator('div').filter({ has: page.getByText('Responses', { exact: true }) }).getByRole('definition')).toHaveText(String(responses));
   await expect(results).toContainText('ms');
+  const averageText = await results.locator('dt').filter({ hasText: /^Average reaction time$/ }).locator('..').locator('dd').innerText();
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(area).toBeFocused();
   await page.getByRole('button', { name: 'Stop test' }).click();
   await expect(area).toContainText('Test stopped');
   await page.getByRole('button', { name: 'Head & eyes', exact: true }).click();
-  const headResult = page.getByLabel('Latest reaction test result');
+  const headResult = page.getByLabel('Average reaction time', { exact: true });
   await expect(headResult).toContainText('ms');
-  await expect(headResult.locator('dt').filter({ hasText: /^Responses$/ }).locator('..').locator('dd')).toHaveText(String(responses));
+  await expect(headResult.locator('b')).toHaveText(averageText);
   await page.getByRole('combobox', { name: 'Selected crew' }).selectOption('DEMO-CREW-002');
   await page.getByRole('button', { name: 'Head & eyes', exact: true }).click();
-  await expect(headResult).toContainText('No completed reaction test');
+  await expect(headResult).toContainText('NOT AVAILABLE');
   await page.getByRole('combobox', { name: 'Selected crew' }).selectOption('DEMO-CREW-001');
   await page.reload();
   await page.getByRole('button', { name: 'Risk monitoring', exact: true }).click();
   await page.getByRole('button', { name: 'Head & eyes', exact: true }).click();
   await expect(headResult).toContainText('ms');
-  await expect(headResult.locator('dt').filter({ hasText: /^Responses$/ }).locator('..').locator('dd')).toHaveText(String(responses));
+  await expect(headResult.locator('b')).toHaveText(averageText);
 });
 
 
-test('head region opens the Sensorimotor Adaptation reaction test', async ({ page }) => {
+test('head region has no launch button and reaction practice remains in Sensorimotor Adaptation', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Risk monitoring', exact: true }).click();
   await page.getByRole('button', { name: 'Head & eyes', exact: true }).click();
-  await page.getByRole('button', { name: 'Open reaction test', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Open reaction test', exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Average reaction time', { exact: true })).toContainText('NOT AVAILABLE');
+  await page.getByRole('button', { name: /Sensorimotor Adaptation/ }).click();
   await expect(page.getByRole('button', { name: /Sensorimotor Adaptation/ })).toHaveAttribute('aria-pressed', 'true');
   const start = page.getByRole('button', { name: 'Start reaction test', exact: true });
-  await expect(start).toBeFocused();
-  await expect(start).toBeInViewport();
   await start.click();
   await expect(page.getByRole('group', { name: 'Spacebar reaction test area' })).toContainText('WAIT FOR THE CUE');
   await page.getByRole('button', { name: 'Stop test' }).click();

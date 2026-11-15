@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { Observation, Examination, CrewMember } from "../services/api";
 import type { CompletedReactionTest } from "../reactionResults";
-import { ReactionResultSummary } from "./ReactionResultSummary";
 import { NAMES, stamp, Status } from "./medical";
 
 type BodyPart = {
@@ -18,7 +17,7 @@ const PARTS: BodyPart[] = [
     label: "Head & eyes",
     short: "HEAD",
     codes: ["sleep_duration"],
-    hint: "Completed sleep duration is synthetic context. Spacebar reaction practice is available in Sensorimotor Adaptation. Vision, vestibular and neurological examinations are not configured.",
+    hint: "Completed sleep duration and average reaction time provide context. Vision, vestibular and neurological examinations are not configured.",
   },
   {
     id: "chest",
@@ -85,17 +84,23 @@ export function BodyMap({
   observations,
   examinations,
   bodyVariant,
-  onOpenReactionTest,
   latestReactionResult,
 }: {
   observations: Observation[];
   examinations: Examination[];
   bodyVariant?: CrewMember["body_variant"];
-  onOpenReactionTest?: () => void;
   latestReactionResult?: CompletedReactionTest | null;
 }) {
   const [selected, setSelected] = useState("chest");
   const part = PARTS.find((item) => item.id === selected) ?? PARTS[1];
+  const averageReactionTime = latestReactionResult?.responses.length
+    ? Math.round(
+        latestReactionResult.responses.reduce(
+          (total, response) => total + response,
+          0,
+        ) / latestReactionResult.responses.length,
+      )
+    : null;
   const latest = part.codes.map((code) => {
     const observation = observations
       .filter((item) => item.code === code)
@@ -185,40 +190,6 @@ export function BodyMap({
           <p className="eyebrow">SELECTED REGION</p>
           <h3 aria-live="polite">{part.label}</h3>
           <p className="body-map-hint">{part.hint}</p>
-          {selected === "head" && (
-            <section
-              className="subsection"
-              aria-label="Latest reaction test result"
-            >
-              <h4>Latest reaction test</h4>
-              {latestReactionResult ? (
-                <>
-                  <p>
-                    Completed{" "}
-                    <time dateTime={latestReactionResult.completedAt}>
-                      {stamp(latestReactionResult.completedAt, true)}
-                    </time>{" "}
-                    · 30 seconds
-                  </p>
-                  <ReactionResultSummary result={latestReactionResult} />
-                  <p className="caption">
-                    Browser practice result · Stored on this device.
-                  </p>
-                </>
-              ) : (
-                <p>No completed reaction test for this crew member yet.</p>
-              )}
-            </section>
-          )}
-          {selected === "head" && onOpenReactionTest && (
-            <div className="subsection">
-              <h4>Sensorimotor Adaptation · Reaction time</h4>
-              <p>30-second test · Press the spacebar when the cue appears.</p>
-              <button className="primary-button" onClick={onOpenReactionTest}>
-                Open reaction test
-              </button>
-            </div>
-          )}
           {!part.codes.length ? (
             <div className="body-map-empty">
               <Status value="NOT_AVAILABLE" />
@@ -243,6 +214,27 @@ export function BodyMap({
                   )}
                 </div>
               ))}
+              {selected === "head" && (
+                <div
+                  className="body-map-measurement"
+                  aria-label="Average reaction time"
+                >
+                  <strong>Average reaction time</strong>
+                  {averageReactionTime !== null ? (
+                    <>
+                      <b>
+                        {averageReactionTime} <small>ms</small>
+                      </b>
+                      <span>
+                        Browser practice ·{" "}
+                        {stamp(latestReactionResult?.completedAt)}
+                      </span>
+                    </>
+                  ) : (
+                    <Status value="NOT_AVAILABLE" />
+                  )}
+                </div>
+              )}
             </div>
           )}
           <p className="caption">

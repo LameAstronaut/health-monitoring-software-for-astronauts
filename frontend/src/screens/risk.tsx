@@ -3,7 +3,7 @@ import {
   saveReactionResult,
   type CompletedReactionTest,
 } from "../reactionResults";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Empty,
   NAMES,
@@ -141,14 +141,6 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
     () => reactionResults[crewId] ?? readReactionResult(crewId),
     [reactionResults, crewId],
   );
-  const focusReactionTest = useRef(false);
-  const reactionContainer = useRef<HTMLDivElement | null>(null);
-  const revealReactionTest = (element: HTMLDivElement) => {
-    element.scrollIntoView({ block: "center", behavior: "instant" });
-    element
-      .querySelector<HTMLButtonElement>("button")
-      ?.focus({ preventScroll: true });
-  };
   const module = RISK_MODULES[selected];
   const saved =
     mission.operations?.examinations.filter(
@@ -182,14 +174,6 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
         latestReactionResult={latestReactionResult}
         observations={observations}
         examinations={saved}
-        onOpenReactionTest={() => {
-          if (selected === 1 && reactionContainer.current) {
-            revealReactionTest(reactionContainer.current);
-          } else {
-            focusReactionTest.current = true;
-            setSelected(1);
-          }
-        }}
         bodyVariant={
           mission.crew.find((crew) => crew.id === crewId)?.body_variant
         }
@@ -300,15 +284,7 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
             )}
           </Panel>
           {module.name === "Sensorimotor Adaptation" && (
-            <div
-              ref={(element) => {
-                reactionContainer.current = element;
-                if (element && focusReactionTest.current) {
-                  focusReactionTest.current = false;
-                  revealReactionTest(element);
-                }
-              }}
-            >
+            <div>
               <ReactionTest
                 key={crewId}
                 onComplete={(result) => {

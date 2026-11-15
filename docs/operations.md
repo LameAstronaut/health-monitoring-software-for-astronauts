@@ -120,9 +120,10 @@ no browser push permission or background delivery is configured.
 ## Sensorimotor Adaptation reaction practice
 
 Risk monitoring → Sensorimotor Adaptation includes a 30-second spacebar reaction test. The
-Head & eyes region in Crew body view also offers Open reaction test, which selects
-Sensorimotor Adaptation and scrolls to and focuses the same test. Start
-focuses the test area. Wait for the text and color cue, then press and release
+Head & eyes region in Crew body view shows only the latest average reaction time,
+in a measurement card matching Sleep duration. It has no test-launch button.
+Select Sensorimotor Adaptation to run the test. Start focuses the test area.
+Wait for the text and color cue, then press and release
 Space. Random 1–3 second waits separate cues. Early presses count as false starts;
 key repeats and held keys do not generate repeated responses. Unanswered cues time
 out after two seconds. Timing uses the browser's monotonic performance clock and
@@ -131,8 +132,9 @@ animation frames, independently of mission playback speed or server timestamps.
 After 30 seconds, the summary shows response count, average, median and fastest
 reaction time, false starts and missed cues. Stop, leaving the test, switching
 crew, hiding the tab, or losing focus ends the attempt without a completed score.
-The latest completed result, including completion time, is displayed directly in
-the Head & eyes region of Crew body view. Results are kept separately per crew in
+Only the latest average and its timestamp are displayed in the Head & eyes region;
+without recorded responses, the card shows NOT AVAILABLE. Full statistics remain
+in the practice test. Results are kept separately per crew in
 this browser and survive navigation and reloads. Starting or interrupting another
 attempt does not replace the latest completed result. Browser practice results are
 not clinical findings or saved medical reports.

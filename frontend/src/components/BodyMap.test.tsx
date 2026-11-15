@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -23,7 +23,7 @@ it("selects body regions and exposes linked synthetic measurements", async () =>
     "aria-pressed",
     "true",
   );
-  expect(screen.getByText("NOT AVAILABLE")).toBeVisible();
+  expect(screen.getAllByText("NOT AVAILABLE")).toHaveLength(2);
   expect(screen.getByText(/Vision, vestibular/)).toBeVisible();
 
   await userEvent.click(screen.getByRole("button", { name: "Heart & lungs" }));
@@ -105,23 +105,29 @@ it("switches the crew body image while keeping the selected region interactive",
   );
 });
 
-it("opens Sensorimotor Adaptation reaction practice from the head region only", async () => {
-  const onOpenReactionTest = vi.fn();
+it("shows an unavailable average without a reaction-test launch button when no responses exist", async () => {
   render(
     <BodyMap
       observations={[]}
       examinations={[]}
-      onOpenReactionTest={onOpenReactionTest}
+      latestReactionResult={{
+        responses: [],
+        early: 1,
+        missed: 2,
+        completedAt: "2026-11-14T09:00:00Z",
+      }}
     />,
   );
   expect(
     screen.queryByRole("button", { name: "Open reaction test" }),
   ).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Head & eyes" }));
-  await userEvent.click(
-    screen.getByRole("button", { name: "Open reaction test" }),
+  expect(screen.getByLabelText("Average reaction time")).toHaveTextContent(
+    "NOT AVAILABLE",
   );
-  expect(onOpenReactionTest).toHaveBeenCalledOnce();
+  expect(
+    screen.queryByRole("button", { name: "Open reaction test" }),
+  ).not.toBeInTheDocument();
   await userEvent.click(
     screen.getByRole("button", { name: "Arms & movement" }),
   );
@@ -130,10 +136,12 @@ it("opens Sensorimotor Adaptation reaction practice from the head region only", 
   ).not.toBeInTheDocument();
 });
 
-it("shows the latest completed reaction results in the head section", async () => {
+it("shows only the average in a card matching sleep duration", async () => {
   render(
     <BodyMap
-      observations={[]}
+      observations={[
+        { ...reading, code: "sleep_duration", value: 7.5, unit: "h" },
+      ]}
       examinations={[]}
       latestReactionResult={{
         responses: [200, 300, 400],
@@ -144,14 +152,24 @@ it("shows the latest completed reaction results in the head section", async () =
     />,
   );
   expect(
-    screen.queryByLabelText("Latest reaction test result"),
+    screen.queryByLabelText("Average reaction time"),
   ).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Head & eyes" }));
-  const result = screen.getByLabelText("Latest reaction test result");
-  expect(result).toHaveTextContent("Average reaction time300 ms");
-  expect(result).toHaveTextContent("Median reaction time300 ms");
-  expect(result).toHaveTextContent("Fastest response200 ms");
-  expect(result).toHaveTextContent("False starts2");
-  expect(result).toHaveTextContent("Missed cues1");
+  const result = screen.getByLabelText("Average reaction time");
+  expect(result).toHaveTextContent(/Average reaction time\s*300 ms/);
+  expect(result).toHaveClass("body-map-measurement");
+  expect(result.parentElement).toHaveClass("body-map-measurements");
+  expect(screen.getByText("Sleep duration").parentElement).toHaveClass(
+    "body-map-measurement",
+  );
+  expect(screen.getByText("7.5")).toBeVisible();
+  expect(
+    screen.queryByText(
+      /Median reaction time|Fastest response|False starts|Missed cues/,
+    ),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Open reaction test" }),
+  ).not.toBeInTheDocument();
   expect(result).toHaveTextContent("09:00:00 UTC");
 });
