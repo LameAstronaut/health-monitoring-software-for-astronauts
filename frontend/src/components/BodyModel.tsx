@@ -70,13 +70,13 @@ export function BodyModel({
         viewBox="0 0 360 520"
         aria-label="Rotatable three-dimensional body schematic"
       >
-        <ellipse cx="180" cy="495" rx="85" ry="9" fill="#bccdd5" />
+        <ellipse cx="180" cy="495" rx="85" ry="9" fill="var(--border)" />
         {faces.map((face) => (
           <polygon
             key={face.key}
             points={face.points}
             onClick={() => onSelect(face.id)}
-            fill={`hsl(${selected === face.id ? 185 : 207} ${selected === face.id ? 50 : 15}% ${face.light}%)`}
+            fill={`hsl(${selected === face.id ? "var(--model-active-hue)" : "var(--model-neutral-hue)"} ${selected === face.id ? 28 : 10}% ${face.light}%)`}
           />
         ))}
       </svg>

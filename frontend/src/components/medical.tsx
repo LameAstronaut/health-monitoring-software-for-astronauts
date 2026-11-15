@@ -8,56 +8,56 @@ export const METRICS = [
     label: "Heart rate",
     unit: "beats/min",
     range: [40, 160],
-    color: "#087f8c",
+    color: "var(--chart-heart)",
   },
   {
     code: "respiratory_rate",
     label: "Respiratory rate",
     unit: "breaths/min",
     range: [0, 60],
-    color: "#5265bf",
+    color: "var(--chart-respiration)",
   },
   {
     code: "spo2",
     label: "Oxygen saturation",
     unit: "%",
     range: [80, 100],
-    color: "#047d63",
+    color: "var(--chart-oxygen)",
   },
   {
     code: "suit_pressure",
     label: "Suit pressure",
     unit: "kPa",
     range: [15, 35],
-    color: "#8759ab",
+    color: "var(--chart-pressure)",
   },
   {
     code: "systolic_bp",
     label: "Systolic pressure",
     unit: "mmHg",
     range: [80, 180],
-    color: "#b45465",
+    color: "var(--chart-systolic)",
   },
   {
     code: "diastolic_bp",
     label: "Diastolic pressure",
     unit: "mmHg",
     range: [40, 110],
-    color: "#a46b24",
+    color: "var(--chart-diastolic)",
   },
   {
     code: "sleep_duration",
     label: "Sleep duration",
     unit: "h",
     range: [0, 24],
-    color: "#6653a3",
+    color: "var(--chart-sleep)",
   },
   {
     code: "weight",
     label: "Weight",
     unit: "kg",
     range: [0, 150],
-    color: "#397482",
+    color: "var(--chart-weight)",
   },
 ] as const;
 export const NAMES: Record<string, string> = {
@@ -306,7 +306,7 @@ export function TrendChart({
               x2="696"
               y1={32 + i * 56}
               y2={32 + i * 56}
-              stroke="#dae3ea"
+              stroke="var(--chart-grid)"
               strokeDasharray="4 5"
             />
             <text x="46" y={38 + i * 56} textAnchor="end">
@@ -317,7 +317,7 @@ export function TrendChart({
         <polyline
           points={xy}
           fill="none"
-          stroke={metric?.color ?? "#087f8c"}
+          stroke={metric?.color ?? "var(--accent)"}
           strokeWidth="3"
           strokeLinejoin="round"
         />
@@ -409,7 +409,7 @@ export function EcgChart({
             <path
               d="M 24 0 L 0 0 0 24"
               fill="none"
-              stroke="#c9e2dd"
+              stroke="var(--ecg-grid)"
               strokeWidth="0.7"
             />
           </pattern>
@@ -417,7 +417,7 @@ export function EcgChart({
         <rect width="720" height="180" fill="url(#ecg-grid)" />
         <polyline
           points={xy}
-          stroke={status === "LIVE" ? "#087b67" : "#778493"}
+          stroke={status === "LIVE" ? "var(--chart-heart)" : "var(--muted)"}
           strokeWidth="1.7"
           fill="none"
         />
