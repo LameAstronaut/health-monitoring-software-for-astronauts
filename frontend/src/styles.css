@@ -2179,18 +2179,18 @@ summary {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* Keep the original full alert flash, with a brighter red and faster cadence. */
+/* Alternate the alert flash between red and its RGB complement, cyan. */
 .alert-takeover.is-flashing {
   animation: alert-attention 400ms step-end infinite;
 }
 @keyframes alert-attention {
   0%,
   100% {
-    background: #ff1744;
+    background: #ff0000;
     color: #fff;
   }
   50% {
-    background: #ff6b6b;
+    background: #00ffff;
     color: #111;
   }
 }
