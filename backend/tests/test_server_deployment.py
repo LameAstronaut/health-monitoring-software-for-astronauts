@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app.config import Settings
+from app.config import Settings, is_trusted_origin
 from app.main import create_app
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -84,10 +84,25 @@ def test_public_profile_requires_a_worker_secret_and_exact_origin():
         Settings(
             deployment_profile="public_demo", demo_token="local-demo-only", allowed_origin=ORIGIN
         )
-    with pytest.raises(ValidationError, match="allowed_origin"):
+    with pytest.raises(ValidationError, match="allowed origins"):
         Settings(
             deployment_profile="public_demo", demo_token=TOKEN, allowed_origin=ORIGIN + "/path"
         )
+
+
+def test_public_demo_allows_explicit_additional_origins_for_tunnel_access():
+    settings = Settings(
+        deployment_profile="public_demo",
+        demo_token=TOKEN,
+        allowed_origin=ORIGIN,
+        trusted_origins="http://localhost:8080,http://127.0.0.1:8080",
+    )
+    assert settings.origins == [ORIGIN, "http://localhost:8080", "http://127.0.0.1:8080"]
+    assert is_trusted_origin("http://localhost:8080", settings)
+    assert is_trusted_origin("http://127.0.0.1:8080", settings)
+    assert is_trusted_origin(ORIGIN, settings)
+    assert not is_trusted_origin("http://untrusted.local", settings)
+    assert is_trusted_origin(None, settings)
 
 
 def test_configuration_is_private_and_updates_preserve_the_worker_secret(tmp_path):

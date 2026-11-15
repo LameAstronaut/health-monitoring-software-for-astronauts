@@ -64,6 +64,7 @@ def main():
         parser.error("Existing worker token is invalid; retain a generated URL-safe token")
     values = {
         "ASTRA_ALLOWED_ORIGIN": origin,
+        "ASTRA_TRUSTED_ORIGINS": "http://localhost:8080,http://127.0.0.1:8080",
         "ASTRA_SITE_ADDRESS": authority if url.scheme == "https" else ":80",
         "ASTRA_HTTP_PORT": str(port or 80) if url.scheme == "http" else "80",
         "ASTRA_HTTPS_PORT": "443",

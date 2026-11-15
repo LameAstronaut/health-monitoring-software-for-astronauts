@@ -11,6 +11,7 @@ services:
       ASTRA_DATABASE_URL: sqlite:////data/astra.db
       ASTRA_DEMO_TOKEN: ${ASTRA_DEMO_TOKEN:?Run server.sh configure first}
       ASTRA_ALLOWED_ORIGIN: ${ASTRA_ALLOWED_ORIGIN:?Set the public origin}
+      ASTRA_TRUSTED_ORIGINS: ${ASTRA_TRUSTED_ORIGINS:-}
     volumes:
       - app_data:/data
     restart: unless-stopped

@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
 
-from .config import Settings
+from .config import Settings, is_trusted_origin
 from .database import AlertRow, ObservationRow, PacketRow, connect
 from .operations import initialize
 from .operations_api import build_operations_router
@@ -64,7 +64,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[config.allowed_origin],
+        allow_origins=config.origins,
         allow_methods=["GET", "POST"],
         allow_headers=["Content-Type", "X-Demo-Token"],
     )
@@ -196,7 +196,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.websocket("/api/v1/stream")
     async def stream(ws: WebSocket):
-        if ws.headers.get("origin") not in (None, config.allowed_origin):
+        if not is_trusted_origin(ws.headers.get("origin"), config):
             await ws.close(code=1008)
             return
         await ws.accept()

@@ -44,3 +44,13 @@ sudo bash scripts/server.sh logs
 The normal readiness command uses the public origin and requires Oracle ingress to be
 configured. Images and application data remain on this server; GitHub stores the source.
 Compose restart policies restore services after a reboot. Do not commit `deploy/server.env`.
+
+For temporary browser access before Oracle ingress is open, create a local SSH tunnel:
+
+```sh
+ssh -i "$HOME/Downloads/ssh-key-2026-06-24 (1).key" \
+  -L 8080:127.0.0.1:80 ubuntu@84.235.231.52
+```
+
+Then browse to `http://localhost:8080`. The deployment allows this exact loopback
+origin for REST and WebSocket requests while continuing to validate the public origin.

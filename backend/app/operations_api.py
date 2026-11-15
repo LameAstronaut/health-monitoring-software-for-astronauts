@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy import func, select
 
 from . import operations as ops
+from .config import is_trusted_origin
 from .database import AlertRow, ObservationRow, PacketRow, RecordRow
 from .devices import SimulatedAdapter
 from .operation_schemas import (
@@ -49,7 +50,7 @@ def build_operations_router(sessions, service, config):
             request.client is None or request.client.host not in ("127.0.0.1", "::1")
         ):
             raise HTTPException(403, "Demo operations are restricted to localhost")
-        if request.headers.get("origin") not in (None, config.allowed_origin):
+        if not is_trusted_origin(request.headers.get("origin"), config):
             raise HTTPException(403, "Untrusted operator origin")
         if request.headers.get("sec-fetch-site") == "cross-site":
             raise HTTPException(403, "Cross-site demo operation rejected")
