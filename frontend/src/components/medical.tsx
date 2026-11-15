@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Observation, WaveformReading } from "../services/api";
 import { displayState } from "../telemetry";
+import { Icon } from "./Icon";
 
 export const METRICS = [
   {
@@ -132,7 +133,7 @@ export function Empty({
   return (
     <div className="empty-state">
       <span className="empty-symbol" aria-hidden="true">
-        ◇
+        <Icon name="scan" />
       </span>
       <h3>{title}</h3>
       <p>

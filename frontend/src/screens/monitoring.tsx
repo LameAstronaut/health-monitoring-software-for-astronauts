@@ -1,4 +1,5 @@
 import { CrewAvatar } from "../components/CrewAvatar";
+import { Icon } from "../components/Icon";
 import { upcomingTasks } from "../examinationSchedule";
 import { ExaminationCalendar } from "../components/ExaminationCalendar";
 import { useVitalRecovery } from "../useVitalRecovery";
@@ -193,7 +194,9 @@ export function Dashboard(props: ScreenProps) {
             <ul className="task-list">
               {tasks.map((task) => (
                 <li key={task.id}>
-                  <span className="task-icon">□</span>
+                  <span className="task-icon">
+                    <Icon name="task" />
+                  </span>
                   <div>
                     <h3>{task.title}</h3>
                     <p>{stamp(task.due_at, true)} · SIMULATED</p>

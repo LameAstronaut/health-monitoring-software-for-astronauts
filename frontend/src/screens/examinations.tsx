@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Icon } from "../components/Icon";
 import { Empty, NAMES, Panel, stamp, Status } from "../components/medical";
 import type { Examination } from "../services/api";
 import type { ScreenProps } from "./types";
@@ -180,7 +181,9 @@ export function Examinations({
             </Empty>
           ) : report.status === "ACQUIRING" ? (
             <div className="acquisition-state" role="status">
-              <span className="empty-symbol">⌁</span>
+              <span className="empty-symbol">
+                <Icon name="scan" />
+              </span>
               <h3>Waiting for virtual instrument…</h3>
               <p>
                 Requested {stamp(report.started_at)}. The Rust worker must

@@ -2,6 +2,9 @@ import { AlertGuidance } from "./AlertGuidance";
 import { useEffect, useRef, useState } from "react";
 import type { Alert } from "../services/api";
 import { NAMES, stamp } from "./medical";
+import { Icon } from "./Icon";
+import { AlertAudioControl } from "./AlertAudioControl";
+import type { AlertAudioControls } from "../useAlertAudio";
 
 const TITLES: Record<string, string> = {
   "pulse-rise-fixture": "Pulse rising",
@@ -29,6 +32,7 @@ export function AlertReview({
   alert,
   crewName,
   pendingCount,
+  audio,
   busy,
   error,
   onMinimize,
@@ -37,6 +41,7 @@ export function AlertReview({
   alert: Alert;
   crewName: string;
   pendingCount: number;
+  audio?: AlertAudioControls;
   busy: boolean;
   error: string;
   onMinimize: () => void;
@@ -102,6 +107,7 @@ export function AlertReview({
             <button ref={minimize} disabled={busy} onClick={onMinimize}>
               Minimize
             </button>
+            {audio && <AlertAudioControl audio={audio} />}
             {!reducedMotion && (
               <button onClick={() => setFlashing((value) => !value)}>
                 {flashing ? "Stop flashing" : "Enable flashing"}
@@ -111,7 +117,7 @@ export function AlertReview({
         </div>
         <header className="alert-takeover-heading">
           <span aria-hidden="true" className="alert-symbol">
-            !
+            <Icon name="alert" />
           </span>
           <div>
             <p id="takeover-crew">{crewName}</p>

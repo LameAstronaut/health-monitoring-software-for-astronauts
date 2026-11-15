@@ -19,6 +19,9 @@ import { Alerts } from "./screens/alerts";
 import { SimulatorControls } from "./screens/simulator";
 import { EvaOperations, Fitness, Nutrition } from "./screens/lifestyle";
 import { RiskMonitoring } from "./screens/risk";
+import { Icon, type IconName } from "./components/Icon";
+import { AlertAudioControl } from "./components/AlertAudioControl";
+import { useAlertAudio } from "./useAlertAudio";
 
 const DESCRIPTIONS: Record<Page, string> = {
   "Data workspace":
@@ -46,7 +49,20 @@ const DESCRIPTIONS: Record<Page, string> = {
   "Simulator controls":
     "Reproducible physiological scenarios, playback, speed, and sensor faults.",
 };
-const ICONS = ["▦", "♧", "⌁", "✚", "◇", "◉", "◫", "↗", "◎", "△", "▷", "▤"];
+const ICONS: IconName[] = [
+  "dashboard",
+  "crew",
+  "waveform",
+  "examination",
+  "equipment",
+  "risk",
+  "nutrition",
+  "fitness",
+  "eva",
+  "alert",
+  "simulator",
+  "data",
+];
 const SCREENS: Record<Page, (props: ScreenProps) => React.ReactNode> = {
   "Data workspace": DataWorkspace,
   "Mission dashboard": Dashboard,
@@ -129,6 +145,7 @@ export default function App() {
     requestedReview?.priority === 1
       ? requestedReview
       : (automaticCritical ?? requestedReview ?? automaticReview);
+  const audio = useAlertAudio(review);
   const Screen = SCREENS[page];
   const props = {
     mission,
@@ -150,6 +167,7 @@ export default function App() {
               ?.display_name ?? review.astronaut_id
           }
           pendingCount={pending}
+          audio={audio}
           busy={busy}
           error={actionError}
           onMinimize={() => {
@@ -209,7 +227,7 @@ export default function App() {
               onClick={() => navigate(name)}
             >
               <span className="nav-icon" aria-hidden="true">
-                {ICONS[i]}
+                <Icon name={ICONS[i]} />
               </span>
               <span>{name}</span>
               {name === "Alerts" && pending > 0 && (
@@ -242,7 +260,9 @@ export default function App() {
       <div className="workspace">
         <header className="topbar">
           <div className="workspace-title">
-            <span className="orbit-icon">◎</span>
+            <span className="orbit-icon">
+              <Icon name="orbit" />
+            </span>
             <span>
               Medical operations<strong>Local research mission</strong>
             </span>
@@ -319,6 +339,7 @@ export default function App() {
                 <button onClick={() => setReviewId(pendingAlerts[0].id)}>
                   Review alert full screen
                 </button>
+                <AlertAudioControl audio={audio} />
                 <button
                   onClick={() => {
                     selectCrew(pendingAlerts[0].astronaut_id);
