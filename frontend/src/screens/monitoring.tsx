@@ -22,9 +22,13 @@ export function MetricGrid({
   mission,
   crewId,
   deceasedCrewIds,
-}: Pick<ScreenProps, "mission" | "crewId" | "deceasedCrewIds">) {
+  action,
+}: Pick<ScreenProps, "mission" | "crewId" | "deceasedCrewIds"> & {
+  action?: ScreenProps["action"];
+}) {
   const deceased = deceasedCrewIds?.has(crewId) ?? false;
   const recovering = useVitalRecovery(mission, crewId);
+  const control = mission.operations?.control;
   const crew = mission.crew.find((c) => c.id === crewId);
   const suit = mission.devices.find(
     (d) => d.astronaut_id === crewId && d.kind === "CONTINUOUS",
@@ -52,6 +56,21 @@ export function MetricGrid({
           baseline={crew?.baseline?.[metric.code]}
           deceased={deceased}
           recovering={!deceased && recovering.has(metric.code)}
+          onPrecaution={
+            recovering && action && control
+              ? () =>
+                  action(
+                    "demo/control",
+                    {
+                      action: "CONFIGURE",
+                      fault: "NONE",
+                      astronaut_id: crewId,
+                      expected_revision: control.revision ?? 0,
+                    },
+                    "Simulated precaution applied; readings returning to baseline",
+                  )
+              : undefined
+          }
         />
       ))}
     </div>

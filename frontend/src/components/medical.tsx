@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react";
+import { memo, useState, type ReactNode } from "react";
 import type { Observation, WaveformReading } from "../services/api";
 import { displayState } from "../telemetry";
 import { Icon } from "./Icon";
@@ -156,6 +156,7 @@ export function MetricCard({
   baseline,
   recovering = false,
   deceased = false,
+  onPrecaution,
 }: {
   code: string;
   reading?: Observation;
@@ -168,7 +169,9 @@ export function MetricCard({
   baseline?: number;
   recovering?: boolean;
   deceased?: boolean;
+  onPrecaution?: () => Promise<boolean>;
 }) {
+  const [precautionSent, setPrecautionSent] = useState(false);
   const metric = METRICS.find((m) => m.code === code)!;
   let status = displayState(
     reading,
@@ -197,9 +200,24 @@ export function MetricCard({
       style={{ "--metric-color": metric.color } as React.CSSProperties}
     >
       {recovering && (
-        <p className="recovery-note">
-          Acknowledged · awaiting baseline recovery
-        </p>
+        <div className="recovery-note">
+          <span>
+            {precautionSent
+              ? "Precaution applied · awaiting normal readings"
+              : "Acknowledged · awaiting baseline recovery"}
+          </span>
+          {onPrecaution && !precautionSent && (
+            <button
+              type="button"
+              className="recovery-action"
+              onClick={async () => {
+                if (await onPrecaution()) setPrecautionSent(true);
+              }}
+            >
+              Apply simulated precaution
+            </button>
+          )}
+        </div>
       )}
       <div className="metric-heading">
         <h3>{metric.label}</h3>

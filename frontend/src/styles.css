@@ -2179,31 +2179,21 @@ summary {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* Confine attention to the icon; reading surfaces and values stay steady. */
-.alert-takeover.is-flashing .alert-symbol {
-  animation: alert-attention 1s step-end infinite;
+/* Keep the original full alert flash, with a brighter red and faster cadence. */
+.alert-takeover.is-flashing {
+  animation: alert-attention 400ms step-end infinite;
 }
 @keyframes alert-attention {
   0%,
   100% {
-    background: var(--danger-solid);
-    color: var(--on-strong);
+    background: #ff1744;
+    color: #fff;
   }
   50% {
-    background: var(--danger-soft);
-    color: var(--ink);
+    background: #ff6b6b;
+    color: #111;
   }
 }
-@keyframes alert-border-attention {
-  0%,
-  100% {
-    border-color: var(--danger);
-  }
-  50% {
-    border-color: var(--danger-border);
-  }
-}
-
 .alert-response {
   padding: 20px 28px;
   border: 2px solid var(--danger-border);
@@ -2402,7 +2392,7 @@ body:has(.alert-takeover[open]) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .alert-takeover.is-flashing .alert-symbol {
+  .alert-takeover.is-flashing {
     animation: none;
   }
   * {
@@ -2533,7 +2523,7 @@ button[aria-pressed="true"] {
   border: 2px solid var(--danger);
   background: var(--danger-solid);
   color: var(--on-strong);
-  animation: alert-border-attention 1s step-end infinite;
+  animation: alert-attention 400ms step-end infinite;
 }
 .metric-card.is-recovering .metric-heading h3,
 .metric-card.is-recovering .metric-value,
@@ -2541,8 +2531,26 @@ button[aria-pressed="true"] {
 .metric-card.is-recovering > p {
   color: inherit;
 }
-.metric-card > p.recovery-note {
+.recovery-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 12px;
   font-weight: 700;
+}
+.recovery-action {
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--danger);
+  color: #111;
+  font-weight: 800;
+  cursor: pointer;
+}
+.recovery-action:hover {
+  background: #ffb0b0;
 }
 @media (prefers-reduced-motion: reduce) {
   .metric-card.is-recovering {
@@ -2893,7 +2901,7 @@ button[aria-pressed="true"] {
   background: var(--danger-solid);
   color: var(--on-strong);
   border: 2px solid var(--danger-border);
-  animation: alert-border-attention 1s step-end infinite;
+  animation: alert-attention 400ms step-end infinite;
 }
 .sidebar nav button.nav-anomaly-attention .nav-icon {
   color: inherit;

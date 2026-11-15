@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { CrewStrip, MetricGrid } from "./monitoring";
 import { makeMission, reading } from "../test/fixtures";
@@ -78,6 +79,34 @@ it("flashes only the acknowledged vital until recovery and remembers recovery", 
   expect(
     screen.getByRole("heading", { name: "Heart rate" }).closest("article"),
   ).not.toHaveClass("is-recovering");
+});
+
+it("applies the selected astronaut's simulated precaution from the flashing vital", async () => {
+  const mission = makeMission({ alerts: [alert], observations: [abnormal] });
+  const action = vi.fn().mockResolvedValue(true);
+  render(
+    <MetricGrid
+      mission={mission}
+      crewId={reading.astronaut_id}
+      action={action}
+    />,
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Apply simulated precaution" }),
+  );
+  expect(action).toHaveBeenCalledWith(
+    "demo/control",
+    {
+      action: "CONFIGURE",
+      fault: "NONE",
+      astronaut_id: reading.astronaut_id,
+      expected_revision: mission.operations?.control?.revision,
+    },
+    "Simulated precaution applied; readings returning to baseline",
+  );
+  expect(
+    screen.getByText("Precaution applied · awaiting normal readings"),
+  ).toBeVisible();
 });
 
 it.each(["STALE", "INVALID", "DISCONNECTED"])(
