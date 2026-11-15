@@ -47,7 +47,7 @@ test('zero pulse marks only the affected crew deceased while the dashboard remai
     action: 'CONFIGURE', expected_revision: beforeRestart.revision, fault: 'DISCONNECT',
   } });
   await page.getByRole('button', { name: 'Simulator controls', exact: true }).click();
-  await expect(page.getByText('Applied fault: DISCONNECT')).toBeVisible();
+  await expect(page.getByText('Applied: Sensor disconnected')).toBeVisible();
   await page.getByRole('button', { name: 'Restart seeded playback' }).click();
   await expect.poll(async () => (await (await request.get(`${API}/demo/control`)).json()).run_id).not.toBe(beforeRestart.run_id);
   const restarted = await (await request.get(`${API}/demo/control`)).json();

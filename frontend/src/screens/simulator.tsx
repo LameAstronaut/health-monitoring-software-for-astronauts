@@ -180,6 +180,10 @@ export function SimulatorControls({
           key={`${crewId}-${control.run_id}-${control.astronaut_id}-${control.fault}`}
           control={control}
           crewId={crewId}
+          crewName={
+            mission.crew.find((crew) => crew.id === crewId)?.display_name ??
+            crewId
+          }
           busy={busy}
           send={send}
         />
@@ -194,51 +198,105 @@ export function SimulatorControls({
   );
 }
 
+const FAULTS = [
+  { value: "NONE", label: "None", description: "Normal simulated readings." },
+  {
+    value: "OXYGEN",
+    label: "Low oxygen",
+    description: "Gradually lowers oxygen saturation.",
+  },
+  {
+    value: "PRESSURE",
+    label: "Low suit pressure",
+    description: "Gradually lowers suit pressure.",
+  },
+  {
+    value: "BOTH",
+    label: "Low oxygen + pressure",
+    description: "Lowers oxygen saturation and suit pressure together.",
+  },
+  {
+    value: "PULSE_SURGE",
+    label: "Fast heart rate",
+    description: "Gradually raises heart rate.",
+  },
+  {
+    value: "PULSE_DECREASE",
+    label: "Slow heart rate",
+    description: "Gradually lowers heart rate.",
+  },
+  {
+    value: "RESPIRATORY_SURGE",
+    label: "Fast breathing",
+    description: "Gradually raises respiratory rate.",
+  },
+  {
+    value: "MULTI_SYSTEM",
+    label: "Combined stress",
+    description:
+      "Raises heart and breathing rates; lowers oxygen and suit pressure.",
+  },
+  {
+    value: "DISCONNECT",
+    label: "Sensor disconnected",
+    description: "Stops new readings from this crew’s monitor.",
+  },
+  {
+    value: "SENSOR_ERROR",
+    label: "Unreliable sensor",
+    description: "Marks this crew’s readings as invalid.",
+  },
+] as const;
+
 function FaultInjection({
   control,
   crewId,
+  crewName,
   busy,
   send,
 }: {
   control: NonNullable<ScreenProps["mission"]["operations"]>["control"];
   crewId: string;
+  crewName: string;
   busy: boolean;
   send: (values: Omit<ControlCommand, "expected_revision">) => Promise<boolean>;
 }) {
   const [fault, setFault] = useState<NonNullable<ControlCommand["fault"]>>(
     control.astronaut_id === crewId ? control.fault : "NONE",
   );
+  const applied = control.astronaut_id === crewId ? control.fault : "NONE";
+  const selection = FAULTS.find((item) => item.value === fault)!;
+  const appliedLabel = FAULTS.find((item) => item.value === applied)!.label;
   return (
-    <Panel title="Fault injection">
+    <Panel
+      title="Fault injection"
+      action={<span className="caption">SIMULATED</span>}
+    >
+      <p className="caption">Applies to {crewName} only.</p>
       <label className="field">
-        Synthetic sensor / anomaly fault
+        Fault
         <select
           value={fault}
+          aria-describedby="fault-effect"
           disabled={busy}
           onChange={(e) =>
             setFault(e.target.value as NonNullable<ControlCommand["fault"]>)
           }
         >
-          <option value="NONE">None</option>
-          <option value="OXYGEN">Gradual oxygen-decrease fixture</option>
-          <option value="PRESSURE">Gradual suit-pressure fixture</option>
-          <option value="BOTH">Oxygen + pressure · priority 1 & 2</option>
-          <option value="PULSE_SURGE">Pulse rise · priority 2</option>
-          <option value="PULSE_DECREASE">Pulse decrease · priority 2</option>
-          <option value="RESPIRATORY_SURGE">
-            Respiratory rise · priority 1
-          </option>
-          <option value="MULTI_SYSTEM">
-            Combined stress · all four markers
-          </option>
-          <option value="DISCONNECT">Sensor disconnected</option>
-          <option value="SENSOR_ERROR">Sensor quality error</option>
+          {FAULTS.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
         </select>
       </label>
-      <div className="button-row">
+      <p id="fault-effect" className="caption">
+        {selection.description}
+      </p>
+      <div className="button-row fault-actions">
         <button
           className="primary-button"
-          disabled={busy}
+          disabled={busy || fault === applied}
           onClick={() =>
             void send({
               action: "CONFIGURE",
@@ -260,20 +318,13 @@ function FaultInjection({
         >
           Apply fault
         </button>
-        <span className="caption">
-          Applied fault:{" "}
-          {control.astronaut_id === crewId ? control.fault : "NONE"}
+        <span
+          className={applied === "NONE" ? "caption" : "fault-active"}
+          role="status"
+        >
+          Applied: {appliedLabel}
         </span>
       </div>
-      <p className="caption">
-        Selections take effect when you press Apply fault.
-      </p>
-      <p className="caption">
-        Anomaly markers are arbitrary demonstration settings. They are not
-        clinical or spacesuit operating limits. Every new anomaly marker opens a
-        full-screen alert. Disconnect and quality faults affect only the target
-        crew.
-      </p>
     </Panel>
   );
 }

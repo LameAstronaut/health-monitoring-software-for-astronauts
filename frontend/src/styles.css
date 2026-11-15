@@ -3019,3 +3019,12 @@ textarea::placeholder {
   justify-content: center;
   gap: 10px;
 }
+
+.fault-actions {
+  margin-top: 16px;
+}
+.fault-active {
+  color: var(--danger);
+  font-size: 15px;
+  font-weight: 600;
+}

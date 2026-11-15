@@ -78,9 +78,9 @@ test('pause freezes model time, resume continues, and exercise/recovery change s
 
 test('sensor disconnect is explicit and last values never stay live', async ({page}) => {
   await page.getByRole('button',{name:'Simulator controls'}).click();
-  await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('DISCONNECT');
+  await page.getByLabel('Fault').selectOption('DISCONNECT');
   await page.getByRole('button', {name:'Apply fault', exact:true}).click();
-  await expect(page.getByText('Applied fault: DISCONNECT', {exact:true})).toBeVisible();
+  await expect(page.getByText('Applied: Sensor disconnected', {exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Mission dashboard',exact:true}).click();
   await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(8);
   await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(0);
@@ -120,9 +120,9 @@ test('EVA checklist gates a real saved timeline', async ({page}) => {
 
 test('acute anomalies open full screen, minimize without acknowledgment and retain saved history', async ({page,request}) => {
   await page.getByRole('button',{name:'Simulator controls'}).click();
-  await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('BOTH');
+  await page.getByLabel('Fault').selectOption('BOTH');
   await page.getByRole('button', {name:'Apply fault', exact:true}).click();
-  await expect(page.getByText('Applied fault: BOTH', {exact:true})).toBeVisible();
+  await expect(page.getByText('Applied: Low oxygen + pressure', {exact:true})).toBeVisible();
   const dialog = page.getByRole('alertdialog',{name:/Alex Morgan/});
   await expect(dialog).toBeVisible({timeout:20000});
   const control = await (await request.get(`${API}/demo/control`)).json();
@@ -160,9 +160,9 @@ test('acute anomalies open full screen, minimize without acknowledgment and reta
 
 test('pulse rises quickly at 1x and every alert opens full screen with controllable flashing', async ({page}) => {
   await page.getByRole('button',{name:'Simulator controls'}).click();
-  await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('PULSE_SURGE');
+  await page.getByLabel('Fault').selectOption('PULSE_SURGE');
   await page.getByRole('button', {name:'Apply fault', exact:true}).click();
-  await expect(page.getByText('Applied fault: PULSE_SURGE', {exact:true})).toBeVisible();
+  await expect(page.getByText('Applied: Fast heart rate', {exact:true})).toBeVisible();
   const dialog = page.getByRole('alertdialog',{name:/Alex Morgan/});
   await expect(dialog).toBeVisible({timeout:20000});
   await expect(dialog.getByRole('heading',{name:'Pulse rising'})).toBeVisible();
@@ -183,9 +183,9 @@ test('pulse rises quickly at 1x and every alert opens full screen with controlla
   await page.screenshot({path: test.info().outputPath('pulse-alert-laptop.png'),animations:'disabled'});
   await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
   await expect(dialog).not.toBeVisible();
-  await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('RESPIRATORY_SURGE');
+  await page.getByLabel('Fault').selectOption('RESPIRATORY_SURGE');
   await page.getByRole('button', {name:'Apply fault', exact:true}).click();
-  await expect(page.getByText('Applied fault: RESPIRATORY_SURGE', {exact:true})).toBeVisible();
+  await expect(page.getByText('Applied: Fast breathing', {exact:true})).toBeVisible();
   await expect(dialog).toBeVisible({timeout:20000});
   await expect(dialog.getByRole('heading',{name:'Breathing rate rising'})).toBeVisible();
   await expect(dialog).toContainText('PRIORITY 1');

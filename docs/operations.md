@@ -25,7 +25,7 @@ worker remain separate processes; the React app reads shared observations and re
   not an approved EVA procedure and has no life-support command channel.
 - **Alerts:** inspect triggering observations, rule version, UTC time, source and priority;
   explicitly acknowledge as DEMO-OPERATOR and retain history.
-- **Simulator:** select scenario, target crew, speed, seed, restart, pause/resume and faults.
+- **Simulator:** select scenario, target crew, speed, seed, restart, pause/resume and faults. The fault panel shows the affected crew, a short effect description and the applied fault in plain language. Select a different fault (or None), then press **Apply fault** to change it.
   Other crew remain independently at rest. Restart uses a new run; it does not erase records.
 
 Control and operations writes are restricted to loopback, reject untrusted browser origins,
