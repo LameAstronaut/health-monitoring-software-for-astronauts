@@ -28,7 +28,7 @@ test('Sensorimotor Adaptation runs a 30-second spacebar reaction test', async ({
   await page.getByRole('button', { name: 'Stop test' }).click();
   await expect(area).toContainText('Test stopped');
   await page.getByRole('button', { name: 'Head & eyes', exact: true }).click();
-  const headResult = page.getByLabel('Average reaction time', { exact: true });
+  const headResult = page.locator('.body-map').getByLabel('Average reaction time', { exact: true });
   await expect(headResult).toContainText('ms');
   await expect(headResult.locator('b')).toHaveText(averageText);
   await page.getByRole('combobox', { name: 'Selected crew' }).selectOption('DEMO-CREW-002');

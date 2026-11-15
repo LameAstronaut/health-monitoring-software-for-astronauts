@@ -16,6 +16,7 @@ import type { ScreenProps } from "./types";
 import { ReactionTest } from "../components/ReactionTest";
 import { BodyMap } from "../components/BodyMap";
 import { VehicleRadiation } from "../components/VehicleRadiation";
+import { AverageReactionTime } from "../components/AverageReactionTime";
 
 export const RISK_MODULES = [
   {
@@ -142,6 +143,7 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
     [reactionResults, crewId],
   );
   const module = RISK_MODULES[selected];
+  const isSensorimotor = module.name === "Sensorimotor Adaptation";
   const saved =
     mission.operations?.examinations.filter(
       (e) => e.astronaut_id === crewId && e.status === "SAVED",
@@ -154,9 +156,9 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
     observation: observations.filter((o) => o.code === code).at(-1),
     exam: saved.find((e) => e.results?.some((r) => r.code === code)),
   }));
-  const count = available.filter(
-    (item) => item.observation || item.exam,
-  ).length;
+  const count =
+    available.filter((item) => item.observation || item.exam).length +
+    (isSensorimotor && latestReactionResult?.responses.length ? 1 : 0);
   return (
     <div className="screen-stack">
       <VehicleRadiation
@@ -261,6 +263,11 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
                 {module.unavailable}
               </Empty>
             )}
+            {isSensorimotor && (
+              <div className="body-map-measurements">
+                <AverageReactionTime result={latestReactionResult} />
+              </div>
+            )}
             {available.length > 0 && (
               <p className="caption">{module.unavailable}</p>
             )}
@@ -283,7 +290,7 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
               </button>
             )}
           </Panel>
-          {module.name === "Sensorimotor Adaptation" && (
+          {isSensorimotor && (
             <div>
               <ReactionTest
                 key={crewId}

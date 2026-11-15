@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Observation, Examination, CrewMember } from "../services/api";
 import type { CompletedReactionTest } from "../reactionResults";
 import { NAMES, stamp, Status } from "./medical";
+import { AverageReactionTime } from "./AverageReactionTime";
 
 type BodyPart = {
   id: string;
@@ -93,14 +94,6 @@ export function BodyMap({
 }) {
   const [selected, setSelected] = useState("chest");
   const part = PARTS.find((item) => item.id === selected) ?? PARTS[1];
-  const averageReactionTime = latestReactionResult?.responses.length
-    ? Math.round(
-        latestReactionResult.responses.reduce(
-          (total, response) => total + response,
-          0,
-        ) / latestReactionResult.responses.length,
-      )
-    : null;
   const latest = part.codes.map((code) => {
     const observation = observations
       .filter((item) => item.code === code)
@@ -215,25 +208,7 @@ export function BodyMap({
                 </div>
               ))}
               {selected === "head" && (
-                <div
-                  className="body-map-measurement"
-                  aria-label="Average reaction time"
-                >
-                  <strong>Average reaction time</strong>
-                  {averageReactionTime !== null ? (
-                    <>
-                      <b>
-                        {averageReactionTime} <small>ms</small>
-                      </b>
-                      <span>
-                        Browser practice ·{" "}
-                        {stamp(latestReactionResult?.completedAt)}
-                      </span>
-                    </>
-                  ) : (
-                    <Status value="NOT_AVAILABLE" />
-                  )}
-                </div>
+                <AverageReactionTime result={latestReactionResult} />
               )}
             </div>
           )}

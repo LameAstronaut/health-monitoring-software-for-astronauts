@@ -7,6 +7,7 @@ import App from "./App";
 import { useMission } from "./useMission";
 import { post } from "./services/api";
 import { makeMission, reading, reviewExam, NOW } from "./test/fixtures";
+import { saveReactionResult } from "./reactionResults";
 
 vi.mock("./useMission");
 vi.mock("./services/api", async (importOriginal) => ({
@@ -130,6 +131,12 @@ it("acquires with the selected crew/device and explicitly reviews and saves a re
 
 it("logs an actual inventory item and exposes the nine risk categories", async () => {
   const user = userEvent.setup();
+  saveReactionResult("DEMO-CREW-001", {
+    responses: [200, 300, 400],
+    early: 0,
+    missed: 0,
+    completedAt: new Date(NOW).toISOString(),
+  });
   render(<App />);
   await user.click(screen.getByRole("button", { name: "Nutrition" }));
   await user.click(screen.getByRole("button", { name: "Log meal" }));
@@ -148,6 +155,16 @@ it("logs an actual inventory item and exposes the nine risk categories", async (
       name: /VisionTrack|MicrobiomeAI/,
     }),
   ).not.toBeInTheDocument();
+  await user.click(
+    within(categories).getByRole("button", { name: /Sensorimotor Adaptation/ }),
+  );
+  const sensorimotor = screen
+    .getByRole("heading", { name: "Sensorimotor Adaptation" })
+    .closest("section")!;
+  expect(
+    within(sensorimotor).getByLabelText("Average reaction time"),
+  ).toHaveTextContent("300 ms");
+  expect(within(sensorimotor).getByText("PARTIAL DATA")).toBeVisible();
   await user.click(
     within(categories).getByRole("button", { name: /Skeletal Health/ }),
   );
@@ -171,6 +188,14 @@ it("logs an actual inventory item and exposes the nine risk categories", async (
   expect(vehicleSensors.textContent).toBe(sharedReadings);
   expect(vehicleSensors).not.toHaveTextContent(
     /Alex Morgan|Jordan Lee|DEMO-CREW/,
+  );
+  await user.click(
+    within(
+      screen.getByRole("navigation", { name: "Health risk categories" }),
+    ).getByRole("button", { name: /Sensorimotor Adaptation/ }),
+  );
+  expect(screen.getByLabelText("Average reaction time")).toHaveTextContent(
+    "NOT AVAILABLE",
   );
 });
 

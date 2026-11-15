@@ -121,7 +121,9 @@ no browser push permission or background delivery is configured.
 
 Risk monitoring → Sensorimotor Adaptation includes a 30-second spacebar reaction test. The
 Head & eyes region in Crew body view shows only the latest average reaction time,
-in a measurement card matching Sleep duration. It has no test-launch button.
+in a measurement card matching Sleep duration. The same average card is displayed
+in the Sensorimotor Adaptation record view, using the latest completed result for
+the selected crew member, including after navigation or reload. Head & eyes has no test-launch button.
 Select Sensorimotor Adaptation to run the test. Start focuses the test area.
 Wait for the text and color cue, then press and release
 Space. Random 1–3 second waits separate cues. Early presses count as false starts;
