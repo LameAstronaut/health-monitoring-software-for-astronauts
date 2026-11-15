@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('alert review and history show response actions without citation clutter', async ({ page, request }) => {
   const api = 'http://127.0.0.1:18000/api/v1';

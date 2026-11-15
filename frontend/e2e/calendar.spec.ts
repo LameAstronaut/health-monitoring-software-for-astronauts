@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('prescheduled examinations sync with tasks and due reminders and cannot be edited by crew', async ({ page, request }) => {
   const api = 'http://127.0.0.1:18000/api/v1';

@@ -51,28 +51,35 @@ export function Alerts({ mission, crewId, action, busy }: ScreenProps) {
                 <span>{stamp(alert.occurred_at, true)}</span>
               </div>
               <h3>{alert.message}</h3>
-              <table className="result-table">
-                <thead>
-                  <tr>
-                    <th>Triggering measurement</th>
-                    <th>Value</th>
-                    <th>Observed</th>
-                    <th>Instrument</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {alert.evidence.map((e) => (
-                    <tr key={e.id}>
-                      <td>{NAMES[e.code]}</td>
-                      <td>
-                        {e.value} {e.unit}
-                      </td>
-                      <td>{stamp(e.observed_at)}</td>
-                      <td>{e.device_id}</td>
+              <div
+                className="table-scroll"
+                tabIndex={0}
+                role="region"
+                aria-label="Triggering alert evidence"
+              >
+                <table className="result-table">
+                  <thead>
+                    <tr>
+                      <th>Triggering measurement</th>
+                      <th>Value</th>
+                      <th>Observed</th>
+                      <th>Instrument</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {alert.evidence.map((e) => (
+                      <tr key={e.id}>
+                        <td>{NAMES[e.code]}</td>
+                        <td>
+                          {e.value} {e.unit}
+                        </td>
+                        <td>{stamp(e.observed_at)}</td>
+                        <td>{e.device_id}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <details>
                 <summary>Response guidance</summary>
                 <AlertGuidance ruleId={alert.rule_id} />

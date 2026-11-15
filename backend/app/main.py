@@ -133,7 +133,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def alerts(limit: Annotated[int, Query(ge=1, le=500)] = 100):
         with sessions() as db:
             rows = db.scalars(
-                select(AlertRow).order_by(AlertRow.priority, AlertRow.id.desc()).limit(limit)
+                select(AlertRow)
+                .order_by(
+                    (AlertRow.state == "PENDING_REVIEW").desc(),
+                    AlertRow.priority,
+                    AlertRow.id.desc(),
+                )
+                .limit(limit)
             )
             return [service.alert(db, row, datetime.now(UTC)) for row in rows]
 

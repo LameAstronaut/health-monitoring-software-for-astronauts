@@ -37,7 +37,10 @@ class DatasetInput(StrictModel):
         if len(set(keys)) != len(keys):
             raise ValueError("Column keys must be unique")
         if self.source == "NASA":
-            url = urlsplit(self.source_url)
+            try:
+                url = urlsplit(self.source_url)
+            except ValueError as exc:
+                raise ValueError("NASA imports require a valid HTTPS nasa.gov source URL") from exc
             host = url.hostname or ""
             if (
                 url.scheme != "https"

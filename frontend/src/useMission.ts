@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { connectStream, get, snapshot } from "./services/api";
 import type {
   Alert,
@@ -12,7 +12,7 @@ import type {
   WaveformReading,
   VehicleRadiationSnapshot,
 } from "./services/api";
-import { mergeObservations } from "./telemetry";
+import { mergeAlerts, mergeObservations } from "./telemetry";
 
 type MissionData = {
   observations: Observation[];
@@ -47,6 +47,8 @@ export function useMission(astronautId = "DEMO-CREW-001") {
 
   useEffect(() => {
     let disposed = false;
+    setLoading(true);
+    let snapshotFailed = false;
     let buffering = true;
     let generation = 0;
     let pending: StreamEvent[] = [];
@@ -83,12 +85,7 @@ export function useMission(astronautId = "DEMO-CREW-001") {
                 ].slice(-8);
               break;
             case "alert.created":
-              next.alerts = [
-                ...next.alerts.filter((a) => a.id !== event.data.id),
-                event.data,
-              ]
-                .sort((a, b) => a.priority - b.priority || b.id - a.id)
-                .slice(0, 200);
+              next.alerts = mergeAlerts(next.alerts, [event.data]);
               break;
             case "device.status":
               next.devices = [
@@ -119,11 +116,15 @@ export function useMission(astronautId = "DEMO-CREW-001") {
         setOffset(Date.parse(result.health.server_time) - Date.now());
         setError("");
         setPollingError("");
-        apply(pending);
+        snapshotFailed = false;
       } catch (cause) {
-        if (!disposed && !current.signal.aborted) setError(String(cause));
+        if (!disposed && !current.signal.aborted) {
+          snapshotFailed = true;
+          setError(String(cause));
+        }
       } finally {
         if (!disposed && version === generation) {
+          apply(pending);
           buffering = false;
           pending = [];
           setLoading(false);
@@ -159,6 +160,10 @@ export function useMission(astronautId = "DEMO-CREW-001") {
     }, 250);
     const polling = setInterval(() => {
       if (buffering || pollingController) return;
+      if (snapshotFailed) {
+        void resnapshot();
+        return;
+      }
       const current = new AbortController();
       pollingController = current;
       const pollingGeneration = generation;
@@ -212,8 +217,20 @@ export function useMission(astronautId = "DEMO-CREW-001") {
     };
   }, [astronautId]);
 
+  const observations = useMemo(
+    () => data.observations.filter((item) => item.astronaut_id === astronautId),
+    [data.observations, astronautId],
+  );
+  const waveforms = useMemo(
+    () => data.waveforms.filter((item) => item.astronaut_id === astronautId),
+    [data.waveforms, astronautId],
+  );
   return {
     ...data,
+    // A crew switch renders before its replacement snapshot arrives. Never
+    // expose another crew's observations or ECG under the new identity.
+    observations,
+    waveforms,
     connected,
     error: error || pollingError,
     loading,

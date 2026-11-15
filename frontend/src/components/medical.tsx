@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import type { Observation, WaveformReading } from "../services/api";
 import { displayState } from "../telemetry";
 import { Icon } from "./Icon";
@@ -88,6 +88,7 @@ export function stamp(value: string | undefined | null, date = false) {
   );
 }
 export function elapsed(seconds: number) {
+  seconds = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
   return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 }
 export function Status({ value }: { value: string }) {
@@ -241,7 +242,7 @@ export function MetricCard({
     </article>
   );
 }
-export function TrendChart({
+export const TrendChart = memo(function TrendChart({
   readings,
   code,
   minutes = 5,
@@ -330,7 +331,7 @@ export function TrendChart({
       </figcaption>
     </figure>
   );
-}
+});
 export function EcgChart({
   chunks,
   connected,

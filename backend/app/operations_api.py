@@ -36,7 +36,7 @@ from .operation_schemas import (
     WorkerHeartbeat,
 )
 from .radiation import snapshot as radiation_snapshot
-from .registry import CREW, DEVICES
+from .registry import CREW, DEVICE_MAP, DEVICES
 from .schemas import Alert, CrewMember
 
 
@@ -88,19 +88,44 @@ def build_operations_router(sessions, service, config):
             now = datetime.now(UTC)
             result = []
             for crew in CREW:
-                latest_ids = (
-                    select(func.max(ObservationRow.id))
-                    .join(PacketRow)
-                    .where(
-                        PacketRow.device_id == f"DEMO-SUIT-{crew['id'][-3:]}",
+                device_id = f"DEMO-SUIT-{crew['id'][-3:]}"
+                # The latest packet contains the complete worker summary. Fetch its
+                # indexed observations directly rather than aggregating all history
+                # on every poll. Partial integrations retain the per-code fallback.
+                latest_packet = db.scalar(
+                    select(PacketRow)
+                    .where(PacketRow.device_id == device_id)
+                    .order_by(PacketRow.sequence.desc())
+                    .limit(1)
+                )
+                rows = (
+                    list(
+                        db.scalars(
+                            select(ObservationRow).where(
+                                ObservationRow.event_id == latest_packet.event_id
+                            )
+                        )
                     )
-                    .group_by(ObservationRow.data["code"].as_string())
+                    if latest_packet
+                    else []
                 )
-                rows = db.scalars(
-                    select(ObservationRow)
-                    .where(ObservationRow.id.in_(latest_ids))
-                    .order_by(ObservationRow.id)
-                )
+                missing = set(DEVICE_MAP[device_id]["capabilities"]) - {
+                    row.data["code"] for row in rows
+                }
+                if latest_packet and missing:
+                    latest_ids = (
+                        select(func.max(ObservationRow.id))
+                        .join(PacketRow)
+                        .where(
+                            PacketRow.device_id == device_id,
+                            ObservationRow.data["code"].as_string().in_(missing),
+                        )
+                        .group_by(ObservationRow.data["code"].as_string())
+                    )
+                    rows.extend(
+                        db.scalars(select(ObservationRow).where(ObservationRow.id.in_(latest_ids)))
+                    )
+                rows.sort(key=lambda row: row.id)
                 result.append(
                     CrewSummary(
                         crew=CrewMember(**crew),
@@ -348,6 +373,10 @@ def build_operations_router(sessions, service, config):
             control = ops.control_state(db)
             if not control.running:
                 raise HTTPException(409, "Resume the simulator before starting exercise")
+            if ops.crew_deceased(db, request.astronaut_id, control.run_id):
+                raise HTTPException(
+                    409, "Restart playback before exercising a deceased crew member"
+                )
             session = FitnessSession(
                 id=f"demo-fitness-{uuid4().hex}",
                 **request.model_dump(),
@@ -362,6 +391,7 @@ def build_operations_router(sessions, service, config):
                     scenario="EXERCISE",
                     astronaut_id=request.astronaut_id,
                     fault="NONE",
+                    manual_values={},
                     expected_revision=control.revision,
                 ),
             )
@@ -383,7 +413,8 @@ def build_operations_router(sessions, service, config):
                 .join(PacketRow)
                 .where(
                     PacketRow.raw["astronaut_id"].as_string() == row.astronaut_id,
-                    PacketRow.received_at >= datetime.fromisoformat(row.data["started_at"]),
+                    PacketRow.observed_at >= datetime.fromisoformat(row.data["started_at"]),
+                    PacketRow.observed_at <= now,
                 )
             )
             values = [
@@ -407,6 +438,7 @@ def build_operations_router(sessions, service, config):
                     scenario="RECOVERY",
                     astronaut_id=row.astronaut_id,
                     fault="NONE",
+                    manual_values={},
                     expected_revision=control.revision,
                 ),
             )
@@ -463,8 +495,14 @@ def build_operations_router(sessions, service, config):
                     item.complete for item in data.checklist
                 ):
                     raise HTTPException(409, "Complete the preparation checklist before starting")
+                if not ops.control_state(db).running:
+                    raise HTTPException(409, "Resume the simulator before starting EVA")
                 if service.device(db, now, f"DEMO-SUIT-{data.astronaut_id[-3:]}").status != "LIVE":
                     raise HTTPException(409, "Live simulated suit telemetry is required")
+                if ops.crew_deceased(db, data.astronaut_id, ops.control_state(db).run_id):
+                    raise HTTPException(
+                        409, "Restart playback before starting EVA for a deceased crew member"
+                    )
                 data.status, data.started_at = "ACTIVE", now
                 description = "EVA demonstration started (no physical controls)"
             else:

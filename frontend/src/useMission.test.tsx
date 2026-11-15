@@ -114,9 +114,47 @@ it("ignores a superseded poll failure after manual refresh", async () => {
 });
 
 it("does not clear a snapshot failure just because the smaller poll succeeds", async () => {
-  vi.mocked(snapshot).mockRejectedValueOnce(new Error("Snapshot unavailable"));
+  vi.mocked(snapshot).mockRejectedValue(new Error("Snapshot unavailable"));
   const { result } = renderHook(() => useMission());
   await settle();
   await advance(2000);
   expect(result.current.error).toContain("Snapshot unavailable");
+});
+
+it("never exposes the previous crew's samples or ECG while switching crew", async () => {
+  const pending = deferred<Awaited<ReturnType<typeof snapshot>>>();
+  const { result, rerender } = renderHook(({ id }) => useMission(id), {
+    initialProps: { id: "DEMO-CREW-001" },
+  });
+  await settle();
+  expect(result.current.observations).toHaveLength(1);
+  vi.mocked(snapshot).mockReturnValueOnce(pending.promise);
+  rerender({ id: "DEMO-CREW-002" });
+  expect(result.current.observations).toEqual([]);
+  expect(result.current.waveforms).toEqual([]);
+  expect(result.current.loading).toBe(true);
+});
+
+it("retries a failed full snapshot automatically and restores the registry", async () => {
+  vi.mocked(snapshot).mockRejectedValueOnce(new Error("Temporary outage"));
+  const { result } = renderHook(() => useMission());
+  await settle();
+  expect(result.current.error).toContain("Temporary outage");
+  await advance(2000);
+  expect(snapshot).toHaveBeenCalledTimes(2);
+  expect(result.current.error).toBe("");
+  expect(result.current.crew).toEqual(mission.crew);
+});
+
+it("keeps buffered live observations even when a snapshot fails", async () => {
+  const pending = deferred<Awaited<ReturnType<typeof snapshot>>>();
+  vi.mocked(snapshot).mockReturnValueOnce(pending.promise);
+  const { result } = renderHook(() => useMission());
+  const receive = vi.mocked(connectStream).mock.calls[0][0];
+  act(() =>
+    receive({ type: "telemetry.observation", data: mission.observations[0] }),
+  );
+  pending.reject(new Error("Snapshot failed"));
+  await settle();
+  expect(result.current.observations).toEqual(mission.observations);
 });

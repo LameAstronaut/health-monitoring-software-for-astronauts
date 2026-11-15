@@ -191,7 +191,9 @@ export function Fitness({
                 {active.activity} · {active.planned_minutes} planned minutes
               </p>
               <strong>
-                {elapsed((mission.now - Date.parse(active.started_at)) / 1000)}
+                {elapsed(
+                  (mission.serverNow - Date.parse(active.started_at)) / 1000,
+                )}
               </strong>
               <p>
                 Wall-clock session duration · Started {stamp(active.started_at)}

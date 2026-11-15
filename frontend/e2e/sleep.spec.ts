@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { test, expect } from './fixtures';
 
 const API = 'http://127.0.0.1:18000/api/v1';
 
@@ -24,8 +23,8 @@ test('sleep duration is placed below oxygen and beside diastolic pressure, with 
     expect(Math.abs(bounds!.y - diastolic!.y)).toBeLessThan(1);
   }
   await page.setViewportSize({ width: 1366, height: 768 });
-  await mkdir('../artifacts/screenshots', { recursive: true });
-  await page.screenshot({ path: '../artifacts/screenshots/sleep-duration-dashboard.png', fullPage: true });
+
+  await page.screenshot({ path: test.info().outputPath('sleep-duration-dashboard.png'), fullPage: true });
   await page.getByRole('button', { name: 'Simulator controls', exact: true }).click();
   const input = page.getByRole('spinbutton', { name: /Sleep duration/ });
   await input.fill('0');

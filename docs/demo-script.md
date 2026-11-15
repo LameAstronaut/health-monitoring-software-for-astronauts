@@ -13,7 +13,7 @@
 5. Select the DISCONNECT fault. Readings show DISCONNECTED; no replacement numbers appear.
    Clear the fault, restart REST and pause. With default windows, old samples become STALE
    after five seconds and DISCONNECTED after fifteen while the API remains connected.
-6. Inspect Equipment, all eleven risk views (including honest specialist NO DATA states),
+6. Inspect Equipment, all nine risk views (including honest specialist NO DATA states),
    log a meal, start/finish a fitness demo and prepare/complete an EVA checklist/timeline.
 7. Restart the API. Historical readings and saved records remain; playback is paused until
    explicitly resumed. Resume controls and confirm the Rust worker continues its checkpoint.

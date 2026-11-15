@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { test, expect } from './fixtures';
 
 const API = 'http://127.0.0.1:18000/api/v1';
 test.beforeEach(async ({request,page}) => {
@@ -25,9 +24,9 @@ test('complete examination is acquired from Rust, saved, exported and retrieved 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button',{name:'Export synthetic report'}).click();
   expect((await downloadPromise).suggestedFilename()).toContain('SIMULATED.json');
-  await mkdir('../artifacts/screenshots',{recursive:true});
+
   await page.evaluate(() => window.scrollTo(0,0));
-  await page.screenshot({path:'../artifacts/screenshots/examination-laptop.png',fullPage:true});
+  await page.screenshot({path: test.info().outputPath('examination-laptop.png'),fullPage:true});
   await page.reload();
   await page.getByRole('button',{name:'Examinations',exact:true}).click();
   await page.getByRole('button',{name:'View report'}).first().click();
@@ -43,8 +42,8 @@ test('crew selection, individual baselines and every navigation destination work
     await expect(page.getByRole('heading',{level:1,name,exact:true})).toBeVisible();
     if (name === 'Equipment' || name === 'Live monitoring') {
       if (name === 'Live monitoring') await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(6);
-      await mkdir('../artifacts/screenshots',{recursive:true});
-      await page.screenshot({path:`../artifacts/screenshots/${name === 'Equipment' ? 'equipment' : 'live-monitoring'}-laptop.png`,fullPage:true});
+
+      await page.screenshot({path: test.info().outputPath(`${name === 'Equipment' ? 'equipment' : 'live-monitoring'}-laptop.png`),fullPage:true});
     }
   }
   const categories = page.getByRole('navigation',{name:'Health risk categories'});
@@ -62,8 +61,8 @@ test('pause freezes model time, resume continues, and exercise/recovery change s
   await page.waitForTimeout(1400);
   expect((await (await request.get(`${API}/demo/control`)).json()).simulated_at).toBe(paused);
   await page.getByRole('button',{name:'Mission dashboard',exact:true}).click();
-  await expect(page.locator('.metric-card .status').filter({hasText:/^(STALE|DISCONNECTED)$/})).toHaveCount(7);
-  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(7);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^(STALE|DISCONNECTED)$/})).toHaveCount(8);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(8);
   await expect(page.locator('.ecg-chart').getByText('DISCONNECTED',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Simulator controls'}).click();
   await page.getByRole('button',{name:'Resume simulation'}).click();
@@ -80,8 +79,10 @@ test('pause freezes model time, resume continues, and exercise/recovery change s
 test('sensor disconnect is explicit and last values never stay live', async ({page}) => {
   await page.getByRole('button',{name:'Simulator controls'}).click();
   await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('DISCONNECT');
+  await page.getByRole('button', {name:'Apply fault', exact:true}).click();
+  await expect(page.getByText('Applied fault: DISCONNECT', {exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Mission dashboard',exact:true}).click();
-  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(7);
+  await expect(page.locator('.metric-card .status').filter({hasText:/^DISCONNECTED$/})).toHaveCount(8);
   await expect(page.locator('.metric-card .status').filter({hasText:/^LIVE$/})).toHaveCount(0);
   await page.getByRole('button',{name:'Equipment',exact:true}).click();
   await expect(page.locator('.panel').filter({hasText:'DEMO-SUIT-001'}).getByText('DISCONNECTED',{exact:true})).toBeVisible();
@@ -120,13 +121,15 @@ test('EVA checklist gates a real saved timeline', async ({page}) => {
 test('acute anomalies open full screen, minimize without acknowledgment and retain saved history', async ({page,request}) => {
   await page.getByRole('button',{name:'Simulator controls'}).click();
   await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('BOTH');
+  await page.getByRole('button', {name:'Apply fault', exact:true}).click();
+  await expect(page.getByText('Applied fault: BOTH', {exact:true})).toBeVisible();
   const dialog = page.getByRole('alertdialog',{name:/Alex Morgan/});
   await expect(dialog).toBeVisible({timeout:20000});
   const control = await (await request.get(`${API}/demo/control`)).json();
   expect((await request.post(`${API}/demo/control`,{data:{action:'PAUSE',expected_revision:control.revision}})).ok()).toBe(true);
   await expect.poll(async () => (await (await request.get(`${API}/demo/control`)).json()).worker_state).toBe('PAUSED');
   await expect(dialog.getByRole('button',{name:'Minimize',exact:true})).toBeFocused();
-  expect((await dialog.innerText()).split(/\s+/).length).toBeLessThan(55);
+  await expect(dialog.getByRole('region', {name: 'Response guidance'})).toBeVisible();
   const bounds = await dialog.boundingBox();
   expect(bounds?.width).toBe(1366);
   expect(bounds?.height).toBe(768);
@@ -139,8 +142,8 @@ test('acute anomalies open full screen, minimize without acknowledgment and reta
   await expect(page.locator('.alert-record.priority-1').first().getByText('PENDING REVIEW',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Review alert full screen'}).click();
   await expect(dialog).toBeVisible();
-  await mkdir('../artifacts/screenshots',{recursive:true});
-  await page.screenshot({path:'../artifacts/screenshots/critical-alert-laptop.png',animations:'disabled'});
+
+  await page.screenshot({path: test.info().outputPath('critical-alert-laptop.png'),animations:'disabled'});
   await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
   await expect(dialog).not.toBeVisible();
   const paused = await (await request.get(`${API}/demo/control`)).json();
@@ -158,12 +161,15 @@ test('acute anomalies open full screen, minimize without acknowledgment and reta
 test('pulse rises quickly at 1x and every alert opens full screen with controllable flashing', async ({page}) => {
   await page.getByRole('button',{name:'Simulator controls'}).click();
   await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('PULSE_SURGE');
+  await page.getByRole('button', {name:'Apply fault', exact:true}).click();
+  await expect(page.getByText('Applied fault: PULSE_SURGE', {exact:true})).toBeVisible();
   const dialog = page.getByRole('alertdialog',{name:/Alex Morgan/});
   await expect(dialog).toBeVisible({timeout:20000});
   await expect(dialog.getByRole('heading',{name:'Pulse rising'})).toBeVisible();
   await expect(dialog).toContainText('PRIORITY 2');
   await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-name','alert-attention');
-  await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-duration','0.5s');
+  await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-duration','1s');
+  await expect(dialog).toHaveCSS('animation-name','none');
   await expect(dialog.locator('.alert-evidence-value')).toHaveCSS('animation-name','none');
   await expect(dialog.getByText(/Rule pulse-rise/)).not.toBeVisible();
   await dialog.getByRole('button',{name:'Stop flashing'}).click();
@@ -174,10 +180,12 @@ test('pulse rises quickly at 1x and every alert opens full screen with controlla
   await expect(dialog.getByRole('button',{name:'Stop flashing'})).toHaveCount(0);
   await page.emulateMedia({reducedMotion:'no-preference'});
   await expect(dialog.locator('.alert-symbol')).toHaveCSS('animation-name','alert-attention');
-  await page.screenshot({path:'../artifacts/screenshots/pulse-alert-laptop.png',animations:'disabled'});
+  await page.screenshot({path: test.info().outputPath('pulse-alert-laptop.png'),animations:'disabled'});
   await dialog.getByRole('button',{name:'Acknowledge',exact:true}).click();
   await expect(dialog).not.toBeVisible();
   await page.getByLabel('Synthetic sensor / anomaly fault').selectOption('RESPIRATORY_SURGE');
+  await page.getByRole('button', {name:'Apply fault', exact:true}).click();
+  await expect(page.getByText('Applied fault: RESPIRATORY_SURGE', {exact:true})).toBeVisible();
   await expect(dialog).toBeVisible({timeout:20000});
   await expect(dialog.getByRole('heading',{name:'Breathing rate rising'})).toBeVisible();
   await expect(dialog).toContainText('PRIORITY 1');
@@ -201,10 +209,10 @@ test('reference tables import, persist and retain NASA provenance', async ({page
   await page.getByRole('button',{name:'Data workspace',exact:true}).click();
   await page.getByRole('button',{name:/research NASA/}).click();
   await expect(page.getByLabel('Column 2 unit')).toHaveValue('C');
-  await page.screenshot({path:'../artifacts/screenshots/data-workspace.png',fullPage:true});
+  await page.screenshot({path: test.info().outputPath('data-workspace.png'),fullPage:true});
 });
 
-test('manual editor changes worker readings and 3D body responds to selection', async ({page,request}) => {
+test('manual editor changes worker readings and body regions respond to selection', async ({page,request}) => {
   await page.getByRole('button',{name:'Simulator controls',exact:true}).click();
   await page.getByLabel(/Heart rate beats/).fill('88');
   await page.getByRole('button',{name:'Apply readings'}).click();
@@ -215,9 +223,7 @@ test('manual editor changes worker readings and 3D body responds to selection', 
   }).toBe(88);
   await page.getByRole('button',{name:'Risk monitoring',exact:true}).click();
   expect((await page.locator('.body-figure').boundingBox())!.width).toBeGreaterThan(200);
-  await page.getByRole('button',{name:'3D schematic',exact:true}).click();
-  await page.getByRole('slider',{name:'Rotate body'}).fill('45');
   await page.getByRole('button',{name:'Heart & lungs',exact:true}).click();
   await expect(page.locator('.body-map-measurements')).toContainText('88');
-  await page.screenshot({path:'../artifacts/screenshots/body-3d.png',fullPage:true});
+  await page.screenshot({path: test.info().outputPath('body-regions.png'),fullPage:true});
 });

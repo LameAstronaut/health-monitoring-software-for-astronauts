@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('each astronaut has a matching profile portrait', async ({ page }, testInfo) => {
   await page.goto('/');

@@ -214,7 +214,8 @@ def test_alert_acknowledgment_and_tasks_are_idempotent(client):
     assert acknowledged["acknowledged_by"] == "DEMO-OPERATOR"
     assert client.post(f"/api/v1/alerts/{alert_id}/acknowledge").json() == acknowledged
     task = next(
-        task for task in client.get("/api/v1/operations").json()["tasks"]
+        task
+        for task in client.get("/api/v1/operations").json()["tasks"]
         if task["destination"] != "Examinations"
     )
     assert client.post(f"/api/v1/tasks/{task['id']}/complete").json()["status"] == "COMPLETE"
@@ -293,3 +294,82 @@ def test_restart_clears_lethal_overrides_and_faults_even_if_supplied_again(clien
     ).json()
     assert restarted["fault"] == "NONE"
     assert all(value is None for value in restarted["manual_values"].values())
+
+
+def test_exercise_and_recovery_clear_manual_overrides(client):
+    control(client, "CONFIGURE", manual_values={"heart_rate": 88})
+    started = client.post(
+        "/api/v1/fitness/sessions",
+        json={"astronaut_id": "DEMO-CREW-001", "activity": "CYCLE", "planned_minutes": 10},
+    )
+    assert started.status_code == 200
+    settings = client.get("/api/v1/demo/control").json()
+    assert settings["scenario"] == "EXERCISE"
+    assert all(value is None for value in settings["manual_values"].values())
+    control(client, "CONFIGURE", manual_values={"heart_rate": 99})
+    response = client.post(f"/api/v1/fitness/sessions/{started.json()['id']}/finish")
+    assert response.status_code == 200
+    settings = client.get("/api/v1/demo/control").json()
+    assert settings["scenario"] == "RECOVERY"
+    assert all(value is None for value in settings["manual_values"].values())
+
+
+def test_exercise_peak_excludes_delayed_samples_observed_before_start(client):
+    from datetime import UTC, datetime, timedelta
+
+    before = datetime.now(UTC) - timedelta(seconds=2)
+    session = client.post(
+        "/api/v1/fitness/sessions",
+        json={"astronaut_id": "DEMO-CREW-001", "activity": "CYCLE", "planned_minutes": 10},
+    ).json()
+    old = packet(observed_at=before.isoformat())
+    old["measurements"][0]["value"] = 140
+    assert client.post("/api/v1/telemetry", json=old, headers=TOKEN).status_code == 200
+    fresh = packet(2)
+    fresh["measurements"][0]["value"] = 78
+    assert client.post("/api/v1/telemetry", json=fresh, headers=TOKEN).status_code == 200
+    result = client.post(f"/api/v1/fitness/sessions/{session['id']}/finish")
+    assert result.status_code == 200
+    assert result.json()["peak_heart_rate"] == 78
+
+
+def test_eva_cannot_start_while_playback_is_paused(client):
+    live(client)
+    session = client.post("/api/v1/eva/sessions", json={"astronaut_id": "DEMO-CREW-001"}).json()
+    route = f"/api/v1/eva/sessions/{session['id']}/actions"
+    for step in session["checklist"]:
+        assert (
+            client.post(route, json={"action": "CHECK", "step_id": step["id"]}).status_code == 200
+        )
+    control(client, "PAUSE")
+    result = client.post(route, json={"action": "START"})
+    assert result.status_code == 409
+    assert "Resume" in result.json()["detail"]
+
+
+def test_crew_summaries_use_latest_complete_packet_and_retain_sparse_codes(client):
+    from app.registry import CONTINUOUS_CODES, CREW, UNITS
+
+    complete = packet(
+        measurements=[
+            {
+                "code": code,
+                "value": CREW[0]["baseline"][code],
+                "unit": UNITS[code],
+                "quality": "VALID",
+            }
+            for code in CONTINUOUS_CODES
+        ]
+    )
+    assert client.post("/api/v1/telemetry", json=complete, headers=TOKEN).status_code == 200
+    first = client.get("/api/v1/crew/summaries").json()[0]["readings"]
+    assert {r["code"]: r["value"] for r in first} == CREW[0]["baseline"]
+    sparse = packet(
+        2,
+        measurements=[{"code": "heart_rate", "value": 80, "unit": "beats/min", "quality": "VALID"}],
+    )
+    assert client.post("/api/v1/telemetry", json=sparse, headers=TOKEN).status_code == 200
+    updated = {
+        r["code"]: r["value"] for r in client.get("/api/v1/crew/summaries").json()[0]["readings"]
+    }
+    assert updated == CREW[0]["baseline"] | {"heart_rate": 80}

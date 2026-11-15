@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { displayState, mergeObservations } from "./telemetry";
-import type { Observation } from "./services/api";
+import type { Alert, Observation } from "./services/api";
 
 const now = Date.parse("2026-11-14T10:00:00Z");
 const reading: Observation = {
@@ -61,4 +61,35 @@ it("resync merges packets without duplication or sequence rollback", () => {
     reading,
     newer,
   ]);
+});
+
+it("retains acknowledgments and pending warnings ahead of bounded acknowledged history", async () => {
+  const { mergeAlerts } = await import("./telemetry");
+  const demoAlert: Alert = {
+    id: 1,
+    priority: 2,
+    severity: "WARNING_DEMO",
+    state: "PENDING_REVIEW",
+    rule_id: "oxygen-fixture",
+    rule_version: "demo-fixture-v2",
+    message: "Synthetic anomaly",
+    event_id: reading.event_id,
+    device_id: reading.device_id,
+    astronaut_id: reading.astronaut_id,
+    occurred_at: reading.observed_at,
+    source_type: "SIMULATED",
+    evidence: [reading],
+  };
+  const acknowledged = { ...demoAlert, state: "ACKNOWLEDGED" as const };
+  expect(mergeAlerts([acknowledged], [demoAlert])[0].state).toBe(
+    "ACKNOWLEDGED",
+  );
+  const history = Array.from({ length: 200 }, (_, id) => ({
+    ...acknowledged,
+    id: id + 10,
+    priority: 1 as const,
+  }));
+  expect(mergeAlerts(history, [{ ...demoAlert, priority: 2 }])[0].state).toBe(
+    "PENDING_REVIEW",
+  );
 });

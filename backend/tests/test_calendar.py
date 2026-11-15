@@ -26,19 +26,26 @@ def test_fresh_weekly_template_is_identical_for_all_crew_and_persists(client, ap
     assert len(initial) == 36
     assert {entry["astronaut_id"] for entry in initial} == {f"DEMO-CREW-00{i}" for i in (1, 2, 3)}
     assert {entry["kind"] for entry in initial} == {
-        "BLOOD_PRESSURE", "BODY_TEMPERATURE", "LAB_PANEL", "BONE_DENSITY"
+        "BLOOD_PRESSURE",
+        "BODY_TEMPERATURE",
+        "LAB_PANEL",
+        "BONE_DENSITY",
     }
     schedules = [
-        [(entry["kind"], entry["scheduled_at"]) for entry in initial
-         if entry["astronaut_id"] == f"DEMO-CREW-00{i}"]
+        [
+            (entry["kind"], entry["scheduled_at"])
+            for entry in initial
+            if entry["astronaut_id"] == f"DEMO-CREW-00{i}"
+        ]
         for i in (1, 2, 3)
     ]
     assert schedules[0] == schedules[1] == schedules[2]
     from collections import Counter
     from datetime import datetime
 
-    days = Counter(entry["scheduled_at"][:10] for entry in initial
-                   if entry["astronaut_id"] == "DEMO-CREW-001")
+    days = Counter(
+        entry["scheduled_at"][:10] for entry in initial if entry["astronaut_id"] == "DEMO-CREW-001"
+    )
     assert len(days) == 6
     assert all(count == 2 for count in days.values())
     weekdays = {datetime.fromisoformat(entry["scheduled_at"]).weekday() for entry in initial}
@@ -273,15 +280,31 @@ def test_new_calendar_does_not_import_previous_configuration(tmp_path):
     engine, sessions = connect(f"sqlite:///{tmp_path / 'replacement.db'}")
     Base.metadata.create_all(engine)
     with sessions() as db:
-        old = insert(db, "exam-plan", {
-            "id": "old-custom-plan", "astronaut_id": "DEMO-CREW-001",
-            "kind": "LAB_PANEL", "scheduled_at": "2026-11-10T17:00:00Z",
-            "status": "PLANNED", "revision": 0, "task_id": "old-task",
-        }, "DEMO-CREW-001")
-        old_task = insert(db, "task", {
-            "id": "old-task", "destination": "Examinations", "status": "PENDING",
-            "due_at": "2026-11-10T17:00:00Z",
-        }, "DEMO-CREW-001")
+        old = insert(
+            db,
+            "exam-plan",
+            {
+                "id": "old-custom-plan",
+                "astronaut_id": "DEMO-CREW-001",
+                "kind": "LAB_PANEL",
+                "scheduled_at": "2026-11-10T17:00:00Z",
+                "status": "PLANNED",
+                "revision": 0,
+                "task_id": "old-task",
+            },
+            "DEMO-CREW-001",
+        )
+        old_task = insert(
+            db,
+            "task",
+            {
+                "id": "old-task",
+                "destination": "Examinations",
+                "status": "PENDING",
+                "due_at": "2026-11-10T17:00:00Z",
+            },
+            "DEMO-CREW-001",
+        )
         ensure_weekly_examinations(db, datetime(2026, 11, 9, tzinfo=UTC))
         fresh = records(db, "exam-plan")
         assert len(fresh) == 36

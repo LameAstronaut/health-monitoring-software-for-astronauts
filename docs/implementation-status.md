@@ -17,7 +17,8 @@ rendering tests and integration verification through Vite's REST/WebSocket proxy
 
 Current additions: individual persistent Rust state; REST/EXERCISE/RECOVERY/ANOMALY;
 separate continuous ECG; versioned controls and replay; three crew / seven instruments;
-event-only BP/lab/bone-density acquisition and saved/exportable reports; eleven risk views;
+continuous blood pressure, recorded sleep/weight, event-only lab/bone-density/temperature
+acquisition and saved/exportable reports; nine risk views and shared vehicle radiation sensors;
 meal inventory/logs, fitness, EVA checklist/timeline and alert acknowledgment. See
 [operations](operations.md), [model limits](simulation-model.md), and [visual review](visual-review.md).
 

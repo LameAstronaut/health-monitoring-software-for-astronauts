@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { test, expect } from './fixtures';
 
 declare global { interface Window { __alertToneStarts: number; } }
 const API = 'http://127.0.0.1:18000/api/v1';
@@ -28,8 +27,8 @@ test('red alerts provide gesture-enabled sound, persistent mute, and consistent 
   await expect(page.locator('.crew-summary')).toHaveCount(3);
   await expect(page.locator('.metric-card .status').filter({ hasText: /^LIVE$/ }).first()).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-  await mkdir('../artifacts/screenshots', { recursive: true });
-  await page.screenshot({ path: '../artifacts/screenshots/theme-dashboard.png' });
+
+  await page.screenshot({ path: test.info().outputPath('theme-dashboard.png') });
   const state = await (await request.get(`${API}/demo/control`)).json();
   const warning = await request.post(`${API}/demo/control`, { data: { action: 'CONFIGURE', expected_revision: state.revision, scenario: 'ANOMALY', fault: 'OXYGEN', manual_values: { spo2: 88 } } });
   expect(warning.ok()).toBeTruthy();
@@ -39,7 +38,7 @@ test('red alerts provide gesture-enabled sound, persistent mute, and consistent 
   const warningBackground = await dialog.evaluate(el => getComputedStyle(el).backgroundColor);
   await dialog.getByRole('button', { name: 'Enable alert sounds', exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.__alertToneStarts)).toBeGreaterThan(0);
-  await page.screenshot({ path: '../artifacts/screenshots/theme-warning-alert.png', animations: 'disabled' });
+  await page.screenshot({ path: test.info().outputPath('theme-warning-alert.png'), animations: 'disabled' });
   await dialog.getByRole('button', { name: 'Mute alert sounds', exact: true }).click();
   expect(await page.evaluate(() => localStorage.getItem('astra-alert-audio'))).toBe('muted');
   const mutedCount = await page.evaluate(() => window.__alertToneStarts);
@@ -65,7 +64,7 @@ test('red alerts provide gesture-enabled sound, persistent mute, and consistent 
   const beforeCritical = await page.evaluate(() => window.__alertToneStarts);
   await dialog.getByRole('button', { name: 'Enable alert sounds', exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.__alertToneStarts)).toBeGreaterThan(beforeCritical);
-  await page.screenshot({ path: '../artifacts/screenshots/theme-critical-alert.png', animations: 'disabled' });
+  await page.screenshot({ path: test.info().outputPath('theme-critical-alert.png'), animations: 'disabled' });
   await dialog.getByRole('button', { name: 'Acknowledge', exact: true }).click();
   await expect(dialog).not.toBeVisible();
   const acknowledgedCount = await page.evaluate(() => window.__alertToneStarts);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { recordedMeasurement } from "../recordedMeasurement";
 import type { Observation, Examination, CrewMember } from "../services/api";
 import type { CompletedReactionTest } from "../reactionResults";
 import { NAMES, stamp, Status } from "./medical";
@@ -95,26 +96,7 @@ export function BodyMap({
   const [selected, setSelected] = useState("chest");
   const part = PARTS.find((item) => item.id === selected) ?? PARTS[1];
   const latest = part.codes.map((code) => {
-    const observation = observations
-      .filter((item) => item.code === code)
-      .sort((a, b) => Date.parse(a.observed_at) - Date.parse(b.observed_at))
-      .at(-1);
-    const exam = [...examinations]
-      .filter((item) => item.status === "SAVED")
-      .sort(
-        (a, b) =>
-          Date.parse(b.acquired_at ?? b.started_at) -
-          Date.parse(a.acquired_at ?? a.started_at),
-      )
-      .find((item) => item.results?.some((result) => result.code === code));
-    const result =
-      observation ?? exam?.results?.find((item) => item.code === code);
-    return {
-      code,
-      result,
-      device: observation?.device_id ?? exam?.device_id,
-      time: observation?.observed_at ?? exam?.acquired_at,
-    };
+    return { code, ...recordedMeasurement(code, observations, examinations) };
   });
   return (
     <section className="body-map panel" aria-labelledby="body-map-title">
@@ -136,8 +118,8 @@ export function BodyMap({
               className="body-image"
               src={
                 bodyVariant === "male"
-                  ? "/assets/astronaut-body-male.png"
-                  : "/assets/astronaut-body-realistic.png"
+                  ? `${import.meta.env.BASE_URL}assets/astronaut-body-male.png`
+                  : `${import.meta.env.BASE_URL}assets/astronaut-body-realistic.png`
               }
               alt={`Realistic synthetic ${bodyVariant ? bodyVariant + " " : ""}astronaut body illustration`}
             />
@@ -193,7 +175,7 @@ export function BodyMap({
               {latest.map(({ code, result, device, time }) => (
                 <div className="body-map-measurement" key={code}>
                   <strong>{NAMES[code]}</strong>
-                  {result ? (
+                  {result?.quality === "VALID" ? (
                     <>
                       <b>
                         {result.value} <small>{result.unit}</small>
@@ -203,7 +185,7 @@ export function BodyMap({
                       </span>
                     </>
                   ) : (
-                    <Status value="NOT_AVAILABLE" />
+                    <Status value={result?.quality ?? "NOT_AVAILABLE"} />
                   )}
                 </div>
               ))}

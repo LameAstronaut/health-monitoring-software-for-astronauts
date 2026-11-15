@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('Sensorimotor Adaptation runs a 30-second spacebar reaction test', async ({ page }) => {
   await page.goto('/');

@@ -238,3 +238,17 @@ def test_continuous_blood_pressure_ingestion(client):
         ("diastolic_bp", 76, "mmHg"),
     ]
     assert all(r["examination_id"] is None for r in readings)
+
+
+def test_pending_warning_is_not_hidden_by_acknowledged_critical_history(client):
+    critical = client.post(
+        "/api/v1/telemetry", json=packet(scenario="simultaneous_demo"), headers=TOKEN
+    )
+    assert critical.status_code == 200
+    alerts = critical.json()["alerts"]
+    for alert in alerts:
+        if alert["priority"] == 1:
+            assert client.post(f"/api/v1/alerts/{alert['id']}/acknowledge").status_code == 200
+    limited = client.get("/api/v1/alerts?limit=1").json()
+    assert limited[0]["state"] == "PENDING_REVIEW"
+    assert limited[0]["priority"] == 2

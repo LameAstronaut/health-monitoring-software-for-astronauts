@@ -126,6 +126,9 @@ def build_radiation_router(sessions, config):
             if not control.running:
                 raise HTTPException(409, "Vehicle simulator is paused")
             if row:
+                previous_time = datetime.fromisoformat(row.data["packet"]["observed_at"])
+                if packet.observed_at < previous_time:
+                    raise HTTPException(409, "Vehicle reading timestamp must not move backwards")
                 previous = {m["sensor_id"]: m for m in row.data["packet"]["measurements"]}
                 if any(
                     m.accumulated_dose_mgy < previous[m.sensor_id]["accumulated_dose_mgy"]

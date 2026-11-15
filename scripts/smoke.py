@@ -38,6 +38,8 @@ def main():
             ASTRA_STALE_SECONDS="1",
             ASTRA_DISCONNECT_SECONDS="2",
             ASTRA_MODE="DEMO",
+            ASTRA_DEPLOYMENT_PROFILE="local",
+            ASTRA_FRONTEND_BASE_PATH="/",
             ASTRA_DEMO_TOKEN="smoke-demo-token",
         )
         subprocess.run(
@@ -141,16 +143,16 @@ def main():
                     raise AssertionError("No telemetry frame received")
             history_url = f"{url}/api/v1/observations?limit=2400"
             observations = httpx.get(history_url).json()
-            assert len(observations) == 20
+            assert len(observations) == 40
             resting_hr = [o["value"] for o in observations if o["code"] == "heart_rate"]
             assert max(resting_hr) - min(resting_hr) < 0.5
             simulate("simultaneous_demo", 190)
-            assert len(httpx.get(history_url).json()) == 780
+            assert len(httpx.get(history_url).json()) == 1560
             alerts = httpx.get(f"{url}/api/v1/alerts").json()
             assert [alert["priority"] for alert in alerts] == [1, 2]
             assert all(alert["evidence"][0]["event_id"] == alert["event_id"] for alert in alerts)
             simulate("invalid_packet", 6)
-            assert len(httpx.get(history_url).json()) == 800
+            assert len(httpx.get(history_url).json()) == 1600
             simulate("sensor_disconnect", 6)
             time.sleep(2.2)
             assert httpx.get(f"{url}/api/v1/devices").json()[0]["status"] == "DISCONNECTED"
@@ -158,7 +160,7 @@ def main():
             server.wait(timeout=5)
             server = start()
             history = httpx.get(history_url).json()
-            assert len(history) == 820
+            assert len(history) == 1640
             assert all(item["freshness"] == "HISTORICAL" for item in history)
             assert len(httpx.get(f"{url}/api/v1/alerts").json()) == 2
             print(

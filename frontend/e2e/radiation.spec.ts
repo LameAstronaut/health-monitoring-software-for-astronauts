@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 const API = 'http://127.0.0.1:18000/api/v1';
 

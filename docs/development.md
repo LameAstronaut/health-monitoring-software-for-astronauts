@@ -94,8 +94,10 @@ Tests start a separate temporary database and API/UI at ports 18000/15173, then 
 their owned processes. They exercise acquisition/review/save/export/reload, navigation,
 crew selection, pause/expiry, scenarios, faults, nutrition, fitness, EVA and alert review.
 Readability checks cover 1366×768, 1920×1080 and 1024×768, including keyboard navigation,
-44 px buttons, body/heading/metric sizing and horizontal overflow. Screenshots are written
-to `artifacts/screenshots`. See [visual review](visual-review.md).
+56 px buttons, body/heading/metric sizing and horizontal overflow. The full screen sweep
+also covers widths from 320 to 1920 px and checks form labels and image loading.
+Screenshots are written to each test’s directory under `frontend/test-results`, leaving
+the curated presentation assets unchanged. See [visual review](visual-review.md).
 
 On this Arch host, the downloaded Chromium fallback was installed under `/tmp/astra-playwright`:
 `PLAYWRIGHT_BROWSERS_PATH=/tmp/astra-playwright make e2e`. For your own checkout, use the

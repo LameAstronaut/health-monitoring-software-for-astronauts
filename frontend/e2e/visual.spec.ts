@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { test, expect } from './fixtures';
 
 test('dashboard is readable and fits laptop, desktop and tablet widths', async ({page,request}, testInfo) => {
   const api = 'http://127.0.0.1:18000/api/v1';
@@ -31,9 +30,9 @@ test('dashboard is readable and fits laptop, desktop and tablet widths', async (
   expect(sizes.heading).toBeGreaterThanOrEqual(28);
   expect(sizes.metric).toBeGreaterThanOrEqual(48);
   expect(sizes.buttons).toBe(true);
-  await mkdir('../artifacts/screenshots',{recursive:true});
-  await page.screenshot({path:`../artifacts/screenshots/dashboard-${testInfo.project.name}.png`,fullPage:true});
-  await page.screenshot({path:`../artifacts/screenshots/dashboard-${testInfo.project.name}-viewport.png`});
+
+  await page.screenshot({path: test.info().outputPath(`dashboard-${testInfo.project.name}.png`),fullPage:true});
+  await page.screenshot({path: test.info().outputPath(`dashboard-${testInfo.project.name}-viewport.png`)});
   const latest = await (await request.get(`${api}/demo/control`)).json();
   const restarted = await (await request.post(`${api}/demo/control`,{data:{action:'RESTART',expected_revision:latest.revision,scenario:'ANOMALY',speed:4,astronaut_id:'DEMO-CREW-001'}})).json();
   await request.post(`${api}/demo/control`,{data:{action:'CONFIGURE',expected_revision:restarted.revision,fault:'PRESSURE'}});
@@ -46,7 +45,7 @@ test('dashboard is readable and fits laptop, desktop and tablet widths', async (
   const acknowledge = dialog.getByRole('button',{name:'Acknowledge',exact:true});
   await expect(acknowledge).toBeInViewport();
   expect((await acknowledge.boundingBox())!.height).toBeGreaterThanOrEqual(64);
-  await page.screenshot({path:`../artifacts/screenshots/critical-alert-${testInfo.project.name}.png`,animations:'disabled'});
+  await page.screenshot({path: test.info().outputPath(`critical-alert-${testInfo.project.name}.png`),animations:'disabled'});
   await acknowledge.click();
   await expect(dialog).not.toBeVisible();
 });

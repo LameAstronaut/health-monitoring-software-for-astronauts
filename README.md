@@ -13,7 +13,7 @@
 
 **Codebase:** Rust → FastAPI → React now includes stateful three-crew physiology,
 separate ECG sampling, playback controls, examinations with saved reports, equipment,
-eleven shared risk views, nutrition, fitness, conceptual EVA operations and alert acknowledgment.
+nine shared risk views, vehicle radiation sensors, nutrition, fitness, conceptual EVA operations and alert acknowledgment.
 See [local setup and commands](docs/development.md), [implemented scope and remaining work](docs/implementation-status.md),
 and [architecture](docs/architecture.md). See [model assumptions and limitations](docs/simulation-model.md)
 and [screenshots / visual review](docs/visual-review.md). Specialist instruments, clinician roles,

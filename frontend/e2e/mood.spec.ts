@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { test, expect } from './fixtures';
 
 test('daily mood faces save per crew and support all slider steps and cancellation', async ({ page, request }) => {
   const api = 'http://127.0.0.1:18000/api/v1';
@@ -43,10 +42,10 @@ test('daily mood faces save per crew and support all slider steps and cancellati
   await page.getByRole('combobox', { name: 'Selected crew' }).selectOption('DEMO-CREW-001');
   await expect(mood).toHaveAccessibleName(/Alex Morgan: Happy/);
   await expect(page.locator('.metric-card .status').filter({ hasText: /^LIVE$/ })).toHaveCount(6);
-  await mkdir('../artifacts/screenshots', { recursive: true });
-  await page.screenshot({ path: '../artifacts/screenshots/mood-dashboard.png' });
+
+  await page.screenshot({ path: test.info().outputPath('mood-dashboard.png') });
   await mood.click();
-  await page.screenshot({ path: '../artifacts/screenshots/mood-dialog.png' });
+  await page.screenshot({ path: test.info().outputPath('mood-dialog.png') });
   await dialog.getByRole('button', { name: 'Cancel' }).click();
   for (const width of [1920, 1024, 390]) {
     await page.setViewportSize({ width, height: 844 });

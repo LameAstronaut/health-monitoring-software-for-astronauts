@@ -1,7 +1,9 @@
 # Visual review and interaction evidence
 
-Screenshots are generated from the actual React application with the Rust worker and
+The curated screenshots below were captured from the actual React application with the Rust worker and
 FastAPI/SQLite stack. All identities, measurements and examination results are synthetic.
+New test evidence is saved under `frontend/test-results/<test-name>` and uploaded by CI;
+ordinary tests do not overwrite these curated screenshots.
 
 | View | Evidence |
 | --- | --- |
@@ -15,19 +17,19 @@ FastAPI/SQLite stack. All identities, measurements and examination results are s
 | Virtual equipment registry | [Equipment](../artifacts/screenshots/equipment-laptop.png) |
 | Live metrics, trends, ECG and source history | [Live monitoring](../artifacts/screenshots/live-monitoring-laptop.png) |
 
-The design uses a dark navigation rail, light workspace, white reading surfaces, restrained
+The design uses a dark navigation rail, midnight workspace, dark reading surfaces, restrained
 measurement accents, 18 px base text, 34–38 px page headings, 56 px main values, stable
 tabular numerals and controls at least 56 px high (64 px in full-screen alert review). Timestamp/source/quality are adjacent
 to values. Text labels distinguish LIVE, STALE, DISCONNECTED, NOT AVAILABLE, HISTORICAL,
 INVALID and ERROR; color is supplementary. Medical values have no transition animation.
 
-The navigation rail scrolls to keep all eleven destinations usable with larger touch targets.
+The navigation rail scrolls to keep all twelve destinations usable with larger touch targets.
 Laptop and tablet layouts use two metric columns and stacked panels; desktop uses four metric
 columns and wider charts. Every new anomaly opens a full-screen red alert, including
 priority 2 events and events for another crew member. The initial view shows a short anomaly
-name, crew, large trigger value and time. Evidence is collapsed by default. Its acknowledgment
+name, crew, large trigger value and time. Response actions and trigger evidence are visible. Its acknowledgment
 bar remains visible while evidence scrolls; Minimize/Escape leaves the alert pending.
-A turn-signal-style red blink (500 ms on, 500 ms off) keeps all text and numeric values steady. Stop flashing and
+A red icon blink (500 ms on, 500 ms off) keeps the review background, text and numeric values steady. Recovery cards and the navigation attention indicator pulse only their borders. Stop flashing and
 the OS reduced-motion preference disable it without acknowledgment. Screenshots capture a
 static frame; browser checks verify the animation, off control and reduced-motion behavior. Main content scrolls; tables scroll inside their
 panels rather than forcing page-wide overflow. Exact source times remain UTC.

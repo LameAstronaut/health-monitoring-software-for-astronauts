@@ -77,7 +77,10 @@ export async function snapshot(
     get<Health>("health", signal),
     get<CrewMember[]>("crew", signal),
     get<Device[]>("devices", signal),
-    get<Observation[]>(`observations?astronaut_id=${astronautId}`, signal),
+    get<Observation[]>(
+      `observations?astronaut_id=${astronautId}&limit=2400`,
+      signal,
+    ),
     get<Alert[]>("alerts", signal),
     get<Operations>("operations", signal),
     get<CrewSummary[]>("crew/summaries", signal),

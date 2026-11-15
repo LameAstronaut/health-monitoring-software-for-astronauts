@@ -124,6 +124,26 @@ def test_terminal_checkpoint_and_observation_state_survive_restart(client, app_f
     assert result.status_code == 200
     assert all(row["deceased"] for row in result.json()["observations"])
     assert acquire(client).status_code == 409
+    exercise = client.post(
+        "/api/v1/fitness/sessions",
+        json={
+            "astronaut_id": "DEMO-CREW-001",
+            "activity": "CYCLE",
+            "planned_minutes": 10,
+        },
+    )
+    assert exercise.status_code == 409
+    assert "deceased" in exercise.json()["detail"]
+    eva = client.post("/api/v1/eva/sessions", json={"astronaut_id": "DEMO-CREW-001"}).json()
+    eva_actions = f"/api/v1/eva/sessions/{eva['id']}/actions"
+    for step in eva["checklist"]:
+        assert (
+            client.post(eva_actions, json={"action": "CHECK", "step_id": step["id"]}).status_code
+            == 200
+        )
+    start = client.post(eva_actions, json={"action": "START"})
+    assert start.status_code == 409
+    assert "deceased" in start.json()["detail"]
     exam = next(
         exam for exam in client.get("/api/v1/examinations").json() if exam["id"] == pending["id"]
     )

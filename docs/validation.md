@@ -1,45 +1,69 @@
-# Stateful operations verification
+# Codebase audit verification
 
-Verified locally on 2026-11-14 with Python 3.14.8, Node 26.12.1 and Rust 1.99.1:
+Verified locally on 2026-11-15 on Arch Linux with Python 3.14, Node 26 and Chromium.
+These results describe the checked revision; they do not establish clinical validity or
+prove the absence of all defects.
 
-- Backend: **39 pytest cases pass**, including the original validation/ordering tests,
-  examination acquire/review/save/retrieve, source timestamps and stale acquisition rejection,
-  timeout without invented results, persisted
-  controls and checkpoints, safe restart, alert acknowledgment, inventory transactions,
-  exercise/recovery requests, EVA gating/timeline and upgrade of original packet/alert data.
-- Rust: **11 unit tests pass**, including resting stability, gradual correlated response,
-  recovery, bounded seeded pulse/respiratory/combined anomalies and acute marker onset within 12 simulated seconds, seed/chunk determinism, checkpoint restore, ECG separation and static-report invariance.
-  rustfmt and clippy with warnings denied pass; executable builds.
-- Frontend: **23 unit/interaction cases pass**, covering navigation/crew selection, safe
-  missing states, retry, examination requests and explicit review/save, meal logging,
-  eleven risk categories, control conflicts, critical review, warning banners, minimize/reopen, acknowledgment failure/retry, critical escalation during warning review, controllable flashing, reduced motion and collapsed evidence, stale numerical/ECG values and run separation.
-  TypeScript, ESLint, Prettier and production build pass.
-- Browser: **11 Playwright cases pass** against real Rust/FastAPI/Vite, including
-  acquisition/save/export/reload, all destinations, crew baselines, frozen pause time,
-  stale/disconnected numeric and ECG while the API is connected, exercise/recovery,
-  sensor loss, meals, fitness, EVA checklist/timeline, and prioritized acknowledged alerts, full-screen focus/minimize/reopen, and new pulse/respiratory fixtures at 1× speed, turn-signal flashing and reduced-motion behavior.
-  Readability/keyboard/overflow/button checks pass at 1366×768, 1920×1080 and 1024×768.
-- Integration: real Rust publisher → HTTP → SQLite → WebSocket passes, including both
-  priority-ordered alerts, invalid packet rejection, sensor loss and API restart history.
-- Vite integration: actual page entry point plus proxied health and WebSocket telemetry pass.
-- One-command launcher: migration, API and Vite startup/readiness and automatic process
-  shutdown verified on Arch Linux with a separate temporary database.
-- Alembic 0001→0002 runs against fresh and original-schema temporary databases, retaining
-  original observations and alerts. No application records were deleted by the migration.
-- Clean `npm ci` succeeds. Python and npm audits reported no known vulnerabilities
-  in the checked environment after patching development dependencies.
-- Ruff and Bandit pass for the backend. OpenAPI export and TypeScript generation run.
+| Check | Verified result |
+| --- | --- |
+| Backend pytest | 115 passed, including migrations, persisted checkpoints, malformed input, timestamps, alerts, examination lifecycle, inventory, fitness, EVA and public-demo settings |
+| Frontend Vitest | 157 passed across 24 files |
+| Rust | 23 passed; rustfmt and clippy with warnings denied passed |
+| Playwright | 29 passed against the real Rust/FastAPI/Vite stack |
+| Full repository checks | `make check` passed: tests, Ruff, Bandit, ESLint, Prettier, TypeScript and production build |
+| Cross-process integration | `scripts/smoke.py --frontend` passed: Rust → HTTP → SQLite → WebSocket, Vite proxy, invalid packets, disconnect and API restart |
+| Generated contracts | OpenAPI/TypeScript/telemetry schema regenerated without changes |
+| Production assets | Root and `/mission/` builds passed; prefixed assets and bundled body images/portraits checked |
+| Dependency advisory checks | npm audit and pip-audit of the locked Python requirements reported no known vulnerabilities |
+| Server script syntax | `bash -n` passed for the server and Ubuntu/Debian bootstrap scripts |
 
-`make check`, `make smoke`, and the Playwright suite pass. Screenshots and review are in
-[visual-review.md](visual-review.md). The source reference PDF and owner-selected license
-remain outstanding; the corresponding README checkboxes remain open.
+The browser suite exercises every navigation destination and crew selection; examination
+acquisition/review/save/export/reload; weekly calendar and reminders; meals and inventory;
+fitness/recovery; EVA checklist/timeline; manual telemetry and faults; alert priority,
+focus, acknowledgment, minimization, audio/mute and reduced motion; mood; reaction practice
+and persisted averages; body regions; reference-table imports and editable revisions;
+sleep/weight; vehicle radiation pause/restart and crew independence.
 
-Benign Starlette test-client and legacy sqlite fixture datetime deprecation warnings remain. Vite can log EPIPE/ECONNRESET when
-development StrictMode or browser navigation closes a WebSocket; clients reconnect and
-the browser tests pass. Test servers shut down their owned process groups.
+The full-screen sweep checks every screen at widths 320, 390, 640, 768, 1366 and 1920 px
+for horizontal overflow, JavaScript page errors, unloaded images and unlabeled form controls.
+Additional dashboard readability and keyboard checks run at 1366×768, 1920×1080 and
+1024×768. Test evidence is saved under `frontend/test-results/<test-name>`; tests no longer
+overwrite curated presentation screenshots.
 
-Chromium rendering and screenshots were reviewed on this Arch Linux host. This is not a
-formal accessibility/human-factors review. Other browsers, operating systems and toolchain
-versions remain unverified. CI is configured but a remote GitHub Actions run has not been observed.
-Rust vulnerability auditing, full failure injection, coverage targets, clinical validation,
-and formal assurance remain unverified. These checks establish prototype behavior only.
+## Fixes from this audit
+
+- Isolated observations and ECG immediately during crew switches; retained stable array
+  references between clock ticks and memoized unchanged trend charts.
+- Added automatic full-snapshot retries and preserved buffered stream events when a snapshot
+  fails. Delayed alert-creation events cannot undo an acknowledgment, and pending alerts
+  precede acknowledged history in bounded API/stream results.
+- Selected body/risk records by source time across observations and saved reports, scoped
+  them to the selected crew, and marked invalid results instead of displaying their numbers.
+- Enclosed alert evidence tables in keyboard-scrollable regions to fix mobile page overflow.
+  Confined alert flashing to its icon at a one-second period; reading surfaces stay steady.
+  Recovery/navigation attention pulses change borders, retaining reduced-motion support.
+- Cleared manual overrides when exercise/recovery begins, used source time for session peaks,
+  used the server clock for elapsed session time and clamped negative durations. Prevented
+  paused or deceased-crew EVA starts and deceased-crew exercise starts.
+- Rejected backward vehicle-radiation timestamps and malformed NASA source URLs.
+- Used indexed latest-packet observations for complete crew summaries instead of aggregating
+  the entire telemetry history on every poll, retaining sparse-packet fallback behavior.
+- Corrected asset paths for deployments under a URL prefix; expanded initial telemetry
+  snapshots to the advertised 2,400-observation session limit.
+- Fixed stale smoke-test counts, browser fault-application steps, removed-control assertions,
+  shared-alert leakage between scenarios and assumptions that restart deletes saved reports.
+  Isolated test deployment settings from production/GitHub Pages environment settings.
+- Corrected formatting failures and stale current-scope documentation.
+
+## Limits and remaining work
+
+No Docker trial, Oracle deployment, or native Ubuntu/Debian host run was performed. The
+server scripts and public-demo API behavior have local automated coverage; deployment
+readiness still requires verification on the destination server. Other browser engines,
+long-duration load/retention and formal accessibility/medical assurance remain unverified.
+Reaction practice results remain browser-local as documented; a shared reaction-results API
+and ground synchronization are not implemented.
+
+The backend test run emits upstream Starlette/httpx and legacy SQLite fixture datetime
+adapter deprecation warnings. Vite may log EPIPE/ECONNRESET when browser navigation closes
+a proxied WebSocket; the complete browser suite passes and owned test processes shut down.

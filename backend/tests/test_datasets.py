@@ -26,6 +26,7 @@ def test_nasa_source_validation_and_immutability(client):
     data = table()
     data.update(source="NASA", accession="OSD-example")
     for url in [
+        "https://[broken/",
         "http://nasa.gov/data",
         "https://nasa.gov.evil.test/",
         "https://evilnasa.gov/",

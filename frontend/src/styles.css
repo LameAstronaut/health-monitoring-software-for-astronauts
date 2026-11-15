@@ -2179,9 +2179,9 @@ summary {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* Alternate severity surfaces; reduced motion disables the effect. */
-.alert-takeover.is-flashing {
-  animation: alert-attention 500ms step-end infinite;
+/* Confine attention to the icon; reading surfaces and values stay steady. */
+.alert-takeover.is-flashing .alert-symbol {
+  animation: alert-attention 1s step-end infinite;
 }
 @keyframes alert-attention {
   0%,
@@ -2194,6 +2194,16 @@ summary {
     color: var(--ink);
   }
 }
+@keyframes alert-border-attention {
+  0%,
+  100% {
+    border-color: var(--danger);
+  }
+  50% {
+    border-color: var(--danger-border);
+  }
+}
+
 .alert-response {
   padding: 20px 28px;
   border: 2px solid var(--danger-border);
@@ -2392,7 +2402,7 @@ body:has(.alert-takeover[open]) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .alert-takeover.is-flashing {
+  .alert-takeover.is-flashing .alert-symbol {
     animation: none;
   }
   * {
@@ -2566,7 +2576,7 @@ button[aria-pressed="true"] {
   border: 2px solid var(--danger);
   background: var(--danger-solid);
   color: var(--on-strong);
-  animation: alert-attention 500ms step-end infinite;
+  animation: alert-border-attention 1s step-end infinite;
 }
 .metric-card.is-recovering .metric-heading h3,
 .metric-card.is-recovering .metric-value,
@@ -2926,7 +2936,7 @@ button[aria-pressed="true"] {
   background: var(--danger-solid);
   color: var(--on-strong);
   border: 2px solid var(--danger-border);
-  animation: alert-attention 500ms step-end infinite;
+  animation: alert-border-attention 1s step-end infinite;
 }
 .sidebar nav button.nav-anomaly-attention .nav-icon {
   color: inherit;

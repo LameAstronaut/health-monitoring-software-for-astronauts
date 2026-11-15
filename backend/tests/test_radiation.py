@@ -88,3 +88,17 @@ def test_invalid_sensor_values_and_duplicate_sensor_ids_are_rejected(client):
     assert client.post(URL, json=data, headers=TOKEN).status_code == 422
     data = packet(client, observed_at=(datetime.now(UTC) + timedelta(hours=1)).isoformat())
     assert client.post(URL, json=data, headers=TOKEN).status_code == 422
+
+
+def test_vehicle_source_timestamp_cannot_move_backwards(client):
+    first = packet(client)
+    assert client.post(URL, json=first, headers=TOKEN).status_code == 200
+    backward = packet(
+        client,
+        elapsed=61,
+        observed_at=(
+            datetime.fromisoformat(first["observed_at"]) - timedelta(seconds=1)
+        ).isoformat(),
+    )
+    assert client.post(URL, json=backward, headers=TOKEN).status_code == 409
+    assert client.get(URL).json()["simulated_at"] == 60

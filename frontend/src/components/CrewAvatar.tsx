@@ -14,7 +14,9 @@ export function CrewAvatar({
   crew: CrewMember;
   large?: boolean;
 }) {
-  const portrait = PORTRAITS[crew.id];
+  const portrait = PORTRAITS[crew.id]
+    ? `${import.meta.env.BASE_URL}${PORTRAITS[crew.id].slice(1)}`
+    : undefined;
   const [failed, setFailed] = useState<string | null>(null);
   return (
     <span className={`avatar ${large ? "large" : ""}`}>

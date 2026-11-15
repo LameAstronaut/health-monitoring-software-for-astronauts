@@ -16,6 +16,7 @@ import type { ScreenProps } from "./types";
 import { ReactionTest } from "../components/ReactionTest";
 import { BodyMap } from "../components/BodyMap";
 import { VehicleRadiation } from "../components/VehicleRadiation";
+import { recordedMeasurement } from "../recordedMeasurement";
 import { AverageReactionTime } from "../components/AverageReactionTime";
 
 export const RISK_MODULES = [
@@ -149,15 +150,17 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
       (e) => e.astronaut_id === crewId && e.status === "SAVED",
     ) ?? [];
   const observations = mission.observations.filter(
-    (o) => !o.examination_id || saved.some((e) => e.id === o.examination_id),
+    (o) =>
+      o.astronaut_id === crewId &&
+      (!o.examination_id || saved.some((e) => e.id === o.examination_id)),
   );
   const available = module.codes.map((code) => ({
     code,
-    observation: observations.filter((o) => o.code === code).at(-1),
-    exam: saved.find((e) => e.results?.some((r) => r.code === code)),
+    measurement: recordedMeasurement(code, observations, saved),
   }));
   const count =
-    available.filter((item) => item.observation || item.exam).length +
+    available.filter((item) => item.measurement?.result.quality === "VALID")
+      .length +
     (isSensorimotor && latestReactionResult?.responses.length ? 1 : 0);
   return (
     <div className="screen-stack">
@@ -221,32 +224,25 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {available.map(({ code, observation, exam }) => {
-                      const result =
-                        observation ??
-                        exam?.results?.find((r) => r.code === code);
+                    {available.map(({ code, measurement }) => {
+                      const result = measurement?.result;
                       return (
                         <tr key={code}>
                           <td>{NAMES[code]}</td>
                           <td>
-                            {result ? (
+                            {result?.quality === "VALID" ? (
                               `${result.value.toFixed(code === "bone_density" ? 2 : 1)} ${result.unit}`
                             ) : (
-                              <Status value="NOT_AVAILABLE" />
+                              <Status
+                                value={result?.quality ?? "NOT_AVAILABLE"}
+                              />
                             )}
                           </td>
                           <td>
                             {result ? (
                               <>
-                                SIMULATED ·{" "}
-                                {observation?.device_id ?? exam?.device_id}
-                                <small>
-                                  {stamp(
-                                    observation?.observed_at ??
-                                      exam?.acquired_at,
-                                    true,
-                                  )}
-                                </small>
+                                SIMULATED · {measurement?.device}
+                                <small>{stamp(measurement?.time, true)}</small>
                               </>
                             ) : (
                               "No accepted observation / saved report"

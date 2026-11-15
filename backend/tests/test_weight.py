@@ -30,9 +30,7 @@ def test_weight_bounds_apply_to_ingestion_and_controls(client, value):
             "/api/v1/telemetry",
             headers=TOKEN,
             json=packet(
-                measurements=[
-                    {"code": "weight", "value": value, "unit": "kg", "quality": "VALID"}
-                ]
+                measurements=[{"code": "weight", "value": value, "unit": "kg", "quality": "VALID"}]
             ),
         ).status_code
         == 422
@@ -46,9 +44,7 @@ def test_weight_requires_canonical_kilograms(client):
             "/api/v1/telemetry",
             headers=TOKEN,
             json=packet(
-                measurements=[
-                    {"code": "weight", "value": 8, "unit": "lb", "quality": "VALID"}
-                ]
+                measurements=[{"code": "weight", "value": 8, "unit": "lb", "quality": "VALID"}]
             ),
         ).status_code
         == 422

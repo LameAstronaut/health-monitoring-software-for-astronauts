@@ -45,7 +45,7 @@ ECG is a separate 125 Hz `mV` waveform, lead DEMO-II, with logical start time an
 samples. Source, crew, device, UTC timestamps, quality, run and freshness are carried by
 the packet/stream envelope. The UI does not derive ECG from the numerical HR summary.
 
-All eleven risk views share these records. Unsupported candidate measurements (such as
+All nine risk views share these records. Unsupported candidate measurements (such as
 OCT, balance testing or microbiome reports) are explicitly unavailable. There are no clinical
 risk scores. See [simulation equations and limitations](simulation-model.md).
 

@@ -17,6 +17,8 @@ def main():
             ASTRA_DATABASE_URL=f"sqlite:///{directory}/e2e.db",
             ASTRA_DEMO_TOKEN="e2e-demo-only-token",
             ASTRA_MODE="DEMO",
+            ASTRA_DEPLOYMENT_PROFILE="local",
+            ASTRA_FRONTEND_BASE_PATH="/",
             ASTRA_STALE_SECONDS="2",
             ASTRA_DISCONNECT_SECONDS="4",
         )
