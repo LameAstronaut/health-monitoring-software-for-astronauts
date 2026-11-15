@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -12,6 +13,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     mode: Literal["DEMO"] = "DEMO"
+    deployment_profile: Literal["local", "public_demo"] = "local"
     database_url: str = "sqlite:///./astra.db"
     demo_token: str = Field(default="local-demo-only", min_length=8)
     allowed_origin: str = "http://127.0.0.1:5173"
@@ -22,4 +24,20 @@ class Settings(BaseSettings):
     def windows(self):
         if self.disconnect_seconds <= self.stale_seconds:
             raise ValueError("disconnect_seconds must exceed stale_seconds")
+        if self.deployment_profile == "public_demo":
+            origin = urlsplit(self.allowed_origin)
+            if (
+                origin.scheme not in ("http", "https")
+                or not origin.hostname
+                or origin.username
+                or origin.password
+                or origin.path
+                or origin.query
+                or origin.fragment
+            ):
+                raise ValueError("public_demo requires an exact HTTP(S) allowed_origin")
+            if len(self.demo_token) < 32:
+                raise ValueError(
+                    "public_demo requires a generated worker token of at least 32 characters"
+                )
         return self

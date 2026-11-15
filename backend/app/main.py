@@ -43,7 +43,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with engine.connect() as conn:
             conn.execute(text("SELECT event_id FROM packets LIMIT 1"))
         with sessions() as db:
-            initialize(db)
+            initialize(db, pause_on_restart=config.deployment_profile == "local")
         yield
         engine.dispose()
 

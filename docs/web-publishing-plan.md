@@ -3,6 +3,12 @@
 Status: proposed plan, revised for the user's existing Oracle Free Tier VM.
 Server access and the public hostname have not yet been supplied.
 
+The initial all-on-server implementation is now available in
+[Ubuntu/Debian server setup](ubuntu-debian-server.md). It builds and runs every
+service on the VM, without publishing app images or using a separate frontend host.
+Automatic GitHub-triggered updates and server-backed reaction history remain
+separate future work. Docker trials are intentionally omitted at the user's request.
+
 ## Agreed scope
 
 - Reuse the existing Oracle server for the full application.
@@ -28,9 +34,9 @@ flowchart LR
     R[One Rust simulator] -->|Private loopback and worker secret| A
     A --> D[(Persistent SQLite volume)]
     D --> B[Off-server backup]
-    H[GitHub main] --> C[Checks and image build]
-    C --> T[Isolated CI smoke environment]
-    T -->|Deploy verified release| G
+    H[GitHub main] --> C[Code checks]
+    C --> T[Pull checked source on Oracle]
+    T -->|Build and restart on server| G
 ```
 
 Run Caddy, FastAPI, and Rust with Docker Compose. Only the gateway publishes
@@ -62,10 +68,10 @@ container images must match the existing instance. Inspect the actual allocation
 rather than assuming a particular free CPU/memory allowance. See
 [Oracle Always Free resources](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm).
 
-Build artifacts in CI, using native target builds or a verified cross-build setup
-once the architecture is known. Keep smoke/staging checks in CI initially, avoiding
-a second always-running stack on a small free VM. A temporary on-server staging
-stack is optional only if measured capacity permits it.
+Build artifacts on the server with architecture-native container build stages.
+Build the API/Rust and frontend stages sequentially to limit peak memory. Keep
+automated code checks in CI and avoid a second always-running stack on a small
+free VM. The local development machine is not required to serve any app component.
 
 Deliverable: a server inventory and matching deployment target.
 
@@ -158,17 +164,16 @@ Deliverable: a public HTTPS hostname serving the same application.
 ```text
 Push/merge to main
   -> tests and contract checks for that commit
-  -> architecture-matched images tagged with the commit SHA
-  -> GitHub Container Registry
-  -> isolated full-stack smoke checks in CI
-  -> serialized deployment to the existing Oracle VM
+  -> update the source checkout on the Oracle VM
+  -> architecture-native builds on that server
+  -> serialized restart of the complete hosted stack
   -> migration, readiness, and live telemetry verification
 ```
 
 - Gate deployment on successful checks. The current Pages workflow runs separately
   from full CI and only publishes the frontend.
 - Use a dedicated deployment identity and GitHub environment secrets.
-- Deploy tested image digests rather than rebuilding different images on the VM.
+- Build from the exact checked source commit on the VM and record that deployed SHA.
 - Keep CI smoke-test data separate from the public persistent database.
 - Back up before migrations, serialize releases, and avoid overlapping publishers.
 - Retain the previous release and a rollback procedure. Prefer compatible schema
@@ -180,7 +185,12 @@ See GitHub's [image publishing](https://docs.github.com/en/actions/tutorials/pub
 and [deployment environment](https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments)
 documentation.
 
-Deliverable: tested updates on `main` automatically reach the Oracle-hosted app.
+Current commands are `git pull --ff-only origin main` followed by
+`sudo bash scripts/server.sh update`. GitHub-triggered execution of those commands
+is a later wiring step once the server deployment identity is available.
+
+Deliverable: tested updates on `main` reach the Oracle-hosted app with all services
+built and hosted on that server.
 
 ## 7. Verify the hosted release
 

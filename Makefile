@@ -1,14 +1,15 @@
 PYTHON := $(CURDIR)/backend/.venv/bin/python
 SIMULATOR := simulator/target/debug/astra-simulator
 
-.PHONY: help setup dev backend frontend simulator check smoke contracts e2e
+.PHONY: help setup dev backend frontend simulator check smoke contracts e2e server-config server-up server-check server-backup
 
 help:
 	@printf '%s\n' 'make setup     Install locked dependencies and apply local migrations' 'make dev       Start API, dashboard and synthetic simulator; Ctrl+C stops all' 'make check     Run tests, lint, type checks and production build' 'make smoke     Exercise API, Rust, database and Vite REST/WebSocket proxy' 'make contracts Regenerate JSON schemas and TypeScript API types'
+	@printf '%s\n' 'make server-config ORIGIN=https://host  Configure server hosting' 'make server-up     Build and start all services on this server (Docker access required)' 'make server-check  Verify the hosted stack' 'make server-backup Create a consistent database snapshot'
 
 setup:
 	test -f .env || cp .env.example .env
-	python -m venv backend/.venv
+	python3 -m venv backend/.venv
 	$(PYTHON) -m pip install -r backend/requirements.lock
 	$(PYTHON) -m pip install --no-deps -e backend
 	npm ci --prefix frontend
@@ -52,3 +53,15 @@ contracts:
 e2e:
 	cargo build --locked --manifest-path simulator/Cargo.toml
 	npm run test:e2e --prefix frontend
+
+server-config:
+	python3 scripts/configure_server.py --origin "$(ORIGIN)"
+
+server-up:
+	bash scripts/server.sh up
+
+server-check:
+	bash scripts/server.sh check
+
+server-backup:
+	bash scripts/server.sh backup

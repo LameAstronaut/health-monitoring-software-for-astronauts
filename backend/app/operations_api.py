@@ -44,9 +44,11 @@ def build_operations_router(sessions, service, config):
     router = APIRouter(prefix="/api/v1")
 
     async def operator(request: Request):
-        # Demo operator actions are confined to loopback and the configured browser origin.
-        # This is not clinical role authorization; shared deployment remains unsupported.
-        if request.client is None or request.client.host not in ("127.0.0.1", "::1"):
+        # Public demos deliberately retain the existing controls without login.
+        # Local development continues to reject remote mutations.
+        if config.deployment_profile == "local" and (
+            request.client is None or request.client.host not in ("127.0.0.1", "::1")
+        ):
             raise HTTPException(403, "Demo operations are restricted to localhost")
         if request.headers.get("origin") not in (None, config.allowed_origin):
             raise HTTPException(403, "Untrusted operator origin")

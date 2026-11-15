@@ -54,7 +54,7 @@ def insert(db: Session, kind: str, data: dict, astronaut_id: str | None = None):
     return row
 
 
-def initialize(db: Session):
+def initialize(db: Session, *, pause_on_restart: bool = True):
     control = db.get(RecordRow, "demo-control")
     if control is None:
         insert(
@@ -63,8 +63,11 @@ def initialize(db: Session):
             SimulatorControl(run_id=uuid4().hex).model_dump(mode="json") | {"id": "demo-control"},
         )
     else:
-        # Safe API restart: keep the playback checkpoint but require explicit resume.
-        control.data = control.data | {"running": False, "revision": control.data["revision"] + 1}
+        # Local restarts pause; hosted restarts preserve the user's playback choice.
+        control.data = control.data | {
+            "running": False if pause_on_restart else control.data["running"],
+            "revision": control.data["revision"] + 1,
+        }
     if not records(db, "inventory"):
         for data in [
             ("oats", "Oat & berry breakfast", 32, 310, 12, 52, 7, 8),
@@ -122,10 +125,14 @@ def ensure_weekly_examinations(db: Session, now: datetime | None = None):
     marker = db.get(RecordRow, "weekly-calendar-v2")
     if marker is None:
         # Retain old records for provenance, but retire the previous calendar once.
-        marker = insert(db, "calendar-version", {
-            "id": "weekly-calendar-v2",
-            "retiring": [row.id for row in records(db, "exam-plan")],
-        })
+        marker = insert(
+            db,
+            "calendar-version",
+            {
+                "id": "weekly-calendar-v2",
+                "retiring": [row.id for row in records(db, "exam-plan")],
+            },
+        )
         for task in records(db, "task"):
             if task.data["destination"] == "Examinations" and task.data["status"] == "PENDING":
                 task.data = task.data | {"status": "CANCELLED"}
@@ -146,9 +153,7 @@ def ensure_weekly_examinations(db: Session, now: datetime | None = None):
     for crew in CREW:
         for week_offset in (0, 7):
             for day, hour, minute, kind in WEEKLY_EXAMINATIONS:
-                scheduled = monday + timedelta(
-                    days=week_offset + day, hours=hour, minutes=minute
-                )
+                scheduled = monday + timedelta(days=week_offset + day, hours=hour, minutes=minute)
                 slot = scheduled.strftime("%Y-%m-%d-%H%M")
                 plan_id = f"weekly-v2-{crew['id']}-{slot}-{kind}"
                 if db.get(RecordRow, plan_id):

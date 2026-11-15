@@ -1,4 +1,6 @@
 > Recent additions: [Data workspace, manual telemetry, interactive body view, and alert behavior](docs/data-workspace.md).
+>
+> Server hosting: [Ubuntu/Debian setup and commands](docs/ubuntu-debian-server.md).
 
 # MEMENTO MORI
 

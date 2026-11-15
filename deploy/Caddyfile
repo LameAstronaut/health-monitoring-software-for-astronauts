@@ -1,0 +1,20 @@
+{$ASTRA_SITE_ADDRESS} {
+    encode zstd gzip
+    route {
+        @worker path /api/v1/telemetry* /api/v1/demo/runtime* /api/v1/demo/heartbeat*
+        respond @worker "Not found" 404
+        @radiation_ingest {
+            path /api/v1/vehicle/radiation /api/v1/vehicle/radiation/*
+            method POST
+        }
+        respond @radiation_ingest "Not found" 404
+        handle /api/* {
+            reverse_proxy api:8000
+        }
+        handle {
+            root * /srv
+            try_files {path} /index.html
+            file_server
+        }
+    }
+}
