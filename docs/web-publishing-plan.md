@@ -1,240 +1,217 @@
-# Web publishing and synchronization plan
+# Oracle web publishing and synchronization plan
 
-Status: proposed implementation plan. No infrastructure has been provisioned by this task.
+Status: proposed plan, revised for the user's existing Oracle Free Tier VM.
+Server access and the public hostname have not yet been supplied.
 
 ## Agreed scope
 
-- Publish a public, read-only demonstration of Memento Mori.
-- Protect operator controls with authentication and server-side permissions.
-- Automatically publish tested GitHub updates.
-- Share application records and live telemetry across browsers and devices.
-- Preserve the current interface layout, red alerts, sound controls, and yellow mood faces.
+- Reuse the existing Oracle server for the full application.
+- Keep the same frontend: screens, layout, styling, navigation, controls, red
+  alerts, sound effects, and yellow-and-black mood faces.
+- Add no operator login, roles, permission-aware frontend, or read-only visitor mode.
+- Keep existing demo interactions usable through the public URL.
+- Automatically publish tested GitHub updates and share application data across devices.
 - Continue using synthetic data exclusively.
 
-The first release has one shared demo mission. An authenticated operator controls
-the scenario that all visitors see. Anonymous visitors can browse observations
-and records, but cannot restart the simulator, acknowledge shared alerts, save
-check-ins, import datasets, or change shared records. Independent visitor
-playgrounds would require separate demo-session isolation and are a later feature.
+This is one shared, publicly interactive demo. Anyone with its URL can change
+scenarios, acknowledge alerts, and update demo records through the existing
+controls. Those changes are visible to other visitors. Separate visitor sessions
+are outside this release. The previous protected-operator proposal is superseded.
 
-## Findings from the current repository
-
-| Existing behavior | Required publishing work |
-| --- | --- |
-| `.github/workflows/pages.yml` builds and publishes `frontend/dist`. | Deploy the API and simulator as well as static assets. The workflow's existence does not verify that a deployment has succeeded. |
-| Pages publishing runs independently of `.github/workflows/ci.yml`. | Gate releases on successful checks for the exact commit being deployed. |
-| `frontend/vite.config.ts` selects a repository subpath whenever `GITHUB_ACTIONS` is set. | Make the asset base explicit for root-domain hosting; keep a Pages subpath only where needed. |
-| The frontend uses same-origin `/api/v1` REST requests and a same-origin WebSocket. | Serve the application, API, and stream through one HTTPS origin. |
-| FastAPI operator checks trust loopback clients and a browser origin. | Add real operator identity and authorization before exposing mutations. Proxying remote requests through loopback must not grant operator access. |
-| Rust only sends to loopback API destinations. | Keep the simulator alongside the API in a private, shared network namespace. |
-| SQLite is the only supported database; WebSocket subscribers are held in process memory. | Start with one API process, one simulator, and durable local storage. |
-| Operational records already poll every two seconds; telemetry uses WebSockets and REST resynchronization. | Reuse these paths for shared cloud records and reconnect recovery. |
-| Reaction practice results are stored only in browser local storage. | Add server persistence if those results must sync between devices. |
-| API startup pauses playback and advances its control revision. | Include deliberate checkpoint/resume behavior in the deployment procedure. |
-| Telemetry history currently grows without a retention policy. | Measure growth and implement safe retention and disk monitoring before continuous hosting. |
-
-GitHub Pages supports static publishing and does not run Python server applications.
-It cannot host this complete live stack by itself. See [GitHub Pages documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
-
-The Sites skill was also reviewed. Its documented server runtime is Cloudflare
-Workers rather than a native Python/Rust process environment. Hosting the full
-current stack there would require an architectural rewrite or a separately hosted
-backend. It remains an option for a separate presentation/landing page.
-
-## Recommended initial architecture
-
-Use one always-on Linux virtual server, a custom hostname, and Docker Compose.
-Start with a modest server size, then select capacity from measured memory use,
-telemetry storage growth, and the intended concurrent audience. Provider and
-monthly budget remain to be selected; no price commitment is assumed.
+## Target architecture
 
 ```mermaid
 flowchart LR
-    V[Public viewers] -->|HTTPS| G[Caddy gateway]
-    O[Authenticated operator] -->|HTTPS session| G
-    G --> F[Built React assets]
+    U[Browsers: existing app and controls] -->|HTTPS| G[Caddy on Oracle VM]
+    G --> F[Built React frontend]
     G -->|REST and WebSocket| A[One FastAPI process]
     R[One Rust simulator] -->|Private loopback and worker secret| A
-    A --> D[(SQLite persistent volume)]
-    D --> B[Off-server backups]
-    H[GitHub main] --> C[Checks and immutable images]
-    C --> S[Staging validation]
-    S --> G
+    A --> D[(Persistent SQLite volume)]
+    D --> B[Off-server backup]
+    H[GitHub main] --> C[Checks and image build]
+    C --> T[Isolated CI smoke environment]
+    T -->|Deploy verified release| G
 ```
 
-Deployment units:
+Run Caddy, FastAPI, and Rust with Docker Compose. Only the gateway publishes
+HTTP/HTTPS ports. The simulator shares the API container's network namespace to
+preserve its existing loopback-only destination restriction. Keep one API process
+and one simulator for the shared database and in-memory WebSocket subscriptions.
 
-1. **Gateway:** Caddy serves the built frontend, terminates HTTPS, and proxies
-   `/api/v1` including WebSocket upgrades. Only public gateway ports are exposed.
-2. **API:** one FastAPI worker on the private application network, with its SQLite
-   directory mounted on a persistent volume. No public API port mapping.
-3. **Simulator:** a release-built Rust worker sharing the API container's network
-   namespace, keeping `127.0.0.1` connectivity and the existing destination restriction.
-4. **Persistence:** a dedicated database volume, separate staging data, and backups
-   outside the server. Runtime records never enter Git or container images.
+Use the current SQLite schema on a persistent volume. Database files, secrets,
+and runtime history stay outside Git and container images. No database-service
+or frontend-framework migration is required for this release.
 
-Caddy supports WebSocket proxying and automatic HTTPS; production configuration
-must preserve the `/api/v1` prefix and allow SPA navigation fallback. See
+Caddy serves the production frontend build and proxies `/api/v1`, preserving its
+path and WebSocket upgrades, through the same HTTPS origin. See
 [Caddy reverse proxy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy)
 and [automatic HTTPS](https://caddyserver.com/docs/automatic-https).
 
-Configure trusted proxy headers explicitly and keep the allowed browser origin
-equal to the HTTPS application origin. IP addresses and forwarded headers are
-network metadata, not operator authentication. See
-[FastAPI proxy guidance](https://fastapi.tiangolo.com/advanced/behind-a-proxy/).
+## 1. Inspect the existing Oracle server
 
-## Implementation sequence
+Establish the following with read-only checks before changing the VM:
 
-### 1. Establish the release baseline
+- SSH host/alias, OS, CPU architecture, RAM, free disk, and existing workloads.
+- Instance shape and current Always Free eligibility in the Oracle Console.
+- Public IP, subnet routing, OCI security rules, and the host firewall.
+- Existing services on ports 80/443, Docker availability, and persistent storage.
+- Intended public hostname and access to its DNS settings.
 
-- Run the existing backend, frontend, simulator, contract, integration, and browser checks.
-- Fix any failures before enabling deployment automation; do not assume current CI is green.
-- Separate local/web deployment configuration while keeping `SIMULATED` data validation.
-- Replace the implicit `GITHUB_ACTIONS` asset-base behavior with an explicit build setting.
-- List the public read endpoints, operator mutations, and worker-only endpoints.
+Oracle offers both AMD and Arm-based Always Free shapes, so the Rust binary and
+container images must match the existing instance. Inspect the actual allocation
+rather than assuming a particular free CPU/memory allowance. See
+[Oracle Always Free resources](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm).
 
-Deliverable: a passing baseline and a documented deployment configuration contract.
+Build artifacts in CI, using native target builds or a verified cross-build setup
+once the architecture is known. Keep smoke/staging checks in CI initially, avoiding
+a second always-running stack on a small free VM. A temporary on-server staging
+stack is optional only if measured capacity permits it.
 
-### 2. Protect operator actions
+Deliverable: a server inventory and matching deployment target.
 
-- Add operator login, using a configured identity provider and an allowlist of operators.
-  GitHub OAuth is a practical initial option; provider selection and account setup
-  are deployment inputs rather than assumptions about existing credentials.
-- Use server-managed sessions with secure, HttpOnly cookies and CSRF protection.
-- Require operator permissions on every mutation, including alert acknowledgment,
-  check-ins, examinations, simulator controls, datasets, meals, and EVA/fitness actions.
-- Make the public interface read-only using returned permissions; keep server checks
-  authoritative even when a visitor manually calls an endpoint.
-- Preserve browser-local actions such as selecting crew, minimizing a warning,
-  muting audio, and practicing reaction timing.
-- Keep runtime, heartbeat, physiology ingestion, and radiation ingestion private to
-  the worker. Deny their public gateway access, retaining worker-token validation.
-- Replace the default worker token with a deployment secret, never a `VITE_*` value.
-- Bound public reads, imports, request sizes, and WebSocket connection rates.
+## 2. Make the same application work on the web
 
-Deliverable: anonymous browsing works; unauthenticated and unauthorized writes fail;
-an allowlisted operator can demonstrate the complete workflow.
+- Run the existing checks and resolve failures before adding deployment automation.
+- Replace `frontend/vite.config.ts`'s implicit `GITHUB_ACTIONS` repository subpath
+  with an explicit asset-base setting; use `/` for the hosted application.
+- Serve `frontend/dist` rather than running Vite's development server publicly.
+- Preserve the frontend's same-origin `/api/v1` REST and WebSocket connections.
+- Set the backend's allowed origin to the exact public HTTPS application origin.
+- Add an explicit backend public-demo deployment profile. Allow existing browser
+  mutations without operator authentication in that profile, retaining request
+  validation and same-origin browser checks. Preserve local-only behavior for
+  local development.
+- Configure trusted proxy handling deliberately. Do not rely on making remote
+  clients appear to be localhost to bypass the current mutation guard. See
+  [FastAPI proxy guidance](https://fastapi.tiangolo.com/advanced/behind-a-proxy/).
+- Keep runtime, heartbeat, physiology ingestion, and radiation ingestion private
+  to the worker. Retain token validation and block those public gateway routes.
+- Generate a deployment worker secret instead of using `local-demo-only`; keep
+  it outside frontend bundles and `VITE_*` variables.
+- Retain bounded payloads and appropriate request/import/WebSocket limits for
+  the VM's capacity, without introducing login or role-based interface restrictions.
 
-### 3. Complete cross-device data synchronization
+Deliverable: the existing interactive app works at its public URL, while worker
+internals remain private. No operator-control system is introduced.
 
-- Use the hosted API and database as the authoritative shared state.
-- Retain existing telemetry WebSockets, bounded queues, snapshot recovery, and
-  two-second operational polling. Do not claim instantaneous updates for polled records.
-- Add typed API storage for completed reaction tests with mission/crew identity,
-  completion time, response timings, and false-start/missed-cue counts. Persist
-  completed results through authenticated operator writes and read them across devices.
-- Keep audio preference and selected crew local to each browser. These are interface
-  preferences rather than shared mission records.
-- Keep radiation records associated with the vehicle, without a crew identifier.
-- Continue rejecting stale control revisions. Add appropriate revisions or conditional
-  updates for records where concurrent operator edits could otherwise overwrite changes.
-- Define a fresh hosted seed as the default launch state. If existing laptop history is
-  needed, make a one-time, validated import with original event IDs and provenance.
+## 3. Synchronize records across devices
 
-Deliverable: a phone and laptop see the same accepted records; temporary disconnects
-recover through snapshots without duplicate records or false LIVE indicators.
+- Use the hosted API and SQLite volume as the shared source of truth.
+- Reuse telemetry WebSockets, snapshot/reconnect recovery, and the two-second
+  polling of operational records.
+- Persist completed reaction practice results through a typed API instead of
+  browser storage alone. Keep the existing display and interactions; only their
+  persistence wiring changes. Store mission/crew identity, completion time,
+  response timings, and false-start/missed-cue counts.
+- Keep selected crew and audio preferences local to each browser.
+- Keep radiation records vehicle-wide, without a crew association.
+- Retain stale-revision rejection for simulator controls. Use appropriate
+  conditional updates where simultaneous visitors could overwrite records.
+- Start with a fresh hosted seed. Import laptop history only if requested,
+  preserving validated event IDs and provenance.
 
-This phase covers online shared-state synchronization. Offline bidirectional laptop
-replication and spacecraft-to-ground store-and-forward synchronization require a
-separate conflict, identity, and delivery protocol and are outside the first release.
+Deliverable: the same accepted records appear on a phone and laptop and survive
+refresh and service restarts. Public interactions affect the same shared demo.
 
-### 4. Package and operate the services
+Offline bidirectional database replication and spacecraft-to-ground synchronization
+remain separate future features. Runtime data travels through the API, not Git.
+
+## 4. Package the services and persistence
 
 - Add production Dockerfiles, `.dockerignore`, Compose configuration, a Caddyfile,
   and environment examples containing placeholders only.
-- Build the frontend and Rust binary in build stages; use production API serving
-  rather than Vite's development server.
-- Add startup ordering and a single Alembic migration step before the API accepts traffic.
-- Configure restart policies and graceful simulator/API shutdown.
-- Preserve the run/checkpoints across releases. Restore the intended running or
-  paused state deliberately after migration and worker readiness; do not start a new
-  run on every deployment or leave a previously running public demo paused accidentally.
-- Add readiness checks for fresh worker heartbeat and telemetry, beyond the existing
-  API/database health endpoint. Alert on process failure, disk growth, and stale acquisition.
-- Establish configurable retention for raw waveforms and routine telemetry. Archive
-  or prune only with a policy that preserves alert evidence, saved examinations,
-  provenance, and database references.
-- Schedule consistent SQLite backups and perform a restore drill. Use SQLite's
-  backup mechanism rather than copying an actively changing database file blindly.
-  See [SQLite backup documentation](https://sqlite.org/backup.html).
+- Use architecture-matched gateway, API, and Rust images.
+- Keep SQLite on a persistent volume with defined ownership.
+- Apply Alembic migrations once before the API serves a release.
+- Add restart policies, graceful shutdown, and readiness checks.
+- Preserve simulator checkpoints. API startup currently pauses playback and changes
+  the control revision, so deployment must deliberately restore the intended
+  running/paused state after migration and worker readiness.
+- Verify fresh telemetry and worker heartbeat, beyond the API health response.
+- Measure telemetry/ECG storage growth and implement safe retention, preserving
+  saved reports, alert evidence, provenance, and database references.
+- Schedule consistent backups outside the VM and verify restoration with the
+  [SQLite backup mechanism](https://sqlite.org/backup.html).
+- Account for Oracle's documented possibility of reclaiming idle Always Free
+  instances in availability expectations and backup procedures. See
+  [Oracle's resource policy](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm).
 
-Deliverable: a staging stack that survives browser refresh, worker restart, API
-restart, and service redeployment while preserving accepted records.
+Deliverable: service redeployment preserves accepted records and demo state.
 
-### 5. Automate GitHub-to-web publishing
+## 5. Configure Oracle networking and HTTPS
 
-Proposed release path:
+- Point the selected hostname at the VM's public address.
+- Allow TCP 80/443 in the applicable OCI security rules and host firewall,
+  accounting for existing services and preserving required system rules.
+- Keep SSH access scoped to the administration/deployment path.
+- Publish gateway ports only; keep the API port and worker endpoints private.
+- Verify HTTPS renewal, redirects, REST requests, and WebSocket upgrades.
+
+Both OCI network rules and the instance firewall affect reachability. See Oracle's
+[web-server tutorial](https://docs.oracle.com/en/learn/lab_compute_instance/)
+and [compute networking guidance](https://docs.oracle.com/en-us/iaas/Content/Security/Reference/compute_security.htm).
+
+Deliverable: a public HTTPS hostname serving the same application.
+
+## 6. Automatically publish GitHub updates
 
 ```text
 Push/merge to main
-  -> checks for that commit
-  -> build images tagged with the commit SHA
-  -> publish to GitHub Container Registry
-  -> deploy the same images to isolated staging
-  -> HTTPS, authorization, WebSocket, persistence, and browser smoke checks
-  -> deploy those tested image digests to the public demo
-  -> verify fresh telemetry and record the deployed version
+  -> tests and contract checks for that commit
+  -> architecture-matched images tagged with the commit SHA
+  -> GitHub Container Registry
+  -> isolated full-stack smoke checks in CI
+  -> serialized deployment to the existing Oracle VM
+  -> migration, readiness, and live telemetry verification
 ```
 
-- Extend the existing workflows so deployment depends on checks, rather than
-  publishing the frontend independently on every push.
-- Keep staging and public-demo data and secrets separate. The public demo has
-  exactly one active API and simulator pair; never run overlapping publishers.
-- Use GitHub environments for deployment secrets and branch restrictions. Normal
-  successful releases can be automatic, as requested; any manual release gate
-  would be an explicit later preference.
-- Pin deployment credentials to the required repository/environment permissions.
-- Perform a pre-migration backup and serialized deployment; reject overlapping releases.
-- Retain the previous image digests and a rollback procedure. Prefer compatible
-  schema changes: rolling back code alone cannot undo an incompatible migration.
-- Replace the current Pages application deployment with the full-stack release.
-  A Pages project may instead host a presentation page that links to the live demo.
+- Gate deployment on successful checks. The current Pages workflow runs separately
+  from full CI and only publishes the frontend.
+- Use a dedicated deployment identity and GitHub environment secrets.
+- Deploy tested image digests rather than rebuilding different images on the VM.
+- Keep CI smoke-test data separate from the public persistent database.
+- Back up before migrations, serialize releases, and avoid overlapping publishers.
+- Retain the previous release and a rollback procedure. Prefer compatible schema
+  changes; reverting images alone cannot reverse an incompatible migration.
+- Replace the application-only Pages deployment with the Oracle deployment.
+  A separate Pages presentation page remains optional.
 
-GitHub documents [publishing container images](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images)
-and [deployment environments](https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments).
+See GitHub's [image publishing](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images)
+and [deployment environment](https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments)
+documentation.
 
-Deliverable: a tested commit on `main` reaches the public demo automatically, with
-an identifiable deployed SHA and a working rollback procedure.
+Deliverable: tested updates on `main` automatically reach the Oracle-hosted app.
 
-### 6. Launch and verify the public demo
+## 7. Verify the hosted release
 
-- Configure the chosen domain's DNS, HTTPS, deployment secrets, and operator allowlist.
-- Check that the public demo runs independently of the development laptop.
-- Verify anonymous reads and denied writes, authenticated operator actions, and
-  rejection of direct requests that bypass disabled interface controls.
-- Verify REST, WebSocket reconnects, radiation freshness, persisted mood/reaction
-  records, examination review/save/export, and red alert sound controls on HTTPS.
-- Check laptop and phone synchronization, simultaneous viewers, and two operator
-  sessions attempting conflicting edits.
-- Test backup restoration, previous-release rollback, simulator loss, and API restart.
-- Keep the interface's synthetic-data labels visible; publish only synthetic demo records.
+- Check the existing layout and workflows on a laptop and phone.
+- Verify controls work without login: scenario changes, acknowledgment, mood
+  submissions, examinations, and normal demo record updates.
+- Confirm accepted changes appear in another browser and concurrent updates
+  receive appropriate conflict handling.
+- Check telemetry freshness, reconnects, vehicle radiation, and synced reaction results.
+- Verify red alerts, audio enable/mute on HTTPS, and yellow mood faces.
+- Verify worker-only endpoints cannot be reached through the public gateway.
+- Test service/VM restart, deployment persistence, backups, restoration, and rollback.
+- Retain synthetic-data labels and DEMO-only validation.
 
-Deliverable: a working public HTTPS URL and a short operator/deployment runbook.
+## Planned repository work
 
-## Planned repository changes
+- Production container, Compose, gateway, and deployment configuration.
+- `.github/workflows/` — checked builds, isolated smoke tests, Oracle deployment.
+- `frontend/vite.config.ts` — explicit deployment base path.
+- Backend public-demo profile and shared reaction-result storage.
+- Frontend reaction persistence plumbing, with no redesign or control gating.
+- Hosted-origin, private-worker-route, synchronization, migration, and recovery tests.
+- An Oracle deployment/backup/restore runbook.
 
-- `docs/web-publishing-plan.md` — this plan.
-- Production container/Compose/gateway files and deployment environment examples.
-- `.github/workflows/` — gated build, staging, release, and rollback automation.
-- `frontend/vite.config.ts` — explicit asset-base configuration.
-- Backend authentication, permissions, shared reaction-result storage, and web-profile settings.
-- Frontend permission-aware actions and server-backed reaction history, preserving layout.
-- Authorization, reconnect, persistence, migration, deployment, and cross-device tests.
-- Operations documentation for secrets, retention, backup, restore, and operator use.
+## Details needed to implement
 
-## Decisions needed before provisioning
+1. SSH host/alias and user, using an already configured local key or deployment identity.
+2. OS, architecture, memory/disk, and existing workloads; inspect these over SSH.
+3. Desired public hostname and DNS access.
+4. Intended history retention and approximate concurrent audience.
 
-1. Hosting provider/account, region, and monthly budget ceiling.
-2. Public hostname and access to its DNS settings.
-3. Identity provider and the operator accounts to allow.
-4. Expected concurrent audience and how long demo history should be retained.
-
-These choices affect provisioning details, not the agreed public-viewer/protected-operator
-model or the requirement to synchronize both releases and shared application records.
-
-## Later scaling
-
-Keep one API process for the first release. Multiple API workers would need a
-shared event-distribution mechanism for WebSockets; PostgreSQL would require
-changes to the SQLite-specific connection, queries, and migrations. Introduce
-those together when measured load or availability requirements justify scaling.
+Private key contents stay outside chat and Git. Provider selection and operator
+account setup are no longer outstanding: Oracle is selected, and operator
+authentication is omitted by request.
