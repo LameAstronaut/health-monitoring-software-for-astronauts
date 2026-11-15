@@ -1411,6 +1411,21 @@
             "title": "Initials",
             "default": "AM"
           },
+          "body_variant": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "male",
+                  "female"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Variant"
+          },
           "baseline": {
             "additionalProperties": {
               "type": "number"

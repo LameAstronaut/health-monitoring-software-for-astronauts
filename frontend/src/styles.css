@@ -2510,12 +2510,12 @@ button[aria-pressed="true"] {
   display: block;
   width: 64px;
   height: 64px;
-  color: #294756;
+  color: #172b38;
   flex-shrink: 0;
 }
 .mood-face-fill {
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 3;
 }
 .mood-1 .mood-face-fill {
   fill: #f97316;
@@ -2763,4 +2763,23 @@ button[aria-pressed="true"] {
   .plan-dialog {
     padding: 20px;
   }
+}
+
+.examination-reminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 18px 22px;
+  border: 1px solid #b97716;
+  border-left: 4px solid #b97716;
+  border-radius: 12px;
+  background: #fff7e5;
+  color: #593b0a;
+}
+.examination-reminder ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
 }

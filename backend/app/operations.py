@@ -87,7 +87,6 @@ def initialize(db: Session):
     if not records(db, "task"):
         for i, crew in enumerate(CREW):
             for offset, title, destination in [
-                (1, "Record a routine blood-pressure fixture", "Examinations"),
                 (2, "Log a synthetic meal", "Nutrition"),
                 (3, "Complete an exercise demo", "Fitness"),
             ]:
@@ -99,22 +98,79 @@ def initialize(db: Session):
                     destination=destination,
                 )
                 insert(db, "task", task.model_dump(mode="json"), crew["id"])
-    # Existing routine-examination tasks become calendar plans once, without inventing a regimen.
-    for i, crew in enumerate(CREW):
-        task_id = f"demo-task-{i}-1"
-        task = db.get(RecordRow, task_id)
-        plan_id = f"planned-{task_id}"
-        if task and db.get(RecordRow, plan_id) is None:
-            plan = ExaminationPlan(
-                id=plan_id,
-                astronaut_id=crew["id"],
-                kind="BLOOD_PRESSURE",
-                scheduled_at=task.data["due_at"],
-                task_id=task_id,
-                status="COMPLETED" if task.data["status"] == "COMPLETE" else "PLANNED",
-                notes="Imported from the existing routine examination task.",
-            )
-            insert(db, "exam-plan", plan.model_dump(mode="json"), crew["id"])
+    ensure_weekly_examinations(db)
+    db.commit()
+
+
+# Shared synthetic fixture template: weekday (Monday = 0), hour, minute, kind.
+WEEKLY_EXAMINATIONS = (
+    (0, 9, 0, "BLOOD_PRESSURE"),
+    (0, 9, 30, "BODY_TEMPERATURE"),
+    (2, 9, 0, "LAB_PANEL"),
+    (2, 9, 30, "BODY_TEMPERATURE"),
+    (4, 9, 0, "BLOOD_PRESSURE"),
+    (4, 10, 0, "BONE_DENSITY"),
+)
+
+
+def ensure_weekly_examinations(db: Session, now: datetime | None = None):
+    """Generate a fresh shared template, independent of previous calendar settings."""
+    now = (now or datetime.now(UTC)).astimezone(UTC)
+    monday = (now - timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    marker = db.get(RecordRow, "weekly-calendar-v2")
+    if marker is None:
+        # Retain old records for provenance, but retire the previous calendar once.
+        marker = insert(db, "calendar-version", {
+            "id": "weekly-calendar-v2",
+            "retiring": [row.id for row in records(db, "exam-plan")],
+        })
+        for task in records(db, "task"):
+            if task.data["destination"] == "Examinations" and task.data["status"] == "PENDING":
+                task.data = task.data | {"status": "CANCELLED"}
+    active_plan_ids = {
+        row.data.get("plan_id")
+        for row in records(db, "examination")
+        if row.data["status"] in ("ACQUIRING", "REVIEW")
+    }
+    deferred = []
+    for plan_id in marker.data["retiring"]:
+        if plan_id in active_plan_ids:
+            deferred.append(plan_id)
+            continue
+        row = db.get(RecordRow, plan_id)
+        if row:
+            row.kind = "archived-exam-plan"
+    marker.data = marker.data | {"retiring": deferred}
+    for crew in CREW:
+        for week_offset in (0, 7):
+            for day, hour, minute, kind in WEEKLY_EXAMINATIONS:
+                scheduled = monday + timedelta(
+                    days=week_offset + day, hours=hour, minutes=minute
+                )
+                slot = scheduled.strftime("%Y-%m-%d-%H%M")
+                plan_id = f"weekly-v2-{crew['id']}-{slot}-{kind}"
+                if db.get(RecordRow, plan_id):
+                    continue
+                task_id = f"task-{plan_id}"
+                plan = ExaminationPlan(
+                    id=plan_id,
+                    astronaut_id=crew["id"],
+                    kind=kind,
+                    scheduled_at=scheduled,
+                    task_id=task_id,
+                    notes="Shared weekly demo schedule · UTC.",
+                )
+                insert(db, "exam-plan", plan.model_dump(mode="json"), crew["id"])
+                task = Task(
+                    id=task_id,
+                    astronaut_id=crew["id"],
+                    title=f"{kind.replace('_', ' ').capitalize()} examination",
+                    due_at=scheduled,
+                    destination="Examinations",
+                )
+                insert(db, "task", task.model_dump(mode="json"), crew["id"])
     db.commit()
 
 
@@ -229,6 +285,7 @@ def expire_examinations(db: Session):
 
 def snapshot(db: Session) -> OperationsSnapshot:
     expire_examinations(db)
+    ensure_weekly_examinations(db)
 
     def items(kind):
         rows = records(db, kind)

@@ -482,21 +482,12 @@ def build_operations_router(sessions, service, config):
                 raise HTTPException(
                     409, "Reschedule the cancelled examination before completing this task"
                 )
+            if any(
+                plan.data.get("task_id") == task_id and plan.data["status"] != "COMPLETED"
+                for plan in ops.records(db, "exam-plan")
+            ):
+                raise HTTPException(409, "Review and save the examination to complete this task")
             row.data = row.data | {"status": "COMPLETE"}
-            plan = db.get(RecordRow, f"planned-{task_id}")
-            if plan and plan.data["status"] == "PLANNED":
-                if any(
-                    exam.data.get("plan_id") == plan.id
-                    and exam.data["status"] in ("ACQUIRING", "REVIEW")
-                    for exam in ops.records(db, "examination")
-                ):
-                    raise HTTPException(
-                        409, "Review the active examination before completing this task"
-                    )
-                plan.data = plan.data | {
-                    "status": "COMPLETED",
-                    "revision": plan.data["revision"] + 1,
-                }
             db.commit()
             return row.data
 

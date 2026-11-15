@@ -171,7 +171,13 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
         Availability is shown explicitly; no clinical risk scores or AI
         conclusions are generated.
       </div>
-      <BodyMap observations={observations} examinations={saved} />
+      <BodyMap
+        observations={observations}
+        examinations={saved}
+        bodyVariant={
+          mission.crew.find((crew) => crew.id === crewId)?.body_variant
+        }
+      />
       <div className="risk-layout">
         <nav className="risk-nav" aria-label="Health risk categories">
           {RISK_MODULES.map((item, i) => (

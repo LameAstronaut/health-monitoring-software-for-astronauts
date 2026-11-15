@@ -1,3 +1,4 @@
+import { upcomingTasks } from "../examinationSchedule";
 import { ExaminationCalendar } from "../components/ExaminationCalendar";
 import { useVitalRecovery } from "../useVitalRecovery";
 import { useState } from "react";
@@ -118,10 +119,7 @@ export function Dashboard(props: ScreenProps) {
   const alerts = mission.alerts.filter(
     (a) => a.astronaut_id === crewId && a.state === "PENDING_REVIEW",
   );
-  const tasks =
-    mission.operations?.tasks
-      .filter((t) => t.astronaut_id === crewId && t.status === "PENDING")
-      .sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at)) ?? [];
+  const tasks = upcomingTasks(mission.operations, crewId, mission.serverNow);
   return (
     <div className="screen-stack">
       <CrewStrip {...props} />
@@ -188,11 +186,11 @@ export function Dashboard(props: ScreenProps) {
         </Panel>
         <Panel
           title="Upcoming tasks"
-          action={<span className="muted">{tasks.length} remaining</span>}
+          action={<span className="muted">{tasks.length} today · UTC</span>}
         >
           {tasks.length ? (
             <ul className="task-list">
-              {tasks.slice(0, 4).map((task) => (
+              {tasks.map((task) => (
                 <li key={task.id}>
                   <span className="task-icon">□</span>
                   <div>
@@ -205,26 +203,29 @@ export function Dashboard(props: ScreenProps) {
                       Open {task.destination.toLowerCase()} →
                     </button>
                   </div>
-                  <button
-                    className="icon-button"
-                    disabled={busy}
-                    aria-label={`Complete task: ${task.title}`}
-                    onClick={() =>
-                      void action(
-                        `tasks/${task.id}/complete`,
-                        undefined,
-                        "Demo task completed",
-                      )
-                    }
-                  >
-                    ✓
-                  </button>
+                  {!task.examination && (
+                    <button
+                      className="icon-button"
+                      disabled={busy}
+                      aria-label={`Complete task: ${task.title}`}
+                      onClick={() =>
+                        void action(
+                          `tasks/${task.id}/complete`,
+                          undefined,
+                          "Demo task completed",
+                        )
+                      }
+                    >
+                      ✓
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
           ) : (
             <Empty title="No pending tasks">
-              Completed tasks remain in the local operations record.
+              No pending tasks scheduled for today (UTC). View the calendar for
+              other days.
             </Empty>
           )}
         </Panel>

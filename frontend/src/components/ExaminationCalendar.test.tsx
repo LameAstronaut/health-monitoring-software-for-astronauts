@@ -1,12 +1,6 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { ExaminationCalendar, startOfWeek } from "./ExaminationCalendar";
@@ -32,14 +26,6 @@ function props(entries: ExaminationPlan[] = [plan]) {
   mission.operations!.exam_plans = entries;
   return { mission, crewId: "DEMO-CREW-001", navigate: vi.fn() };
 }
-beforeEach(() => {
-  HTMLDialogElement.prototype.showModal = function () {
-    this.open = true;
-  };
-  HTMLDialogElement.prototype.close = function () {
-    this.open = false;
-  };
-});
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();
@@ -85,69 +71,20 @@ it("shows only this crew's week and supports previous, next, and this week", asy
   expect(screen.getByText("Crew one")).toBeVisible();
 });
 
-it("saves a selected day in UTC and immediately displays the returned plan", async () => {
-  const input = props([]);
-  vi.mocked(post).mockResolvedValueOnce(plan);
-  render(<ExaminationCalendar {...input} />);
-  await userEvent.click(
-    screen.getByRole("button", { name: "Schedule examination on 2026-11-14" }),
-  );
-  const modal = screen.getByRole("dialog", { name: "Schedule examination" });
-  const date = within(modal).getByLabelText("Date and time (UTC)");
-  expect(date).toHaveFocus();
-  expect(date).toHaveValue("2026-11-14T09:00");
-  await userEvent.selectOptions(
-    within(modal).getByRole("combobox", { name: "Examination type" }),
-    "BODY_TEMPERATURE",
-  );
-  await userEvent.type(
-    within(modal).getByRole("textbox", { name: "Notes (optional)" }),
-    "Crew one",
-  );
-  await userEvent.click(
-    within(modal).getByRole("button", { name: "Save plan" }),
-  );
-  expect(post).toHaveBeenCalledWith("examination-plans", {
-    astronaut_id: "DEMO-CREW-001",
-    kind: "BODY_TEMPERATURE",
-    scheduled_at: "2026-11-14T09:00:00.000Z",
-    notes: "Crew one",
-  });
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  expect(screen.getByText("Crew one")).toBeVisible();
-});
-
-it("keeps failed edits open with the draft intact", async () => {
-  vi.mocked(post).mockRejectedValueOnce(new Error("Plan changed"));
+it("keeps prescheduled examinations read-only on the crew screen", () => {
   render(<ExaminationCalendar {...props()} />);
-  await userEvent.click(screen.getByRole("button", { name: "Reschedule" }));
-  fireEvent.change(screen.getByLabelText("Date and time (UTC)"), {
-    target: { value: "2026-11-15T11:00" },
-  });
-  await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-  expect(screen.getByRole("alert")).toHaveTextContent("Plan changed");
-  expect(screen.getByLabelText("Date and time (UTC)")).toHaveValue(
-    "2026-11-15T11:00",
-  );
-  expect(post).toHaveBeenCalledWith(
-    "examination-plans/plan-1",
-    expect.objectContaining({ expected_revision: 0, action: "RESCHEDULE" }),
-  );
-});
-
-it("cancels without deleting the plan and allows rescheduling it", async () => {
-  vi.mocked(post).mockResolvedValueOnce({
-    ...plan,
-    status: "CANCELLED",
-    revision: 1,
-  });
-  render(<ExaminationCalendar {...props()} />);
-  await userEvent.click(screen.getByRole("button", { name: "Cancel plan" }));
-  expect(screen.getByText("CANCELLED")).toBeVisible();
   expect(
-    screen.queryByRole("button", { name: "Start examination" }),
-  ).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Reschedule" })).toBeEnabled();
+    screen.getByText(/Scheduling is managed by mission administration/),
+  ).toBeVisible();
+  for (const name of [
+    /Schedule examination/,
+    /Plan exam/,
+    /Reschedule/,
+    /Cancel plan/,
+  ]) {
+    expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+  }
+  expect(post).not.toHaveBeenCalled();
 });
 
 it("starts the correct crew, kind and instrument with the linked plan", async () => {
@@ -167,13 +104,10 @@ it("starts the correct crew, kind and instrument with the linked plan", async ()
   expect(input.navigate).toHaveBeenCalledWith("Examinations");
 });
 
-it("allows planning while paused but disables acquisition", () => {
+it("displays the schedule while paused but disables acquisition", () => {
   const input = props();
   input.mission.operations!.control.running = false;
   render(<ExaminationCalendar {...input} />);
-  expect(
-    screen.getByRole("button", { name: "Schedule examination" }),
-  ).toBeEnabled();
   expect(
     screen.getByRole("button", { name: "Start examination" }),
   ).toBeDisabled();

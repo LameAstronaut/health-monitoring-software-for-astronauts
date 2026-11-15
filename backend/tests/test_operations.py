@@ -213,7 +213,10 @@ def test_alert_acknowledgment_and_tasks_are_idempotent(client):
     assert acknowledged["state"] == "ACKNOWLEDGED"
     assert acknowledged["acknowledged_by"] == "DEMO-OPERATOR"
     assert client.post(f"/api/v1/alerts/{alert_id}/acknowledge").json() == acknowledged
-    task = client.get("/api/v1/operations").json()["tasks"][0]
+    task = next(
+        task for task in client.get("/api/v1/operations").json()["tasks"]
+        if task["destination"] != "Examinations"
+    )
     assert client.post(f"/api/v1/tasks/{task['id']}/complete").json()["status"] == "COMPLETE"
 
 

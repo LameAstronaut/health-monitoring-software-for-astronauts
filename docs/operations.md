@@ -71,19 +71,48 @@ crew member, using UTC to match the rest of the interface. Previous week, This w
 and Next week navigate across month/year boundaries. Tablet calendars scroll
 horizontally; phone calendars stack the seven labeled days without page overflow.
 
-Schedule examination (or a day's Plan exam button) adds an examination type, date,
-time and optional notes. Plans persist in local operational records across reloads
-and playback/API restarts. Reschedule uses a revision guard; Cancel plan preserves
-the record, and rescheduling can restore a cancelled plan. Completed plans cannot
-be edited. Existing routine blood-pressure tasks are imported once per crew and
-keep their original due dates; no clinical schedule or recurring regimen is generated.
-Cancelling/rescheduling an imported plan also updates its linked task.
+Crew calendars are read-only: crew can start examinations and view their history,
+but cannot create, reschedule, or cancel plans. An administration panel is deferred.
+The existing operator plan API remains available for future administration tooling.
+Plans persist in local operational records across reloads and playback/API restarts.
+The calendar starts from a fresh shared demo template; old calendar settings and
+routine task dates are not imported. Previous plans are archived and their pending
+examination tasks retired, preserving examination reports. An examination already
+in acquisition/review can finish before its previous plan is archived.
+
+Every crew member receives the same weekly UTC schedule:
+
+| Day | Time | Examination |
+| --- | --- | --- |
+| Monday | 09:00 | Blood pressure |
+| Monday | 09:30 | Body temperature |
+| Wednesday | 09:00 | Laboratory panel |
+| Wednesday | 09:30 | Body temperature |
+| Friday | 09:00 | Blood pressure |
+| Friday | 10:00 | Bone density |
+
+The backend preschedules this week and next week with separate persistent plans
+and linked tasks for every slot and crew member. Completed/cancelled slots are not
+regenerated on refresh or restart. This is a synthetic demo template.
+
+Upcoming tasks shows only pending tasks scheduled for the current server UTC day,
+including every examination on that day. It updates at midnight UTC. The weekly
+calendar retains the full schedule, including overdue examinations from earlier
+days. Examination entries derive directly from the same
+plans as the calendar, including plans without linked task records. Rescheduling changes the
+due date in both places; cancelled and completed plans leave the upcoming list.
+Examination tasks cannot be manually marked complete: Review & save result records
+completion and links the report atomically. Other task types retain manual completion.
 
 Start examination uses the planned crew, type and registered virtual instrument.
-Planning works while playback is paused, but acquisition requires fresh running
-telemetry and a living crew member. An active acquisition/review must be finished
-or cancelled before another begins. Acquiring or reviewing alone does not complete
-a plan: Review & save result records completion and links the report atomically.
-A failed/cancelled acquisition leaves the plan available to retry. The existing
-explicit Complete task action can also mark an imported plan complete without a
-linked report. Historical records and independent crew calendars are retained.
+Acquisition requires fresh running telemetry and a living crew member. An active
+acquisition/review must be finished or cancelled before another begins. A failed
+or cancelled acquisition leaves the plan available to retry.
+
+An accessible, dismissible in-app notification appears on every screen only during
+the scheduled minute of an examination for the selected crew, using server UTC.
+It never appears early or replays older overdue appointments. It links to
+Examinations and clears after that minute, on dismissal, during acquisition/review,
+or after completion or plan cancellation. Switching crew switches reminders. Disconnected views label the
+schedule as last received. Notifications operate while the application is open;
+no browser push permission or background delivery is configured.

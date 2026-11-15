@@ -82,3 +82,25 @@ it("links saved body-temperature examinations to arms with instrument and time",
   expect(screen.getByText(/SIMULATED · DEMO-TEMP-001/)).toBeVisible();
   expect(screen.getByText(/09:00:00 UTC/)).toBeVisible();
 });
+
+it("switches the crew body image while keeping the selected region interactive", async () => {
+  const view = render(
+    <BodyMap observations={[reading]} examinations={[]} bodyVariant="female" />,
+  );
+  expect(screen.getByRole("img")).toHaveAttribute(
+    "src",
+    "/assets/astronaut-body-realistic.png",
+  );
+  view.rerender(
+    <BodyMap observations={[reading]} examinations={[]} bodyVariant="male" />,
+  );
+  expect(screen.getByRole("img", { name: /male astronaut/ })).toHaveAttribute(
+    "src",
+    "/assets/astronaut-body-male.png",
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Head & eyes" }));
+  expect(screen.getByRole("button", { name: "Head & eyes" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});

@@ -573,6 +573,8 @@ export interface components {
              * @default AM
              */
             initials: string;
+            /** Body Variant */
+            body_variant?: ("male" | "female") | null;
             /** Baseline */
             baseline?: {
                 [key: string]: number;

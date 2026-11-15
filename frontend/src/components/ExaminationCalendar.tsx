@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { EXAM_TYPES } from "../examinationTypes";
 import { post, type ExaminationPlan } from "../services/api";
 import type { ScreenProps } from "../screens/types";
@@ -22,7 +22,6 @@ type Props = Pick<
   ScreenProps,
   "mission" | "crewId" | "navigate" | "deceasedCrewIds"
 >;
-type Editor = { plan?: ExaminationPlan; scheduledAt: string };
 
 export function ExaminationCalendar({
   mission,
@@ -31,15 +30,12 @@ export function ExaminationCalendar({
   deceasedCrewIds,
 }: Props) {
   const [week, setWeek] = useState(() => startOfWeek(mission.serverNow));
-  const [editor, setEditor] = useState<Editor | null>(null);
-  const [updates, setUpdates] = useState<ExaminationPlan[]>([]);
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const crewName =
     mission.crew.find((crew) => crew.id === crewId)?.display_name ?? crewId;
   const all = new Map<string, ExaminationPlan>();
-  for (const plan of [...(mission.operations?.exam_plans ?? []), ...updates]) {
+  for (const plan of mission.operations?.exam_plans ?? []) {
     if (plan.astronaut_id !== crewId) continue;
     if ((all.get(plan.id)?.revision ?? -1) <= plan.revision)
       all.set(plan.id, plan);
@@ -69,40 +65,9 @@ export function ExaminationCalendar({
       .filter((exam) => exam.status === "ACQUIRING" || exam.status === "REVIEW")
       .map((exam) => exam.plan_id),
   );
-  const remember = (plan: ExaminationPlan) => {
-    setUpdates((old) => [...old.filter((item) => item.id !== plan.id), plan]);
-    void mission.refresh();
-  };
-  const editDay = (time: number) => {
-    setError("");
-    setNotice("");
-    setEditor({
-      scheduledAt: new Date(time).toISOString().slice(0, 10) + "T09:00",
-    });
-  };
-  const cancel = async (plan: ExaminationPlan) => {
-    setWorking(plan.id);
-    setError("");
-    setNotice("");
-    try {
-      const result = await post<ExaminationPlan>(
-        `examination-plans/${plan.id}`,
-        { action: "CANCEL", expected_revision: plan.revision },
-      );
-      remember(result);
-      setNotice("Examination plan cancelled.");
-    } catch (cause) {
-      setError(
-        `Could not cancel the plan: ${cause instanceof Error ? cause.message : String(cause)}`,
-      );
-    } finally {
-      setWorking(null);
-    }
-  };
   const start = async (plan: ExaminationPlan) => {
     setWorking(plan.id);
     setError("");
-    setNotice("");
     try {
       await post("examinations", {
         astronaut_id: crewId,
@@ -129,21 +94,6 @@ export function ExaminationCalendar({
       <Panel
         title="Weekly examination calendar"
         className="examination-calendar"
-        action={
-          <button
-            className="primary-button"
-            disabled={unavailable || !!working}
-            onClick={() =>
-              editDay(
-                startOfWeek(mission.serverNow) === week
-                  ? mission.serverNow
-                  : week,
-              )
-            }
-          >
-            Schedule examination
-          </button>
-        }
       >
         <div className="calendar-toolbar">
           <div>
@@ -182,9 +132,9 @@ export function ExaminationCalendar({
           </div>
         </div>
         <p className="caption">
-          SIMULATED · Monday–Sunday · Plans do not run automatically. Start an
-          examination when ready; review and save its result to complete the
-          plan.
+          SIMULATED · Monday–Sunday · Prescheduled examinations. Scheduling is
+          managed by mission administration. Start an examination when ready;
+          review and save its result to complete the plan.
         </p>
         {unavailable ? (
           <p role="status">
@@ -223,14 +173,6 @@ export function ExaminationCalendar({
                           {isoDate === today ? " · Today" : ""}
                         </span>
                       </h3>
-                      <button
-                        className="calendar-add"
-                        aria-label={`Schedule examination on ${isoDate}`}
-                        disabled={!!working}
-                        onClick={() => editDay(date)}
-                      >
-                        + Plan exam
-                      </button>
                       {!daily.length && (
                         <p className="calendar-day-empty">No exams</p>
                       )}
@@ -250,7 +192,7 @@ export function ExaminationCalendar({
                             <Status
                               value={
                                 plan.status === "PLANNED" &&
-                                Date.parse(plan.scheduled_at) <
+                                Date.parse(plan.scheduled_at) <=
                                   mission.serverNow
                                   ? "OVERDUE"
                                   : plan.status
@@ -274,33 +216,6 @@ export function ExaminationCalendar({
                                     {activePlanIds.has(plan.id)
                                       ? "In progress"
                                       : "Start examination"}
-                                  </button>
-                                )}
-                                <button
-                                  disabled={
-                                    !!working || activePlanIds.has(plan.id)
-                                  }
-                                  onClick={() => {
-                                    setError("");
-                                    setEditor({
-                                      plan,
-                                      scheduledAt: plan.scheduled_at.slice(
-                                        0,
-                                        16,
-                                      ),
-                                    });
-                                  }}
-                                >
-                                  Reschedule
-                                </button>
-                                {plan.status === "PLANNED" && (
-                                  <button
-                                    disabled={
-                                      !!working || activePlanIds.has(plan.id)
-                                    }
-                                    onClick={() => void cancel(plan)}
-                                  >
-                                    Cancel plan
                                   </button>
                                 )}
                               </div>
@@ -333,172 +248,13 @@ export function ExaminationCalendar({
             {error}. Refresh the calendar and retry.
           </p>
         )}
-        {notice && (
-          <p className="success-inline" role="status">
-            {notice}
-          </p>
-        )}
         {!canAcquire && !unavailable && (
           <p className="caption">
-            Planning remains available. Fresh, running telemetry for a living
-            crew member is required to start an examination.
+            Fresh, running telemetry for a living crew member is required to
+            start an examination.
           </p>
-        )}
-        {editor && (
-          <PlanEditor
-            key={editor.plan?.id ?? editor.scheduledAt}
-            editor={editor}
-            crewId={crewId}
-            crewName={crewName}
-            onClose={() => setEditor(null)}
-            onSaved={(plan) => {
-              remember(plan);
-              setEditor(null);
-              setNotice(
-                editor.plan
-                  ? "Examination rescheduled."
-                  : "Examination scheduled.",
-              );
-            }}
-          />
         )}
       </Panel>
     </div>
-  );
-}
-
-function PlanEditor({
-  editor,
-  crewId,
-  crewName,
-  onClose,
-  onSaved,
-}: {
-  editor: Editor;
-  crewId: string;
-  crewName: string;
-  onClose: () => void;
-  onSaved: (plan: ExaminationPlan) => void;
-}) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  const dateInput = useRef<HTMLInputElement>(null);
-  const [kind, setKind] = useState<ExaminationPlan["kind"]>(
-    editor.plan?.kind ?? "BLOOD_PRESSURE",
-  );
-  const [scheduledAt, setScheduledAt] = useState(editor.scheduledAt);
-  const [notes, setNotes] = useState(editor.plan?.notes ?? "");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    const previous = document.activeElement;
-    const element = dialog.current!;
-    element.showModal();
-    dateInput.current?.focus();
-    return () => {
-      element.close();
-      if (previous instanceof HTMLElement && previous.isConnected)
-        previous.focus();
-    };
-  }, []);
-  return (
-    <dialog
-      ref={dialog}
-      className="plan-dialog"
-      aria-labelledby="plan-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        if (!busy) onClose();
-      }}
-    >
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault();
-          if (busy || !scheduledAt) return;
-          setBusy(true);
-          setError("");
-          try {
-            const timestamp = new Date(scheduledAt + ":00Z").toISOString();
-            const result = editor.plan
-              ? await post<ExaminationPlan>(
-                  `examination-plans/${editor.plan.id}`,
-                  {
-                    action: "RESCHEDULE",
-                    expected_revision: editor.plan.revision,
-                    scheduled_at: timestamp,
-                    notes,
-                  },
-                )
-              : await post<ExaminationPlan>("examination-plans", {
-                  astronaut_id: crewId,
-                  kind,
-                  scheduled_at: timestamp,
-                  notes,
-                });
-            onSaved(result);
-          } catch (cause) {
-            setError(
-              `Could not save the plan: ${cause instanceof Error ? cause.message : String(cause)}. Please try again.`,
-            );
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        <p className="eyebrow">{crewName} · SIMULATED</p>
-        <h2 id="plan-title">
-          {editor.plan ? "Reschedule examination" : "Schedule examination"}
-        </h2>
-        <label className="field">
-          Examination type
-          <select
-            disabled={busy || !!editor.plan}
-            value={kind}
-            onChange={(event) =>
-              setKind(event.target.value as ExaminationPlan["kind"])
-            }
-          >
-            {EXAM_TYPES.map((exam) => (
-              <option key={exam.kind} value={exam.kind}>
-                {exam.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          Date and time (UTC)
-          <input
-            ref={dateInput}
-            type="datetime-local"
-            required
-            step="60"
-            value={scheduledAt}
-            disabled={busy}
-            onChange={(event) => setScheduledAt(event.target.value)}
-          />
-        </label>
-        <label className="field">
-          Notes (optional)
-          <textarea
-            maxLength={1000}
-            value={notes}
-            disabled={busy}
-            onChange={(event) => setNotes(event.target.value)}
-          />
-        </label>
-        {error && (
-          <p className="error-inline" role="alert">
-            {error}
-          </p>
-        )}
-        <div className="button-row">
-          <button type="button" disabled={busy} onClick={onClose}>
-            Cancel
-          </button>
-          <button className="primary-button" disabled={busy || !scheduledAt}>
-            {busy ? "Saving…" : editor.plan ? "Save changes" : "Save plan"}
-          </button>
-        </div>
-      </form>
-    </dialog>
   );
 }

@@ -1,3 +1,4 @@
+import { ExaminationNotifications } from "./components/ExaminationNotifications";
 import { MoodCheckIn } from "./components/MoodCheckIn";
 import { DataWorkspace } from "./screens/data";
 import { useState } from "react";
@@ -276,6 +277,7 @@ export default function App() {
               <span>DEMO / SIMULATED</span>
             </div>
           </div>
+          <ExaminationNotifications {...props} />
           <TelemetryWarnings {...props} />
           <EarlyWarning {...props} />
           {pending > 0 && (

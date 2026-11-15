@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Observation, Examination } from "../services/api";
+import type { Observation, Examination, CrewMember } from "../services/api";
 import { NAMES, stamp, Status } from "./medical";
 
 type BodyPart = {
@@ -82,9 +82,11 @@ const REGION_SHAPES: Record<
 export function BodyMap({
   observations,
   examinations,
+  bodyVariant,
 }: {
   observations: Observation[];
   examinations: Examination[];
+  bodyVariant?: CrewMember["body_variant"];
 }) {
   const [selected, setSelected] = useState("chest");
   const part = PARTS.find((item) => item.id === selected) ?? PARTS[1];
@@ -128,8 +130,12 @@ export function BodyMap({
           >
             <img
               className="body-image"
-              src="/assets/astronaut-body-realistic.png"
-              alt="Realistic synthetic astronaut body illustration"
+              src={
+                bodyVariant === "male"
+                  ? "/assets/astronaut-body-male.png"
+                  : "/assets/astronaut-body-realistic.png"
+              }
+              alt={`Realistic synthetic ${bodyVariant ? bodyVariant + " " : ""}astronaut body illustration`}
             />
             <svg
               className="body-diagram"

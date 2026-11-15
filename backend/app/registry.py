@@ -6,6 +6,7 @@ CREW = [
         "display_name": "Alex Morgan",
         "role": "Commander",
         "initials": "AM",
+        "body_variant": "female",
         "baseline": {
             "heart_rate": 68.0,
             "systolic_bp": 118.0,
@@ -21,6 +22,7 @@ CREW = [
         "display_name": "Jordan Lee",
         "role": "Flight engineer",
         "initials": "JL",
+        "body_variant": "male",
         "baseline": {
             "heart_rate": 72.0,
             "systolic_bp": 120.0,
@@ -36,6 +38,7 @@ CREW = [
         "display_name": "Sam Rivera",
         "role": "Crew medical officer",
         "initials": "SR",
+        "body_variant": "male",
         "baseline": {
             "heart_rate": 64.0,
             "systolic_bp": 122.0,

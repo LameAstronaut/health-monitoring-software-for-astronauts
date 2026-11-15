@@ -141,6 +141,7 @@ class CrewMember(StrictModel):
     source_type: Literal["SIMULATED"] = "SIMULATED"
     role: str = "Commander"
     initials: str = "AM"
+    body_variant: Literal["male", "female"] | None = None
     baseline: dict[str, float] = Field(default_factory=dict)
 
 
