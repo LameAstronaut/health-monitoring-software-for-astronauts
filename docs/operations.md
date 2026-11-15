@@ -117,11 +117,11 @@ or after completion or plan cancellation. Switching crew switches reminders. Dis
 schedule as last received. Notifications operate while the application is open;
 no browser push permission or background delivery is configured.
 
-## NeuroAdapt reaction practice
+## Sensorimotor Adaptation reaction practice
 
-Risk monitoring → NeuroAdapt includes a 30-second spacebar reaction test. The
+Risk monitoring → Sensorimotor Adaptation includes a 30-second spacebar reaction test. The
 Head & eyes region in Crew body view also offers Open reaction test, which selects
-NeuroAdapt and scrolls to and focuses the same test. Start
+Sensorimotor Adaptation and scrolls to and focuses the same test. Start
 focuses the test area. Wait for the text and color cue, then press and release
 Space. Random 1–3 second waits separate cues. Early presses count as false starts;
 key repeats and held keys do not generate repeated responses. Unanswered cues time
@@ -144,8 +144,8 @@ Weight appears as the eighth dashboard metric, directly below suit pressure and
 to the right of sleep duration on the four-column layout. It uses canonical kg,
 shows RECORDED while telemetry is fresh, and keeps its own timestamp and quality.
 The same code is included in live monitoring, measurement history and export,
-crew baselines, manual telemetry controls, the abdomen body region, AstroNutrition,
-and AstroFit. Initial synthetic weights are 64 / 78 / 82 kg for Alex / Jordan / Sam.
+crew baselines, manual telemetry controls, the abdomen body region, Nutritional Status,
+and Physical Conditioning. Initial synthetic weights are 64 / 78 / 82 kg for Alex / Jordan / Sam.
 
 Weight remains stable across simulation activities. Overrides affect published
 values until cleared; they do not change baseline body mass. A zero weight is a

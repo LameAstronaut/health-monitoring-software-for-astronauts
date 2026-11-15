@@ -18,7 +18,7 @@ const PARTS: BodyPart[] = [
     label: "Head & eyes",
     short: "HEAD",
     codes: ["sleep_duration"],
-    hint: "Completed sleep duration is synthetic context. Spacebar reaction practice is available in NeuroAdapt. Vision, vestibular and neurological examinations are not configured.",
+    hint: "Completed sleep duration is synthetic context. Spacebar reaction practice is available in Sensorimotor Adaptation. Vision, vestibular and neurological examinations are not configured.",
   },
   {
     id: "chest",
@@ -212,7 +212,7 @@ export function BodyMap({
           )}
           {selected === "head" && onOpenReactionTest && (
             <div className="subsection">
-              <h4>NeuroAdapt · Reaction time</h4>
+              <h4>Sensorimotor Adaptation · Reaction time</h4>
               <p>30-second test · Press the spacebar when the cue appears.</p>
               <button className="primary-button" onClick={onOpenReactionTest}>
                 Open reaction test

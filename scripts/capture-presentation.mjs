@@ -99,7 +99,7 @@ try {
 
   // Complete the actual 30-second practice test, preserving realistic browser timings.
   await navigate('Risk monitoring');
-  await page.getByRole('button', { name: /NeuroAdapt/ }).click();
+  await page.getByRole('button', { name: /Sensorimotor Adaptation/ }).click();
   await page.getByRole('button', { name: 'Start reaction test', exact: true }).click();
   const area = page.getByRole('group', { name: 'Spacebar reaction test area' });
   const deadline = Date.now() + 35000;

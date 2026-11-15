@@ -149,7 +149,7 @@ it("logs an actual inventory item and exposes the nine risk categories", async (
     }),
   ).not.toBeInTheDocument();
   await user.click(
-    within(categories).getByRole("button", { name: /BoneGuard/ }),
+    within(categories).getByRole("button", { name: /Skeletal Health/ }),
   );
   expect(
     screen.getByText(

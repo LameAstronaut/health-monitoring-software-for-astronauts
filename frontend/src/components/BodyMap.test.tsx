@@ -105,7 +105,7 @@ it("switches the crew body image while keeping the selected region interactive",
   );
 });
 
-it("opens NeuroAdapt reaction practice from the head region only", async () => {
+it("opens Sensorimotor Adaptation reaction practice from the head region only", async () => {
   const onOpenReactionTest = vi.fn();
   render(
     <BodyMap

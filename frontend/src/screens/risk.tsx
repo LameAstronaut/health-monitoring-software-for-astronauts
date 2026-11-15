@@ -19,7 +19,7 @@ import { VehicleRadiation } from "../components/VehicleRadiation";
 
 export const RISK_MODULES = [
   {
-    name: "ImmuneWatch",
+    name: "Immune Function",
     category: "Altered immune responses",
     codes: ["wbc"],
     candidates:
@@ -30,7 +30,7 @@ export const RISK_MODULES = [
       "Differential counts, cytokines and PCR reports are not integrated.",
   },
   {
-    name: "NeuroAdapt",
+    name: "Sensorimotor Adaptation",
     category: "Sensorimotor & vestibular adaptation",
     codes: ["sleep_duration"],
     candidates:
@@ -41,7 +41,7 @@ export const RISK_MODULES = [
       "A 30-second spacebar reaction practice test is available below. Vestibular and movement-test adapters are not configured.",
   },
   {
-    name: "CardioPredict",
+    name: "Cardiovascular Status",
     category: "Cardiovascular changes",
     codes: [
       "heart_rate",
@@ -56,7 +56,7 @@ export const RISK_MODULES = [
     unavailable: "Ultrasound, HRV and cardiac output are unavailable.",
   },
   {
-    name: "DecompSafe",
+    name: "Pressure & Decompression",
     category: "Decompression risk",
     codes: ["suit_pressure"],
     candidates:
@@ -67,7 +67,7 @@ export const RISK_MODULES = [
       "Gas partial pressures, Doppler findings and approved procedural inputs are unavailable.",
   },
   {
-    name: "OxygenGuard",
+    name: "Oxygenation Status",
     category: "Hypoxia-related observations",
     codes: [
       "spo2",
@@ -84,7 +84,7 @@ export const RISK_MODULES = [
       "Blood gases, oxygen partial pressure and EtCO₂ are unavailable.",
   },
   {
-    name: "AstroNutrition",
+    name: "Nutritional Status",
     category: "Nutrition",
     codes: ["weight"],
     candidates:
@@ -96,7 +96,7 @@ export const RISK_MODULES = [
     destination: "Nutrition" as const,
   },
   {
-    name: "EVA Assist",
+    name: "EVA Physiology",
     category: "EVA injury & performance",
     codes: ["heart_rate", "respiratory_rate", "spo2", "suit_pressure"],
     candidates:
@@ -108,7 +108,7 @@ export const RISK_MODULES = [
     destination: "EVA operations" as const,
   },
   {
-    name: "AstroFit",
+    name: "Physical Conditioning",
     category: "Reduced fitness",
     codes: ["heart_rate", "respiratory_rate", "weight"],
     candidates:
@@ -120,7 +120,7 @@ export const RISK_MODULES = [
     destination: "Fitness" as const,
   },
   {
-    name: "BoneGuard",
+    name: "Skeletal Health",
     category: "Bone changes",
     codes: ["bone_density"],
     candidates:
@@ -299,7 +299,7 @@ export function RiskMonitoring({ mission, crewId, navigate }: ScreenProps) {
               </button>
             )}
           </Panel>
-          {module.name === "NeuroAdapt" && (
+          {module.name === "Sensorimotor Adaptation" && (
             <div
               ref={(element) => {
                 reactionContainer.current = element;

@@ -285,7 +285,7 @@ The seventh dashboard card follows diastolic pressure. On the four-column deskto
 and laptop layout, it sits below oxygen saturation and to the right of diastolic
 pressure. Tablet/mobile layouts retain the existing two-column flow. The same
 measurement is available in live monitoring, trends, crew baselines, observation
-history and the NeuroAdapt/body-map contextual view. Missing readings show no data.
+history and the Sensorimotor Adaptation/body-map contextual view. Missing readings show no data.
 
 
 ## Body-temperature examinations

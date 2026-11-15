@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-test('NeuroAdapt runs a 30-second spacebar reaction test', async ({ page }) => {
+test('Sensorimotor Adaptation runs a 30-second spacebar reaction test', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Risk monitoring', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Start reaction test' })).toHaveCount(0);
-  await page.getByRole('button', { name: /NeuroAdapt/ }).click();
+  await page.getByRole('button', { name: /Sensorimotor Adaptation/ }).click();
   await page.getByRole('button', { name: 'Start reaction test' }).click();
   const area = page.getByRole('group', { name: 'Spacebar reaction test area' });
   await expect(area).toBeFocused();
@@ -42,12 +42,12 @@ test('NeuroAdapt runs a 30-second spacebar reaction test', async ({ page }) => {
 });
 
 
-test('head region opens the NeuroAdapt reaction test', async ({ page }) => {
+test('head region opens the Sensorimotor Adaptation reaction test', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Risk monitoring', exact: true }).click();
   await page.getByRole('button', { name: 'Head & eyes', exact: true }).click();
   await page.getByRole('button', { name: 'Open reaction test', exact: true }).click();
-  await expect(page.getByRole('button', { name: /NeuroAdapt/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: /Sensorimotor Adaptation/ })).toHaveAttribute('aria-pressed', 'true');
   const start = page.getByRole('button', { name: 'Start reaction test', exact: true });
   await expect(start).toBeFocused();
   await expect(start).toBeInViewport();
