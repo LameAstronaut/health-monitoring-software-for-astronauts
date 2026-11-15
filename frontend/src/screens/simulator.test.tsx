@@ -101,19 +101,3 @@ it("applies a pulse decrease as an anomaly for the selected crew", async () => {
     "Playback settings updated",
   );
 });
-
-it("edits completed sleep duration through the existing manual controls", async () => {
-  const input = props();
-  render(<SimulatorControls {...input} />);
-  const field = screen.getByRole("spinbutton", { name: /Sleep duration/ });
-  expect(field).toHaveAttribute("max", "24");
-  await userEvent.type(field, "6.5");
-  await userEvent.click(screen.getByRole("button", { name: "Apply readings" }));
-  expect(input.action).toHaveBeenCalledWith(
-    "demo/control",
-    expect.objectContaining({
-      manual_values: { sleep_duration: 6.5 },
-    }),
-    expect.any(String),
-  );
-});

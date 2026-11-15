@@ -4,6 +4,9 @@ Verified locally on 2026-11-15 on Arch Linux with Python 3.14, Node 26 and Chrom
 Data workspace, its reference-table endpoints and associated tests were subsequently removed at the user’s request. The counts below record the preceding audit.
 Removal verification: 111 backend tests, 155 frontend tests, 23 Rust tests and five targeted
 browser workflows passed, together with lint, formatting, type checking and the production build.
+The subsequent manual telemetry editor removal passed 154 frontend tests, four targeted
+browser workflows (screen layouts, body regions, sleep and weight), lint, formatting,
+type checking and the production build. Simulator API fixtures remain available to tests.
 
 These results describe the audited revision; they do not establish clinical validity or
 prove the absence of all defects.

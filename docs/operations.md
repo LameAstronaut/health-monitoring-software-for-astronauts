@@ -148,7 +148,7 @@ Weight appears as the eighth dashboard metric, directly below suit pressure and
 to the right of sleep duration on the four-column layout. It uses canonical kg,
 shows RECORDED while telemetry is fresh, and keeps its own timestamp and quality.
 The same code is included in live monitoring, measurement history and export,
-crew baselines, manual telemetry controls, the abdomen body region, Nutritional Status,
+crew baselines, the abdomen body region, Nutritional Status,
 and Physical Conditioning. Initial synthetic weights are 64 / 78 / 82 kg for Alex / Jordan / Sam.
 
 Weight remains stable across simulation activities. Overrides affect published

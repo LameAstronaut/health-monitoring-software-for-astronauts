@@ -152,9 +152,10 @@ export function AlertReview({
             </li>
             <li>
               Minimize this warning to open Simulator controls. Pause playback
-              to inspect the event. Clear manual overrides, set the fault to
-              None and press Apply fault, then select Recovery to let modeled
-              readings return toward baseline; resume playback when ready.
+              to inspect the event. Set the fault to None and press Apply fault,
+              then select Recovery to let modeled readings return toward
+              baseline; resume playback when ready. If values remain fixed,
+              restart seeded playback.
             </li>
             <li>
               Check Live monitoring for fresh readings and recovery. Acknowledge

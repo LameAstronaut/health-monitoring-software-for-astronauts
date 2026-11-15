@@ -2,7 +2,7 @@ import { test, expect } from './fixtures';
 
 const API = 'http://127.0.0.1:18000/api/v1';
 
-test('sleep duration is placed below oxygen and beside diastolic pressure, with working editing and history', async ({ page, request }) => {
+test('sleep duration is placed below oxygen and beside diastolic pressure, with recorded values and history', async ({ page, request }) => {
   const control = await (await request.get(`${API}/demo/control`)).json();
   await request.post(`${API}/demo/control`, { data: {
     action: 'RESTART', expected_revision: control.revision, astronaut_id: 'DEMO-CREW-001',
@@ -25,11 +25,10 @@ test('sleep duration is placed below oxygen and beside diastolic pressure, with 
   await page.setViewportSize({ width: 1366, height: 768 });
 
   await page.screenshot({ path: test.info().outputPath('sleep-duration-dashboard.png'), fullPage: true });
-  await page.getByRole('button', { name: 'Simulator controls', exact: true }).click();
-  const input = page.getByRole('spinbutton', { name: /Sleep duration/ });
-  await input.fill('0');
-  await page.getByRole('button', { name: 'Apply readings', exact: true }).click();
-  await page.getByRole('button', { name: 'Mission dashboard', exact: true }).click();
+  // Seed an edge-case reading through the simulator API; there is no manual editor.
+  const state = await (await request.get(`${API}/demo/control`)).json();
+  expect((await request.post(`${API}/demo/control`, { data: { action: 'CONFIGURE', expected_revision: state.revision, manual_values: { sleep_duration: 0 } } })).ok()).toBe(true);
+
   await expect(sleep.locator('.metric-value')).toContainText('0.0');
   await expect(page.locator('.crew-strip').getByRole('button', { name: /Alex Morgan/ })).toContainText('LIVE');
   await expect(page.locator('.crew-strip').getByRole('button', { name: /Alex Morgan/ })).not.toContainText('DECEASED');

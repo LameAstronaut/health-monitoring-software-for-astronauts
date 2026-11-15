@@ -1,4 +1,4 @@
-> Interface guide: [Manual telemetry, interactive body view, and alert behavior](docs/manual-telemetry.md).
+> Interface guide: [Interactive body view and alert behavior](docs/body-view-and-alerts.md).
 >
 > Server hosting: [Ubuntu/Debian setup and commands](docs/ubuntu-debian-server.md).
 

@@ -2484,12 +2484,6 @@ button[aria-pressed="true"] {
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
-.manual-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 18px;
-  margin: 20px 0;
-}
 .table-scroll {
   overflow: auto;
   max-height: 600px;

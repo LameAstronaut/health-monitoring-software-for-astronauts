@@ -195,11 +195,11 @@ test('pulse rises quickly at 1x and every alert opens full screen with controlla
   await expect(page.locator('.alert-record').filter({hasText:'respiratory-rise'})).toContainText('ACKNOWLEDGED');
 });
 
-test('manual editor changes worker readings and body regions respond to selection', async ({page,request}) => {
+test('body regions display seeded worker readings', async ({page,request}) => {
   await page.getByRole('button',{name:'Simulator controls',exact:true}).click();
-  await page.getByLabel(/Heart rate beats/).fill('88');
-  await page.getByRole('button',{name:'Apply readings'}).click();
-  await expect(page.getByText('Manual overrides active for this crew.')).toBeVisible();
+  await expect(page.getByRole('heading', {name:'Manual telemetry editor'})).toHaveCount(0);
+  const state = await (await request.get(`${API}/demo/control`)).json();
+  expect((await request.post(`${API}/demo/control`, {data:{action:'CONFIGURE',expected_revision:state.revision,manual_values:{heart_rate:88}}})).ok()).toBe(true);
   await expect.poll(async () => {
     const observations = await (await request.get(`${API}/observations?astronaut_id=DEMO-CREW-001`)).json();
     return observations.filter((o: {code:string}) => o.code === 'heart_rate').at(-1)?.value;

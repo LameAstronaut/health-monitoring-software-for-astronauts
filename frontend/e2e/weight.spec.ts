@@ -19,15 +19,14 @@ test('weight sits below suit pressure and supports overrides, history and body v
     expect(bounds!.x).toBeGreaterThan(sleep!.x);
     expect(Math.abs(bounds!.y - sleep!.y)).toBeLessThan(1);
   }
-  await page.getByRole('button', { name: 'Simulator controls', exact: true }).click();
-  await page.getByRole('spinbutton', { name: /Weight/ }).fill('0');
-  await page.getByRole('button', { name: 'Apply readings', exact: true }).click();
-  await page.getByRole('button', { name: 'Mission dashboard', exact: true }).click();
+  // Seed an edge-case reading through the simulator API; there is no manual editor.
+  const state = await (await request.get(`${API}/demo/control`)).json();
+  expect((await request.post(`${API}/demo/control`, { data: { action: 'CONFIGURE', expected_revision: state.revision, manual_values: { weight: 0 } } })).ok()).toBe(true);
+
   await expect(weight.locator('.metric-value')).toContainText('0.0');
   await expect(page.locator('.crew-strip').getByRole('button', { name: /Alex Morgan/ })).not.toContainText('DECEASED');
-  await page.getByRole('button', { name: 'Simulator controls', exact: true }).click();
-  await page.getByRole('spinbutton', { name: /Weight/ }).fill('64.5');
-  await page.getByRole('button', { name: 'Apply readings', exact: true }).click();
+  const updated = await (await request.get(`${API}/demo/control`)).json();
+  expect((await request.post(`${API}/demo/control`, { data: { action: 'CONFIGURE', expected_revision: updated.revision, manual_values: { weight: 64.5 } } })).ok()).toBe(true);
   await page.getByRole('button', { name: 'Live monitoring', exact: true }).click();
   await expect(weight.locator('.metric-value')).toContainText('64.5');
   await page.getByRole('combobox', { name: 'Measurement', exact: true }).selectOption('weight');
