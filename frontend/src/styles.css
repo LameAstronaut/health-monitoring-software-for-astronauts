@@ -2490,20 +2490,6 @@ button[aria-pressed="true"] {
   gap: 18px;
   margin: 20px 0;
 }
-.dataset-editor {
-  border: 0;
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-}
-.dataset-editor textarea {
-  min-height: 90px;
-  width: 100%;
-  font: inherit;
-  padding: 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-}
 .table-scroll {
   overflow: auto;
   max-height: 600px;
@@ -2511,33 +2497,10 @@ button[aria-pressed="true"] {
   border: 1px solid var(--border);
   border-radius: 8px;
 }
-.table-scroll input {
-  min-width: 150px;
-  width: 100%;
-}
 .table-scroll thead {
   position: sticky;
   top: 0;
   background: var(--surface);
-}
-.dataset-library {
-  list-style: none;
-  padding: 0;
-  max-height: 220px;
-  overflow: auto;
-}
-.dataset-library button {
-  width: 100%;
-  text-align: left;
-  margin: 4px 0;
-}
-.dataset-library small {
-  display: block;
-  color: var(--text);
-  margin-top: 5px;
-}
-.dataset-digest {
-  overflow-wrap: anywhere;
 }
 
 .early-warning {

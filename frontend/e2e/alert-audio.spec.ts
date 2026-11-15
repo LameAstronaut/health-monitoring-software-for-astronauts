@@ -22,7 +22,7 @@ test('red alerts provide gesture-enabled sound, persistent mute, and consistent 
     if (alert.state === 'PENDING_REVIEW') await request.post(`${API}/alerts/${alert.id}/acknowledge`);
   }
   await page.goto('/');
-  await expect(page.locator('.sidebar nav .app-icon')).toHaveCount(12);
+  await expect(page.locator('.sidebar nav .app-icon')).toHaveCount(11);
   await expect(page.locator('.metric-card')).toHaveCount(8);
   await expect(page.locator('.crew-summary')).toHaveCount(3);
   await expect(page.locator('.metric-card .status').filter({ hasText: /^LIVE$/ }).first()).toBeVisible();

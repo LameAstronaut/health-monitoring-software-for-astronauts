@@ -195,23 +195,6 @@ test('pulse rises quickly at 1x and every alert opens full screen with controlla
   await expect(page.locator('.alert-record').filter({hasText:'respiratory-rise'})).toContainText('ACKNOWLEDGED');
 });
 
-test('reference tables import, persist and retain NASA provenance', async ({page}) => {
-  await page.getByRole('button', {name:'Data workspace',exact:true}).click();
-  await page.getByLabel('Import CSV').setInputFiles({name:'research.csv',mimeType:'text/csv',buffer:Buffer.from('Subject,Temperature\n001,22.5\n002,23.1\n')});
-  await page.getByLabel('Dataset identifier').fill('OSD-test-fixture');
-  await page.getByLabel('Original NASA source URL').fill('https://osdr.nasa.gov/bio/repo/');
-  await page.getByLabel('Column 2 unit').fill('C');
-  await page.getByRole('button',{name:'Save reference table'}).click();
-  await expect(page.getByText('Table saved. Provenance and checksum recorded.')).toBeVisible();
-  await expect(page.getByLabel('Row 1, Subject')).toHaveValue('001');
-  await expect(page.getByLabel('Row 1, Subject')).toBeDisabled();
-  await page.reload();
-  await page.getByRole('button',{name:'Data workspace',exact:true}).click();
-  await page.getByRole('button',{name:/research NASA/}).click();
-  await expect(page.getByLabel('Column 2 unit')).toHaveValue('C');
-  await page.screenshot({path: test.info().outputPath('data-workspace.png'),fullPage:true});
-});
-
 test('manual editor changes worker readings and body regions respond to selection', async ({page,request}) => {
   await page.getByRole('button',{name:'Simulator controls',exact:true}).click();
   await page.getByLabel(/Heart rate beats/).fill('88');

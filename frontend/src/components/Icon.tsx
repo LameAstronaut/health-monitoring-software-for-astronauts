@@ -12,7 +12,6 @@ const PATHS = {
   alert: "M12 3 2 21h20z M12 9v5 M12 17v.5",
   simulator:
     "M4 3v7 M4 14v7 M12 3v11 M12 18v3 M20 3v3 M20 10v11 M1 10h6v4H1z M9 14h6v4H9z M17 6h6v4h-6z",
-  data: "M3 6c0-5 18-5 18 0s-18 5-18 0z M3 6v6c0 5 18 5 18 0V6 M3 12v6c0 5 18 5 18 0v-6",
   orbit: "M8 4a9 9 0 1 0 12 12 M12 8a4 4 0 1 0 4 4 M14 3h7v7 M21 3l-8 8",
   volume: "M11 4 6 8H2v8h4l5 4z M15 8a6 6 0 0 1 0 8 M18 4a11 11 0 0 1 0 16",
   muted: "M11 4 6 8H2v8h4l5 4z M16 9l6 6 M22 9l-6 6",

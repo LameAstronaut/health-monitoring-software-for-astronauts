@@ -1,7 +1,6 @@
 import { anomalousVitals } from "./vitalAnomalies";
 import { ExaminationNotifications } from "./components/ExaminationNotifications";
 import { MoodCheckIn } from "./components/MoodCheckIn";
-import { DataWorkspace } from "./screens/data";
 import { useState } from "react";
 import { post } from "./services/api";
 import { useMission } from "./useMission";
@@ -24,8 +23,6 @@ import { AlertAudioControl } from "./components/AlertAudioControl";
 import { useAlertAudio } from "./useAlertAudio";
 
 const DESCRIPTIONS: Record<Page, string> = {
-  "Data workspace":
-    "Import NASA reference tables, define data fields, and edit simulation research records.",
   "Mission dashboard":
     "A clear view of your crew, physiological data, and scheduled medical work.",
   "Crew profiles":
@@ -61,10 +58,8 @@ const ICONS: IconName[] = [
   "eva",
   "alert",
   "simulator",
-  "data",
 ];
 const SCREENS: Record<Page, (props: ScreenProps) => React.ReactNode> = {
-  "Data workspace": DataWorkspace,
   "Mission dashboard": Dashboard,
   "Crew profiles": CrewProfiles,
   "Live monitoring": LiveMonitoring,

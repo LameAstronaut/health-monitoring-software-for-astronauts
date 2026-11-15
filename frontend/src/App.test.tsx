@@ -32,6 +32,14 @@ it("renders a readable demo workspace with honest missing measurement states", (
   expect(
     screen.getByRole("heading", { level: 1, name: "Mission dashboard" }),
   ).toBeVisible();
+  expect(
+    within(
+      screen.getByRole("navigation", { name: "Main navigation" }),
+    ).getAllByRole("button"),
+  ).toHaveLength(11);
+  expect(
+    screen.queryByRole("button", { name: "Data workspace" }),
+  ).not.toBeInTheDocument();
   expect(screen.getByText("API CONNECTED")).toBeVisible();
   expect(screen.getAllByText("DEMO / SIMULATED").length).toBeGreaterThan(0);
   expect(screen.getAllByText(/^Awaiting first observation/).length).toBe(7);

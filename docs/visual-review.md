@@ -23,7 +23,7 @@ tabular numerals and controls at least 56 px high (64 px in full-screen alert re
 to values. Text labels distinguish LIVE, STALE, DISCONNECTED, NOT AVAILABLE, HISTORICAL,
 INVALID and ERROR; color is supplementary. Medical values have no transition animation.
 
-The navigation rail scrolls to keep all twelve destinations usable with larger touch targets.
+The navigation rail scrolls to keep all eleven destinations usable with larger touch targets.
 Laptop and tablet layouts use two metric columns and stacked panels; desktop uses four metric
 columns and wider charts. Every new anomaly opens a full-screen red alert, including
 priority 2 events and events for another crew member. The initial view shows a short anomaly

@@ -8,7 +8,6 @@ from sqlalchemy import func, select
 
 from . import operations as ops
 from .database import AlertRow, ObservationRow, PacketRow, RecordRow
-from .datasets import build_dataset_router
 from .devices import SimulatedAdapter
 from .operation_schemas import (
     ControlCommand,
@@ -533,5 +532,4 @@ def build_operations_router(sessions, service, config):
             db.commit()
             return row.data
 
-    router.include_router(build_dataset_router(sessions, operator))
     return router
